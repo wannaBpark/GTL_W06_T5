@@ -107,10 +107,10 @@ struct AABB
 // SpotLightvsAABB 함수 
 bool SpotlightVsAABB(Spotlight spotlight, AABB aabb)
 {
-    float sphereRadius = length(aabb.extents); // AABB → Bounding Sphere 반지름^2
-    float3 v = aabb.center - spotlight.position; // spotlight → AABB 중심까지 벡터
-    float lenSq = dot(v, v); // v 벡터의 길이^2
-    float v1Len = dot(v, spotlight.direction); // v 벡터를 spotlight 방향으로 투영한 길이
+    float sphereRadius = length(aabb.extents);      // AABB → Bounding Sphere 반지름^2
+    float3 v = aabb.center - spotlight.position;    // spotlight → AABB 중심까지 벡터
+    float lenSq = dot(v, v);                        // v 벡터의 길이^2
+    float v1Len = dot(v, spotlight.direction);      // v 벡터를 spotlight 방향으로 투영한 길이
 
     // cone 외곽선과의 최소 거리 계산 - cos/sin (라디안)
     float cosA = cos(spotlight.angle);
@@ -356,54 +356,79 @@ void mainCS(uint3 groupID : SV_GroupID, uint3 dispatchID : SV_DispatchThreadID, 
             }
         }
         
-        float3 xyMin = viewCorners[0];
-        float3 xyMax = viewCorners[0];
-        [unroll]
-        for (uint k = 1; k < 4; ++k)
+       // 1) TileFrustum의 4개 모서리(near plane) → view‑space 레이 방향 계산
+        float2 uvs[4] =
         {
-            xyMin.xy = min(xyMin.xy, viewCorners[k].xy);
-            xyMax.xy = max(xyMax.xy, viewCorners[k].xy);
+            tileMin / screenSize, // top-left
+        float2(tileMax.x, tileMin.y) / screenSize, // top-right
+        float2(tileMin.x, tileMax.y) / screenSize, // bottom-left
+        tileMax / screenSize // bottom-right
+        };
+        float3 rayDir[4];
+    [unroll]
+        for (int k = 0; k < 4; ++k)
+        {
+        // NDC.xy  = [-1,1]
+            float2 ndc = uvs[k] * 2.0 - 1.0;
+        // 클립공간 위치 (near Z 사용)
+            float4 clipPos = float4(ndc, NearZ, 1.0);
+        // view‑space로 복원
+            float4 vsPos = mul(clipPos, InverseProjection);
+            vsPos.xyz /= vsPos.w;
+            rayDir[k] = normalize(vsPos.xyz);
         }
-        float2 tileCenterXY = (xyMin.xy + xyMax.xy) * 0.5;
-        float2 tileHalfSizeXY = (xyMax.xy - xyMin.xy) * 0.5;
-        
-        // 2) SpotLight Culling
+
+    // 전체 타일 depth 범위
+        float depthRange = maxZ - minZ;
+        float sliceH = depthRange / float(NUM_SLICES);
+
+    // 2) SpotLight Culling
         for (uint j = 0; j < NumSpotLights; ++j)
         {
             FSpotLightGPU light = SpotLightBuffer[j];
-            
-            float3 posVS = mul(float4(light.Position, 1.0), View).xyz;
-            float3 dirVS = normalize(mul(float4(light.Direction, 0.0), View).xyz);
-            float halfAngle = radians(light.AngleDeg);
-            
-            // slice당 Z 높이와 반높이
-            float sliceHeight = (clipFar - clipNear) / float(NUM_SLICES);
-            float halfSliceZ = sliceHeight * 0.5;
-            
+            float3 posVS = mul(float4(light.Position, 1), View).xyz;
+            float3 dirVS = normalize(mul(float4(light.Direction, 0), View).xyz);
+            float halfA = radians(light.AngleDeg * 0.5);
+            Spotlight sl = { posVS, light.Radius, dirVS, halfA };
+
+        // 32 depth-slices
             for (int slice = 0; slice < NUM_SLICES; ++slice)
             {
-                // 각 슬라이스의 Z 중앙
-                float sliceCenterZ = minZ + sliceHeight * (slice + 0.5);
+            // 이 슬라이스의 중앙 깊이 (view-space)
+                float sliceDepth = minZ + (slice + 0.5) * sliceH;
 
-                // AABB 구성 (XY는 고정, Z만 변화)
+            // 4개 RayDir을 sliceDepth에 맞춰 절단 → 4개 XY 얻기
+                float3 mn = float3(1e+10, 1e+10, sliceDepth);
+                float3 mx = float3(-1e+10, -1e+10, sliceDepth);
+
+            [unroll]
+                for (int k = 0; k < 4; ++k)
+                {
+                // t = depth / rayDir.z
+                    float t = sliceDepth / rayDir[k].z;
+                    float3 p = rayDir[k] * t; // view-space (x,y,z)
+
+                    mn = min(mn, p);
+                    mx = max(mx, p);
+                }
+
+            // 이 슬라이스를 감싸는 AABB 구성
                 AABB sliceAABB;
-                sliceAABB.center = float3(tileCenterXY, sliceCenterZ);
-                sliceAABB.extents = float3(tileHalfSizeXY, halfSliceZ);
+                sliceAABB.center = (mn + mx) * 0.5;
+                sliceAABB.extents = (mx - mn) * 0.5;
 
-            
-                // 타일의 Z슬라이스 AABB와 Spotlight 교차 판정
-                Spotlight sl = { posVS, light.Radius, dirVS, halfAngle };
+            // Spotlight vs AABB 충돌 테스트
                 if (!SpotlightVsAABB(sl, sliceAABB))
                     continue;
-            
-            
-                uint bucketIdx = j / 32;
-                uint bitIdx = j % 32;
-                InterlockedOr(TileSpotLightMask[flatTileIndex * SHADER_ENTITY_TILE_BUCKET_COUNT + bucketIdx], 1u << bitIdx);
+
+            // 한 번이라도 통과하면 비트 세팅하고 탈출
+                uint bucket = j / 32;
+                uint bit = j % 32;
+                uint idx = flatTileIndex * SHADER_ENTITY_TILE_BUCKET_COUNT + bucket;
+                InterlockedOr(TileSpotLightMask[idx], 1u << bit);
                 InterlockedAdd(hitCount, 1);
-                break; // 
+                break;
             }
-            
         }
     }
     GroupMemoryBarrierWithGroupSync();
