@@ -497,10 +497,16 @@ void FEditorRenderPass::RenderPointlightInstanced()
     {
         if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
-            FConstantBufferDebugSphere b;
-            b.Position = PointLightComp->GetWorldLocation();
-            b.Radius = PointLightComp->GetRadius();
-            BufferAll.Add(b);
+            if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
+            {
+                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(PointLightComp))
+                {
+                    FConstantBufferDebugSphere b;
+                    b.Position = PointLightComp->GetWorldLocation();
+                    b.Radius = PointLightComp->GetRadius();
+                    BufferAll.Add(b);
+                }
+            }
         }
 
     }
@@ -566,22 +572,25 @@ void FEditorRenderPass::RenderSpotlightInstanced()
     TArray<FConstantBufferDebugCone> BufferAll;
     for (ULightComponentBase* LightComp : Resources.Components.Light)
     {
-        if (USpotLightComponent* SpotComp = Cast<USpotLightComponent>(LightComp))
+        if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
         {
-            if (SpotComp == Cast<UEditorEngine>(GEngine)->GetSelectedComponent())
+            if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
             {
-                FConstantBufferDebugCone b;
-                b.ApexPosiiton = SpotComp->GetWorldLocation();
-                b.Radius = SpotComp->GetRadius();
-                b.Direction = SpotComp->GetDirection();
+                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(SpotLightComp))
+                {
+                    FConstantBufferDebugCone b;
+                    b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                    b.Radius = SpotLightComp->GetRadius();
+                    b.Direction = SpotLightComp->GetDirection();
 
-                // Inner Cone
-                b.Angle = SpotComp->GetInnerRad();
-                BufferAll.Add(b);
+                    // Inner Cone
+                    b.Angle = SpotLightComp->GetInnerRad();
+                    BufferAll.Add(b);
 
-                // Outer Cone
-                b.Angle = SpotComp->GetOuterRad();
-                BufferAll.Add(b);
+                    // Outer Cone
+                    b.Angle = SpotLightComp->GetOuterRad();
+                    BufferAll.Add(b);
+                }
             }
         }
     }

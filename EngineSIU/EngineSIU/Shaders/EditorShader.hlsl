@@ -130,22 +130,21 @@ PS_INPUT sphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
     
     float3 pos = DataSphere[instanceID].Position;
     float scale = DataSphere[instanceID].Radius;
-    //scale = float3(1, 1, 1);
     
     float4 localPos = float4(input.position.xyz * scale + pos, 1.f);
         
     localPos = mul(localPos, ViewMatrix);
     localPos = mul(localPos, ProjectionMatrix);
     output.position = localPos;
-    
-    // color는 지정안해줌
+
+    output.color = float4(100.f / 255.f, 220.f / 255.f, 255.f / 255.f, 1.0f);
     
     return output;
 }
 
 float4 spherePS(PS_INPUT input) : SV_Target
 {
-    return float4(0.777f, 1.0f, 1.0f, 1.0f); // 하늘색
+    return input.color;
 }
 
 /////////////////////////////////////////////
