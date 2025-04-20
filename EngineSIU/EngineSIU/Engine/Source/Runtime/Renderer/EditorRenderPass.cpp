@@ -427,8 +427,8 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
 
     if (ShowFlag & EEngineShowFlags::SF_LightWireframe)
     {
-        RenderPointlightInstanced();
-        RenderSpotlightInstanced();
+        RenderPointlightInstanced(ShowFlag);
+        RenderSpotlightInstanced(ShowFlag);
     }
 
     RenderArrows();    // Directional Light Arrow : Depth Test Enabled
@@ -484,7 +484,7 @@ void FEditorRenderPass::UdpateConstantbufferAABBInstanced(TArray<FConstantBuffer
     }
 }
 
-void FEditorRenderPass::RenderPointlightInstanced()
+void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
 {
     SetShaderAndPrepare(L"SphereVS", L"SpherePS", Resources.Shaders.Sphere);
     UINT offset = 0;
@@ -497,18 +497,27 @@ void FEditorRenderPass::RenderPointlightInstanced()
     {
         if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
-            if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
+            if (ShowFlag & EEngineShowFlags::SF_LightWireframeSelectedOnly)
             {
-                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(PointLightComp))
+                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
                 {
-                    FConstantBufferDebugSphere b;
-                    b.Position = PointLightComp->GetWorldLocation();
-                    b.Radius = PointLightComp->GetRadius();
-                    BufferAll.Add(b);
+                    if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(PointLightComp))
+                    {
+                        FConstantBufferDebugSphere b;
+                        b.Position = PointLightComp->GetWorldLocation();
+                        b.Radius = PointLightComp->GetRadius();
+                        BufferAll.Add(b);
+                    }
                 }
             }
+            else
+            {
+                FConstantBufferDebugSphere b;
+                b.Position = PointLightComp->GetWorldLocation();
+                b.Radius = PointLightComp->GetRadius();
+                BufferAll.Add(b);
+            }
         }
-
     }
 
     PrepareConstantbufferPointlight();
@@ -564,7 +573,7 @@ void FEditorRenderPass::UdpateConstantbufferPointlightInstanced(TArray<FConstant
     }
 }
 
-void FEditorRenderPass::RenderSpotlightInstanced()
+void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
 {
     SetShaderAndPrepare(L"ConeVS", L"ConePS", Resources.Shaders.Cone);
 
@@ -574,23 +583,37 @@ void FEditorRenderPass::RenderSpotlightInstanced()
     {
         if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
         {
-            if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
+            if (ShowFlag & EEngineShowFlags::SF_LightWireframeSelectedOnly)
             {
-                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(SpotLightComp))
+                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
                 {
-                    FConstantBufferDebugCone b;
-                    b.ApexPosiiton = SpotLightComp->GetWorldLocation();
-                    b.Radius = SpotLightComp->GetRadius();
-                    b.Direction = SpotLightComp->GetDirection();
-
-                    // Inner Cone
-                    b.Angle = SpotLightComp->GetInnerRad();
-                    BufferAll.Add(b);
-
-                    // Outer Cone
-                    b.Angle = SpotLightComp->GetOuterRad();
-                    BufferAll.Add(b);
+                    if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(SpotLightComp))
+                    {
+                        FConstantBufferDebugCone b;
+                        b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                        b.Radius = SpotLightComp->GetRadius();
+                        b.Direction = SpotLightComp->GetDirection();
+                        // Inner Cone
+                        b.Angle = SpotLightComp->GetInnerRad();
+                        BufferAll.Add(b);
+                        // Outer Cone
+                        b.Angle = SpotLightComp->GetOuterRad();
+                        BufferAll.Add(b);
+                    }
                 }
+            }
+            else
+            {
+                FConstantBufferDebugCone b;
+                b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                b.Radius = SpotLightComp->GetRadius();
+                b.Direction = SpotLightComp->GetDirection();
+                // Inner Cone
+                b.Angle = SpotLightComp->GetInnerRad();
+                BufferAll.Add(b);
+                // Outer Cone
+                b.Angle = SpotLightComp->GetOuterRad();
+                BufferAll.Add(b);
             }
         }
     }
@@ -617,7 +640,7 @@ void FEditorRenderPass::RenderSpotlightInstanced()
         {
             UdpateConstantbufferSpotlightInstanced(SubBuffer);
             // Only Draw Selected SpotLight's Cone = 2 | Cone: (24 * 2) * 2 + Sphere: (10 * 2) * 2 = 136
-            Graphics->DeviceContext->DrawInstanced(136, 2, 0, 0);
+            Graphics->DeviceContext->DrawInstanced(136, SubBuffer.Num(), 0, 0);
         }
     }
 }
