@@ -22,7 +22,7 @@
 #include "Engine/Classes/Components/HeightFogComponent.h"
 #include "Engine/Classes/Components/Light/AmbientLightComponent.h"
 #include "Engine/FLoaderOBJ.h"
-
+#include "PropertyEditor/ShowFlags.h"
 
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
@@ -423,8 +423,14 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
     // ID3D11DepthStencilState* DepthStateEnable = Graphics->DepthStencilState;
     // Graphics->DeviceContext->OMSetDepthStencilState(DepthStateEnable, 0);
 
-    RenderPointlightInstanced();
-    RenderSpotlightInstanced();
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+
+    if (ShowFlag & EEngineShowFlags::SF_LightWireframe)
+    {
+        RenderPointlightInstanced();
+        RenderSpotlightInstanced();
+    }
+
     RenderArrows();    // Directional Light Arrow : Depth Test Enabled
     //RenderIcons(World, ActiveViewport); // 기존 렌더패스에서 아이콘 렌더하고 있으므로 제거
 
