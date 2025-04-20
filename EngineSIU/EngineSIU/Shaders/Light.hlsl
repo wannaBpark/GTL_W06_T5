@@ -11,6 +11,8 @@
 #define DIRECTIONAL_LIGHT   3
 #define AMBIENT_LIGHT       4
 
+#define MAX_LIGHT_PER_TILE 256
+
 struct FAmbientLightInfo
 {
     float4 AmbientColor;
@@ -66,6 +68,34 @@ cbuffer Lighting : register(b0)
     int AmbientLightsCount;
 };
 
+cbuffer TileLightCullSettings : register(b8)
+{
+    uint2 ScreenSize; // 화면 해상도
+    uint2 TileSize; // 한 타일의 크기 (예: 16x16)
+
+    float NearZ; // 카메라 near plane
+    float FarZ; // 카메라 far plane
+
+    row_major matrix TileViewMatrix; // View 행렬
+    row_major matrix TileProjectionMatrix; // Projection 행렬
+    row_major matrix TileInverseProjection; // Projection^-1, 뷰스페이스 복원용
+
+    uint NumLights; // 총 라이트 수
+    uint Enable25DCulling; // 1이면 2.5D 컬링 사용
+}
+
+struct LightPerTiles
+{
+    uint NumLights;
+    uint Indices[MAX_LIGHT_PER_TILE];
+    uint Padding[3];
+};
+StructuredBuffer<FPointLightInfo> gPointLights : register(t10);
+StructuredBuffer<LightPerTiles> gPointLightPerTiles : register(t20);
+
+StructuredBuffer<FSpotLightInfo> gSpotLights : register(t11);
+StructuredBuffer<LightPerTiles> gSpotLightPerTiles : register(t21);
+
 float CalculateAttenuation(float Distance, float AttenuationFactor, float Radius)
 {
     if (Distance > Radius)
@@ -102,12 +132,13 @@ float CalculateSpecular(float3 WorldNormal, float3 ToLightDir, float3 ViewDir, f
     float3 HalfDir = normalize(ToLightDir + ViewDir); // Blinn-Phong
     float Spec = pow(max(dot(WorldNormal, HalfDir), 0.0), Shininess);
 #endif
-    return Spec * SpecularStrength;
+    return Spec * SpecularStrength; 
 }
 
 float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float WorldViewPosition, float3 DiffuseColor)
 {
-    FPointLightInfo LightInfo = PointLights[Index];
+    FPointLightInfo LightInfo = gPointLights[Index];
+    //FPointLightInfo LightInfo = PointLights[Index];
     
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
@@ -133,7 +164,8 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
 
 float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor)
 {
-    FSpotLightInfo LightInfo = SpotLights[Index];
+    FSpotLightInfo LightInfo = gSpotLights[Index];
+    // FSpotLightInfo LightInfo = SpotLights[Index];
     
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
@@ -181,16 +213,62 @@ float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     return float4(Lit * LightInfo.Intensity, 1.0);
 }
 
+float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, uint TileIndex)
+{
+    float4 FinalColor = float4(0.0, 0.0, 0.0, 0.0);
+
+    // 현재 타일의 조명 정보 읽기
+    LightPerTiles TileLights = gPointLightPerTiles[TileIndex];
+    // 조명 기여 누적 (예시: 단순히 조명 색상을 더함)
+    for (uint i = 0; i < TileLights.NumLights; ++i)
+    {
+        // tileLights.Indices[i] 는 전역 조명 인덱스
+        uint gPointLightIndex = TileLights.Indices[i];
+        //FPointLightInfo light = gPointLights[gPointLightIndex];
+        FinalColor += PointLight(gPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+    }
+
+    TileLights = gSpotLightPerTiles[TileIndex];
+    // 조명 기여 누적 (예시: 단순히 조명 색상을 더함)
+    for (uint i = 0; i < TileLights.NumLights; ++i)
+    {
+        // tileLights.Indices[i] 는 전역 조명 인덱스
+        uint gSpotLightIndex = TileLights.Indices[i];
+        //FPointLightInfo light = gPointLights[gPointLightIndex];
+        FinalColor += SpotLight(gSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+    }
+    
+    // [unroll(MAX_SPOT_LIGHT)]
+    // for (int j = 0; j < SpotLightsCount; j++)
+    // {
+    //     FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+    // }
+    [unroll(MAX_DIRECTIONAL_LIGHT)]
+    for (int k = 0; k < DirectionalLightsCount; k++)
+    {
+        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+    }
+    [unroll(MAX_AMBIENT_LIGHT)]
+    for (int l = 0; l < AmbientLightsCount; l++) 
+    {
+        FinalColor += float4(Ambient[l].AmbientColor.rgb * DiffuseColor, 0.0);
+        FinalColor.a = 1.0;
+    }
+    
+    return FinalColor;
+}
+
 float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor)
 {
     float4 FinalColor = float4(0.0, 0.0, 0.0, 0.0);
-    
+
     // 다소 비효율적일 수도 있음.
     [unroll(MAX_POINT_LIGHT)]
     for (int i = 0; i < PointLightsCount; i++)
     {
         FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
-    }    
+    }
+
     [unroll(MAX_SPOT_LIGHT)]
     for (int j = 0; j < SpotLightsCount; j++)
     {
@@ -204,7 +282,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     [unroll(MAX_AMBIENT_LIGHT)]
     for (int l = 0; l < AmbientLightsCount; l++)
     {
-        FinalColor += float4(Ambient[l].AmbientColor.rgb, 0.0);
+        FinalColor += float4(Ambient[l].AmbientColor.rgb * DiffuseColor, 0.0);
         FinalColor.a = 1.0;
     }
     

@@ -50,16 +50,25 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         float3 Normal = NormalTexture.Sample(NormalSampler, Input.UV).rgb;
         Normal = normalize(2.f * Normal - 1.f);
-        WorldNormal = normalize(mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld));
+        WorldNormal = mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld);
     }
-    
+    WorldNormal = normalize(WorldNormal);
+
+    // Begin for Tile based light culled result
+    // 현재 픽셀이 속한 타일 계산 (input.position = 화면 픽셀좌표계)
+    uint2 PixelCoord = uint2(Input.Position.xy);
+    uint2 TileCoord = PixelCoord / TileSize; // 각 성분별 나눔
+    uint TilesX = ScreenSize.x / TileSize.x; // 한 행에 존재하는 타일 수
+    uint FlatTileIndex = TileCoord.x + TileCoord.y * TilesX;
+    // End for Tile based light culled result
+
     // Lighting
     if (IsLit)
     {
 #ifdef LIGHTING_MODEL_GOURAUD
         FinalColor = float4(Input.Color.rgb * DiffuseColor, 1.0);
 #else
-        float3 LitColor = Lighting(Input.WorldPosition, WorldNormal, Input.WorldViewPosition, DiffuseColor).rgb;
+        float3 LitColor = Lighting(Input.WorldPosition, WorldNormal, Input.WorldViewPosition, DiffuseColor, FlatTileIndex).rgb;
         FinalColor = float4(LitColor, 1);
 #endif
     }

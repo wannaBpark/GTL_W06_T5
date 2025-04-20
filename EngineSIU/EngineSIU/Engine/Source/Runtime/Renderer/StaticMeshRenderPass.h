@@ -21,13 +21,15 @@ public:
     
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
-    virtual void PrepareRender() override;
+    virtual void PrepareRenderArr() override;
 
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
 
-    void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
+
+    virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
   
@@ -45,7 +47,7 @@ public:
 
     void ChangeViewMode(EViewModeIndex ViewModeIndex);
     
-private:
+protected:
     TArray<UStaticMeshComponent*> StaticMeshComponents;
 
     ID3D11VertexShader* VertexShader;
