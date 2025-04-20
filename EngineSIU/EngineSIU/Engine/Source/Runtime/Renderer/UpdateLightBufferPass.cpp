@@ -54,7 +54,7 @@ void FUpdateLightBufferPass::PrepareRenderArr()
             }
             else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
             {
-                SpotLights.Add(SpotLight);
+                //SpotLights.Add(SpotLight); // UnUsed : Structured Buffer로 전달
             }
             else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
             {
@@ -347,6 +347,7 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
     {
         TempBuffer[i] = SpotLights[i]->GetSpotLightInfo();
         TempBuffer[i].Position = SpotLights[i]->GetWorldLocation();
+        TempBuffer[i].Direction = SpotLights[i]->GetDirection();
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightBuffer, 0, nullptr,

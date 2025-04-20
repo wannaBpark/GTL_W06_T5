@@ -55,6 +55,7 @@ void FTileLightCullingPass::PrepareRenderArr()
             }
             else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
             {
+                SpotLight->GetDirection();
                 SpotLights.Add(SpotLight);
             }
         }
