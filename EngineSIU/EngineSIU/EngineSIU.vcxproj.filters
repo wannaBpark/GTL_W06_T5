@@ -906,6 +906,7 @@
     <None Include="Shaders\StaticMeshVertexShader.hlsl" />
     <None Include="Shaders\TileLightCullingComputeShader.hlsl" />
     <None Include="Shaders\VertexBillBoardShader.hlsl" />
+    <None Include="Shaders\ComputeDefine.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\EditorShaderConstants.hlsli" />
