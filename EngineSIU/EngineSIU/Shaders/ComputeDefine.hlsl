@@ -21,6 +21,24 @@ cbuffer TileLightCullSettings : register(b0)
     uint NumSpotLights; // 총 라이트 수
     uint Enable25DCulling; // 1이면 2.5D 컬링 사용
 }
+
+struct FPointLightGPU
+{
+    float3 Position;
+    float Radius;
+    float3 Direction; // 사용하지 않음
+    uint isPointLight;
+};
+
+struct FSpotLightGPU
+{
+    float3 Position;
+    float Radius;
+    float3 Direction;
+    float AngleDeg;
+};
+
+
 struct Sphere
 {
     float3 c; // Center point.
@@ -124,3 +142,5 @@ bool SpotlightVsAABB(Spotlight spotlight, AABB aabb)
     bool backCull = v1Len < -sphereRadius;
     return !(angleCull || frontCull || backCull);
 }
+
+
