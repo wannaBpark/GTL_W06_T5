@@ -1,6 +1,6 @@
 // 상수 정의
 #define TILE_SIZE 16
-#define MAX_LIGHTS_PER_TILE 2048
+#define MAX_LIGHTS_PER_TILE 1024
 #define SHADER_ENTITY_TILE_BUCKET_COUNT (MAX_LIGHTS_PER_TILE / 32)
 #define THREAD_GROUP_SIZE 8
 #define NUM_SLICES 32    // 타일 내 depth를 32개의 슬라이스로 분할 (시그래프 Harada 값과 동일)

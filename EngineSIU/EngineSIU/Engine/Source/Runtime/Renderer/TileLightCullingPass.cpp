@@ -75,7 +75,7 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     UpdateTileLightConstantBuffer(Viewport);
     Dispatch(Viewport);
 
-    ParseTileLightMaskData();
+    ParseTileLightMaskData(); 
 }
 
 void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport)

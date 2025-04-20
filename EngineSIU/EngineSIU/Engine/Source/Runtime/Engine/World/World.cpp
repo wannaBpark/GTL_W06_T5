@@ -30,13 +30,13 @@ void UWorld::InitializeNewWorld()
 {
     ActiveLevel = FObjectFactory::ConstructObject<ULevel>(this);
     ActiveLevel->InitLevel(this);
-	InitializeLightScene();
+	//InitializeLightScene(); // 테스트용 LightScene 비활성화
 }
 
 void UWorld::InitializeLightScene()
 {
 	const int TotalLights = 1000;		// 최대 개수
-	const int HalfCountPerAxis = 3;	// -4 ~ +4. 9*9*9 개수만큼 생성
+	const int HalfCountPerAxis = 0;	// -4 ~ +4. 9*9*9 개수만큼 생성
 	const float Spacing = 20.0f;		// 오브젝트간의 간격
 	const float JitterAmount = 100.0f;	// 랜덤 흔들림 정도. 
 
