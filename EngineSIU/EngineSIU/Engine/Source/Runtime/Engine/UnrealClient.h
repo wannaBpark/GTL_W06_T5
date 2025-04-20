@@ -31,7 +31,7 @@ struct FRenderTargetRHI
     ID3D11Texture2D* Texture2D = nullptr;
     ID3D11RenderTargetView* RTV = nullptr;
     ID3D11ShaderResourceView* SRV = nullptr;
-
+     
     void Release()
     {
         if (SRV)
