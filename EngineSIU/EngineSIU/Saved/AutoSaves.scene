@@ -1,24 +1,336 @@
 {
     "Actors": [
         {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2160",
+            "ActorLabel": "OBJ_POINTLIGHT_2160",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2160",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2160",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=74.761 Y=-17.589 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2163",
+            "ActorLabel": "APointLight2163",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2163",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2163",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=74.761 Y=13.295 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2168",
+            "ActorLabel": "APointLight2168",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2168",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2168",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=25.619 Y=-17.589 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2176",
+            "ActorLabel": "APointLight2176",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2176",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2176",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=24.460 Y=13.295 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2181",
+            "ActorLabel": "APointLight2181",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2181",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2181",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=-12.883 Y=13.295 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2186",
+            "ActorLabel": "APointLight2186",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2186",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2186",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=-48.840 Y=13.295 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
             "ActorClass": "ACube",
-            "ActorID": "ACube_103",
-            "ActorLabel": "OBJ_CUBE_103",
+            "ActorID": "ACube_2191",
+            "ActorLabel": "ACube2191",
             "Components": [
                 {
                     "ComponentClass": "UStaticMeshComponent",
                     "ComponentID": "StaticMeshComponent_0",
                     "Properties": {
-                        "AABB_max": "X=1.000 Y=-0.000 Z=1.000",
-                        "AABB_min": "X=0.000 Y=-1.000 Z=0.000",
+                        "AABB_max": "X=14.399 Y=8.843 Z=11.435",
+                        "AABB_min": "X=-15.368 Y=-9.462 Z=-1.012",
                         "ComponentClass": "UStaticMeshComponent",
                         "ComponentName": "StaticMeshComponent_0",
-                        "ComponentOwner": "ACube_103",
+                        "ComponentOwner": "ACube_2191",
                         "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=0.556 Y=1.110 Z=0.000",
+                        "RelativeLocation": "X=-3.713 Y=-0.225 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=3.000 Y=3.000 Z=3.000",
-                        "StaticMeshPath": "Contents/Cube/cube-tex.obj",
+                        "RelativeScale3D": "X=10.000 Y=10.000 Z=10.000",
+                        "StaticMeshPath": "Contents/Sponza/sponza-atrium-3.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
@@ -28,32 +340,29 @@
             "RootComponentID": "StaticMeshComponent_0"
         },
         {
-            "ActorClass": "ASpotLight",
-            "ActorID": "ASpotLight_105",
-            "ActorLabel": "OBJ_SPOTLIGHT_105",
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2194",
+            "ActorLabel": "APointLight2194",
             "Components": [
                 {
-                    "ComponentClass": "USpotLightComponent",
-                    "ComponentID": "USpotLightComponent_0",
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
                     "Properties": {
                         "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
                         "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
                         "Attenuation": "20.000000",
-                        "ComponentClass": "USpotLightComponent",
-                        "ComponentName": "USpotLightComponent_0",
-                        "ComponentOwner": "ASpotLight_105",
-                        "ComponentOwnerClass": "ASpotLight",
-                        "Direction": "X=1.000 Y=0.000 Z=0.000",
-                        "InnerRad": "0.261800",
-                        "Intensity": "160.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2194",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "OuterRad": "1.570796",
                         "Position": "X=0.000 Y=0.000 Z=0.000",
-                        "Radius": "30.000000",
+                        "Radius": "200.000000",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "Type": "2",
+                        "Type": "1",
                         "bAutoActive": "true",
                         "bIsActive": "true"
                     }
@@ -64,15 +373,15 @@
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "BufferKey": "Assets/Editor/Icon/SpotLight_64x.png",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
                         "ComponentClass": "UBillboardComponent",
                         "ComponentName": "UBillboardComponent_0",
-                        "ComponentOwner": "ASpotLight_105",
-                        "ComponentOwnerClass": "ASpotLight",
+                        "ComponentOwner": "APointLight_2194",
+                        "ComponentOwnerClass": "APointLight",
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=-0.147 Y=-2.600 Z=10.743",
-                        "RelativeRotation": "Pitch=-80.630 Yaw=89.784 Roll=-175.611",
+                        "RelativeLocation": "X=-99.166 Y=13.295 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
@@ -83,32 +392,81 @@
             "RootComponentID": "UBillboardComponent_0"
         },
         {
-            "ActorClass": "ASpotLight",
-            "ActorID": "ASpotLight_108",
-            "ActorLabel": "OBJ_SPOTLIGHT_108",
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2199",
+            "ActorLabel": "APointLight2199",
             "Components": [
                 {
-                    "ComponentClass": "USpotLightComponent",
-                    "ComponentID": "USpotLightComponent_0",
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2199",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=-99.166 Y=-22.883 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                },
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
                     "Properties": {
                         "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
                         "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
                         "Attenuation": "20.000000",
-                        "ComponentClass": "USpotLightComponent",
-                        "ComponentName": "USpotLightComponent_0",
-                        "ComponentOwner": "ASpotLight_108",
-                        "ComponentOwnerClass": "ASpotLight",
-                        "Direction": "X=1.000 Y=0.000 Z=0.000",
-                        "InnerRad": "0.261800",
-                        "Intensity": "1000.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2199",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "OuterRad": "0.523600",
                         "Position": "X=0.000 Y=0.000 Z=0.000",
-                        "Radius": "30.000000",
+                        "Radius": "200.000000",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "Type": "2",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2204",
+            "ActorLabel": "APointLight2204",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2204",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
                         "bAutoActive": "true",
                         "bIsActive": "true"
                     }
@@ -119,15 +477,15 @@
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "BufferKey": "Assets/Editor/Icon/SpotLight_64x.png",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
                         "ComponentClass": "UBillboardComponent",
                         "ComponentName": "UBillboardComponent_0",
-                        "ComponentOwner": "ASpotLight_108",
-                        "ComponentOwnerClass": "ASpotLight",
+                        "ComponentOwner": "APointLight_2204",
+                        "ComponentOwnerClass": "APointLight",
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=37.405 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=2.541 Yaw=176.796 Roll=7.937",
+                        "RelativeLocation": "X=-70.983 Y=-22.883 Z=7.839",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
@@ -138,32 +496,29 @@
             "RootComponentID": "UBillboardComponent_0"
         },
         {
-            "ActorClass": "ASpotLight",
-            "ActorID": "ASpotLight_120",
-            "ActorLabel": "OBJ_SPOTLIGHT_120",
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2209",
+            "ActorLabel": "APointLight2209",
             "Components": [
                 {
-                    "ComponentClass": "USpotLightComponent",
-                    "ComponentID": "USpotLightComponent_0",
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
                     "Properties": {
                         "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
                         "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
                         "Attenuation": "20.000000",
-                        "ComponentClass": "USpotLightComponent",
-                        "ComponentName": "USpotLightComponent_0",
-                        "ComponentOwner": "ASpotLight_120",
-                        "ComponentOwnerClass": "ASpotLight",
-                        "Direction": "X=1.000 Y=0.000 Z=0.000",
-                        "InnerRad": "0.261800",
-                        "Intensity": "1000.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2209",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "OuterRad": "0.523600",
                         "Position": "X=0.000 Y=0.000 Z=0.000",
-                        "Radius": "30.000000",
+                        "Radius": "200.000000",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "Type": "2",
+                        "Type": "1",
                         "bAutoActive": "true",
                         "bIsActive": "true"
                     }
@@ -174,15 +529,302 @@
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "BufferKey": "Assets/Editor/Icon/SpotLight_64x.png",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
                         "ComponentClass": "UBillboardComponent",
                         "ComponentName": "UBillboardComponent_0",
-                        "ComponentOwner": "ASpotLight_120",
-                        "ComponentOwnerClass": "ASpotLight",
+                        "ComponentOwner": "APointLight_2209",
+                        "ComponentOwnerClass": "APointLight",
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=-16.881 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=-2.968 Yaw=-0.000 Roll=-0.000",
+                        "RelativeLocation": "X=-72.311 Y=-19.614 Z=45.899",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2214",
+            "ActorLabel": "APointLight2214",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2214",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2214",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=-37.031 Y=-19.614 Z=45.899",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2219",
+            "ActorLabel": "APointLight2219",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2219",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2219",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=6.418 Y=-19.614 Z=45.899",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2224",
+            "ActorLabel": "APointLight2224",
+            "Components": [
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2224",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=39.736 Y=12.725 Z=45.899",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                },
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2224",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "ACube",
+            "ActorID": "ACube_2229",
+            "ActorLabel": "ACube2229",
+            "Components": [
+                {
+                    "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "StaticMeshComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=14.399 Y=8.843 Z=11.435",
+                        "AABB_min": "X=-15.368 Y=-9.462 Z=-1.012",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "StaticMeshComponent_0",
+                        "ComponentOwner": "ACube_2229",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=-3.713 Y=-0.225 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=10.000 Y=10.000 Z=10.000",
+                        "StaticMeshPath": "Contents/Sponza/sponza-atrium-3.obj",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
+                    }
+                }
+            ],
+            "RootComponentID": "StaticMeshComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2232",
+            "ActorLabel": "APointLight2232",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2232",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "5000.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "200.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2232",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=6.418 Y=12.725 Z=45.899",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": "UBillboardComponent"
+                    }
+                }
+            ],
+            "RootComponentID": "UBillboardComponent_0"
+        },
+        {
+            "ActorClass": "APointLight",
+            "ActorID": "APointLight_2237",
+            "ActorLabel": "APointLight2237",
+            "Components": [
+                {
+                    "ComponentClass": "UPointLightComponent",
+                    "ComponentID": "PointLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "Attenuation": "20.000000",
+                        "ComponentClass": "UPointLightComponent",
+                        "ComponentName": "PointLightComponent_0",
+                        "ComponentOwner": "APointLight_2237",
+                        "ComponentOwnerClass": "APointLight",
+                        "Intensity": "3500.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "Position": "X=0.000 Y=0.000 Z=0.000",
+                        "Radius": "800.000000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "Type": "1",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UBillboardComponent",
+                    "ComponentID": "UBillboardComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "ComponentClass": "UBillboardComponent",
+                        "ComponentName": "UBillboardComponent_0",
+                        "ComponentOwner": "APointLight_2237",
+                        "ComponentOwnerClass": "APointLight",
+                        "FinalIndexU": "0.000000",
+                        "FinalIndexV": "0.000000",
+                        "RelativeLocation": "X=39.736 Y=-5.406 Z=71.533",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
