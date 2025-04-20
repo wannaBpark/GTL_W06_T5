@@ -264,7 +264,14 @@ PS_INPUT coneVS(coneVSInput input)
     // XZ Plane Sphere
     else if (input.vertexID < NumSide + NumBase + NumXZ)
     {
-        SegmentIndex = (input.vertexID - (NumConeSegments + 1));
+        if (input.vertexID % 2 == 0)
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments)) / 2);
+        }
+        else
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments) + 1) / 2);
+        }
         float SegmentAngle = SegmentIndex / (float)(NumSphereSegments) * (2 * Angle);
         float angleOffset = -Angle;
         LocalPos3 = float3(cos(angleOffset + SegmentAngle), 0, sin(angleOffset + SegmentAngle));
@@ -273,7 +280,14 @@ PS_INPUT coneVS(coneVSInput input)
     // YZ Plane Sphere
     else// if (vertexID < NumSphereSegments + 1 + 2 * (NumConeSegments + 1))
     {
-        SegmentIndex = (input.vertexID - (NumConeSegments + 1 + NumConeSegments + 1));
+        if (input.vertexID % 2 == 0)
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments)) / 2);
+        }
+        else
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments) + 1) / 2);
+        }
         float SegmentAngle = SegmentIndex / (float)(NumSphereSegments) * (2 * Angle);
         float angleOffset = -Angle;
         LocalPos3 = float3(cos(angleOffset + SegmentAngle), sin(angleOffset + SegmentAngle), 0);
@@ -295,14 +309,12 @@ PS_INPUT coneVS(coneVSInput input)
     if (input.instanceID % 2 == 0)
     {
         //Inner
-        //output.color = float4(0.777f, 1.0f, 1.0f, 1.0f);
-        output.color = float4(1, 1, 0, 1);
+        output.color = float4(40.f / 255.f, 100.f / 255.f, 255.f / 255.f, 1.0f);
     }
     else
     {
         // Outer
-        //output.color = float4(149.f / 255.f, 198.f / 255.f, 255.f / 255.f, 255.f / 255.f);
-        output.color = float4(0, 1, 1, 1);
+        output.color = float4(100.f / 255.f, 220.f / 255.f, 255.f / 255.f, 1.0f);
     }
 
     return output;
