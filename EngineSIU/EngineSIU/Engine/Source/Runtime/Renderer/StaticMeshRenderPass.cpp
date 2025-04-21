@@ -24,6 +24,11 @@
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
+#include "Components/Light/LightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+#include "ShadowRenderPass.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -150,6 +155,8 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
 
+    ShadowRenderPass = new FShadowRenderPass();
+    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     CreateShader();
 }
 
@@ -324,6 +331,41 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
 void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
+    {
+        for (const auto iter : TObjectRange<ULightComponentBase>())
+        {
+            if (iter->GetWorld() == GEngine->ActiveWorld)
+            {
+                if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
+                {
+                    
+                }
+                else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
+                {
+                }
+                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
+                {  
+                    FShadowConstantBuffer ShadowData;
+                    FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
+                    FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
+                    ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
+                    //ShadowData.ViewProj = Viewport->GetViewMatrix() *Viewport->GetProjectionMatrix();
+                    ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
+                    BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+
+                    ShadowRenderPass->Render(Viewport, DirectionalLight);
+
+                    RenderAllStaticMeshes(Viewport);
+                }
+
+            }
+            ShadowRenderPass->ClearRenderArr();
+        }
+    }
+
+    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
+
     const EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);

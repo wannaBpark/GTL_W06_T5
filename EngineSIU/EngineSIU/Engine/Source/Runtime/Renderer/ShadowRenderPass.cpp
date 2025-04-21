@@ -44,18 +44,29 @@ void FShadowRenderPass::PrepareRenderArr()
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    //ShadowMapWidth = LightShadow->GetShadowWidth();
-    //ShadowMapHeight = LightShadow->GetShadowHeight();
+
+}
+
+void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light)
+{
+    ShadowMapWidth = Light->GetShadowMapWidth();
+    ShadowMapHeight = Light->GetShadowMapHeight();
+    Graphics->DeviceContext->ClearDepthStencilView(Light->GetShadowMap()[0].DSV, 
+        D3D11_CLEAR_DEPTH, 1.0f, 0);
     PrepareRenderState();
-    
-
-
-    Graphics->DeviceContext->RSSetViewports(0, nullptr);
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
+    Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, Light->GetShadowMap()[0].DSV);
+    for (const auto& iter : Light->GetShadowMap())
+    {
+        Graphics->DeviceContext->PSSetShaderResources(1, 1, &iter.SRV);
+    }
 }
 
 void FShadowRenderPass::ClearRenderArr()
 {
+    Graphics->DeviceContext->RSSetViewports(0, nullptr);
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
 void FShadowRenderPass::CreateShader() const
@@ -70,12 +81,29 @@ void FShadowRenderPass::CreateShader() const
 void FShadowRenderPass::UpdateViewport(const uint32& InWidth, const uint32& InHeight)
 {
     // Set the viewport
-    D3D11_VIEWPORT shadowViewport;
-    ZeroMemory(&shadowViewport, sizeof(D3D11_VIEWPORT));
-    shadowViewport.TopLeftX = 0;
-    shadowViewport.TopLeftY = 0;
-    shadowViewport.Width = static_cast<float>(InWidth);
-    shadowViewport.Height = static_cast<float>(InHeight);
-    shadowViewport.MinDepth = 0.0f;
-    shadowViewport.MaxDepth = 1.0f;
+    ZeroMemory(&ShadowViewport, sizeof(D3D11_VIEWPORT));
+    ShadowViewport.TopLeftX = 0;
+    ShadowViewport.TopLeftY = 0;
+    ShadowViewport.Width = static_cast<float>(InWidth);
+    ShadowViewport.Height = static_cast<float>(InHeight);
+    ShadowViewport.MinDepth = 0.0f;
+    ShadowViewport.MaxDepth = 1.0f;
+}
+
+void FShadowRenderPass::CreateSampler()
+{
+    D3D11_SAMPLER_DESC SamplerDesc = {};
+    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    SamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+    SamplerDesc.MinLOD = 0.f;
+    SamplerDesc.MaxLOD = 0.f;
+    SamplerDesc.MipLODBias = 0.f;
+    HRESULT hr = Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Sampler!"));
+    }
 }

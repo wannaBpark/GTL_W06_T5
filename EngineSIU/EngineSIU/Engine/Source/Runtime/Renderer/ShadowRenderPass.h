@@ -24,11 +24,15 @@ public:
     virtual ~FShadowRenderPass();
     void CreateShader() const;
     void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
+    void CreateSampler();
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState();
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
     virtual void ClearRenderArr() override;
+
+
 
 private:
     FDXDBufferManager* BufferManager;
@@ -37,6 +41,7 @@ private:
 
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
+    ID3D11SamplerState* Sampler;
 
     D3D11_VIEWPORT ShadowViewport;
 
