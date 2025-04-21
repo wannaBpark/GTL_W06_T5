@@ -48,7 +48,7 @@ HRESULT UPointLightComponent::CreateShadowMap()
     CubeMapTextureDesc.SampleDesc.Count = 1;
     CubeMapTextureDesc.SampleDesc.Quality = 0;
     CubeMapTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-    CubeMapTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    CubeMapTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
     hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&CubeMapTextureDesc, nullptr, &NewResource.Texture2D);
     if (FAILED(hr))
@@ -57,13 +57,13 @@ HRESULT UPointLightComponent::CreateShadowMap()
         return hr;
     }
 
-    D3D11_DEPTH_STENCIL_VIEW_DESC CubeMapDSVDesc = {};
-    CubeMapDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
-    CubeMapDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-    CubeMapDSVDesc.Texture2D.MipSlice = 0;
-    CubeMapDSVDesc.Texture2DArray.FirstArraySlice = 0;
-    CubeMapDSVDesc.Texture2DArray.ArraySize = NUM_FACES;  // DSV 생성시 모든 6면을 포함
-    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D, &CubeMapDSVDesc, &NewResource.DSV);
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+    rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+    rtvDesc.Texture2D.MipSlice = 0;
+    rtvDesc.Texture2DArray.FirstArraySlice = 0;
+    rtvDesc.Texture2DArray.ArraySize = NUM_FACES;  // DSV 생성시 모든 6면을 포함
+    hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(NewResource.Texture2D, &rtvDesc, &DepthRTVArray);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Cube Map DSV!"));
@@ -326,14 +326,35 @@ TArray<FDepthStencilRHI> UPointLightComponent::GetShadowMap()
 
 ID3D11ShaderResourceView* UPointLightComponent::GetSliceSRV(int SliceIndex)
 {
-    //return ShadowMaps[0].SRV;
-    UINT subresource = D3D11CalcSubresource(0, SliceIndex, 1);
-    FEngineLoop::GraphicDevice.DeviceContext->CopySubresourceRegion(
-        OutputTextures[SliceIndex],
-        0, 0, 0, 0,
-        ShadowMaps[0].Texture2D,
-        subresource,
-        nullptr
-    );
-    return OutputSRVs[SliceIndex];
+    // 직접 Copy 없이 SRV 생성
+    const auto& mapRHI = ShadowMaps[0];
+    return CreateSliceSRV(DXGI_FORMAT_R32_FLOAT, SliceIndex);
+    ////return ShadowMaps[0].SRV;
+    //UINT subresource = D3D11CalcSubresource(0, SliceIndex, 1);
+    //FEngineLoop::GraphicDevice.DeviceContext->CopySubresourceRegion(
+    //    OutputTextures[SliceIndex],
+    //    0, 0, 0, 0,
+    //    ShadowMaps[0].Texture2D,
+    //    subresource,
+    //    nullptr
+    //);
+    //return OutputSRVs[SliceIndex];
+}
+
+ID3D11ShaderResourceView* UPointLightComponent::CreateSliceSRV(
+    DXGI_FORMAT     format,
+    UINT            sliceIndex)
+{
+    D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+    desc.Format = format;
+    desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+    desc.Texture2DArray.MostDetailedMip = 0;
+    desc.Texture2DArray.MipLevels = 1;
+    desc.Texture2DArray.FirstArraySlice = sliceIndex;
+    desc.Texture2DArray.ArraySize = 1;
+
+    ID3D11ShaderResourceView* srv = nullptr;
+    FEngineLoop::GraphicDevice.Device
+        ->CreateShaderResourceView(ShadowMaps[0].Texture2D, &desc, &srv);
+    return srv;
 }

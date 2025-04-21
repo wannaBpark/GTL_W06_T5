@@ -46,6 +46,7 @@ private:
 
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
+    ID3D11PixelShader* DepthOnlyPS;
     ID3D11SamplerState* Sampler;
 
     ID3D11VertexShader* DepthCubeMapVS;

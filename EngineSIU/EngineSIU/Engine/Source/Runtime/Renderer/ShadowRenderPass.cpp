@@ -31,6 +31,7 @@ void FShadowRenderPass::PrepareRenderState()
     // Shader Hot Reload 대응 
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
     DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
     
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
     Graphics->DeviceContext->VSSetShader(DepthOnlyVS, nullptr, 0);
@@ -72,6 +73,8 @@ void FShadowRenderPass::ClearRenderArr()
     Graphics->DeviceContext->RSSetViewports(0, nullptr);
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+
 }
 
 void FShadowRenderPass::CreateShader() const
@@ -91,6 +94,12 @@ void FShadowRenderPass::CreateShader() const
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapGS shader!"));
+    }
+
+    hr = ShaderManager->AddPixelShader(L"DepthOnlyPS", L"Shaders/PointLightCubemapGS.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
     }
 }
 
@@ -126,16 +135,18 @@ void FShadowRenderPass::CreateSampler()
 
 void FShadowRenderPass::PrepareCubeMapRenderState(UPointLightComponent*& PointLight)
 {
-    Graphics->DeviceContext->ClearDepthStencilView(PointLight->GetShadowMap()[0].DSV,
-        D3D11_CLEAR_DEPTH, 1.0f, 0);
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, PointLight->GetShadowMap()[0].DSV);
+    /*Graphics->DeviceContext->ClearDepthStencilView(nullptr,
+        D3D11_CLEAR_DEPTH, 1.0f, 0);*/
+    Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, nullptr);
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
 
     DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
     DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+
     Graphics->DeviceContext->VSSetShader(DepthCubeMapVS, nullptr, 0);
     Graphics->DeviceContext->GSSetShader(DepthCubeMapGS, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(DepthOnlyPS, nullptr, 0);
     // VS, GS에 대한 상수버퍼 업데이트
     BufferManager->BindConstantBuffer(TEXT("FPointLightGSBuffer"), 0, EShaderStage::Geometry);
 

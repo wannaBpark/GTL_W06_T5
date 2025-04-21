@@ -47,7 +47,9 @@ private:
 
 public:
     TArray<FDepthStencilRHI> GetShadowMap() override;
+    ID3D11RenderTargetView* DepthRTVArray;
     ID3D11ShaderResourceView* GetSliceSRV(int SliceIndex);
+    ID3D11ShaderResourceView* CreateSliceSRV(DXGI_FORMAT format, UINT sliceIndex);
 };
 
 
