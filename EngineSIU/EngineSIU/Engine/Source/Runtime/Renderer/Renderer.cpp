@@ -100,6 +100,9 @@ void FRenderer::Release()
 //------------------------------------------------------------------------------
 void FRenderer::CreateConstantBuffers()
 {
+    UINT ShadowBufferSize = sizeof(FShadowConstantBuffer);
+    BufferManager->CreateBufferGeneric<FShadowConstantBuffer>("FShadowConstantBuffer", nullptr, ShadowBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
     UINT ObjectBufferSize = sizeof(FObjectConstantBuffer);
     BufferManager->CreateBufferGeneric<FObjectConstantBuffer>("FObjectConstantBuffer", nullptr, ObjectBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 

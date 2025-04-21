@@ -310,6 +310,12 @@ struct FMaterialConstants
     uint32 TextureFlag;
 };
 
+struct FShadowConstantBuffer
+{
+    FMatrix ViewProj; // Light 광원 입장에서의 ViewProj
+    FMatrix InvProj;  // Light 광원 입장에서의 InvProj
+};
+
 struct FObjectConstantBuffer
 {
     FMatrix WorldMatrix;

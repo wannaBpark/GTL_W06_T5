@@ -73,8 +73,15 @@ struct PS_INPUT_StaticMesh
 };
 
 ////////
-/// 공용: 12 ~ 13
+/// 공용: 11 ~ 13
 ///////
+
+cbuffer Shadow : register(b11)
+{
+    row_major matrix ViewProj;
+    row_major matrix InvProj;
+};
+
 cbuffer ObjectBuffer : register(b12)
 {
     row_major matrix WorldMatrix;
