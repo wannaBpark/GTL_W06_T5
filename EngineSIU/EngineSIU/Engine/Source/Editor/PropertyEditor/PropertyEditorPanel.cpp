@@ -1,5 +1,7 @@
 #include "PropertyEditorPanel.h"
 
+#include <algorithm>
+
 #include "World/World.h"
 #include "Actors/Player.h"
 #include "Components/Light/LightComponent.h"
@@ -150,6 +152,7 @@ void PropertyEditorPanel::Render()
     //    }
 
     if(PickedActor)
+    {
         if (UPointLightComponent* pointlightObj = PickedActor->GetComponentByClass<UPointLightComponent>())
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -162,51 +165,66 @@ void PropertyEditorPanel::Render()
 
                 float Intensity = pointlightObj->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
+                {
                     pointlightObj->SetIntensity(Intensity);
-
-                float Radius = pointlightObj->GetRadius();
-                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f")) {
-                    pointlightObj->SetRadius(Radius);
                 }
 
+                float Radius = pointlightObj->GetRadius();
+                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f"))
+                {
+                    pointlightObj->SetRadius(Radius);
+                }
 
                 ImGui::TreePop();
             }
 
             ImGui::PopStyleColor();
         }
+    }
 
     if(PickedActor)
-        if (USpotLightComponent* spotlightObj = PickedActor->GetComponentByClass<USpotLightComponent>())
+    {
+        if (USpotLightComponent* SpotLightComponent = PickedActor->GetComponentByClass<USpotLightComponent>())
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
             if (ImGui::TreeNodeEx("SpotLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
                 DrawColorProperty("Light Color",
-                    [&]() { return spotlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { spotlightObj->SetLightColor(c); });
+                    [&]() { return SpotLightComponent->GetLightColor(); },
+                    [&](FLinearColor c) { SpotLightComponent->SetLightColor(c); });
 
-                float Intensity = spotlightObj->GetIntensity();
+                float Intensity = SpotLightComponent->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
-                    spotlightObj->SetIntensity(Intensity);
-
-                float Radius = spotlightObj->GetRadius();
-                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f")) {
-                    spotlightObj->SetRadius(Radius);
+                {
+                    SpotLightComponent->SetIntensity(Intensity);
                 }
 
-                LightDirection = spotlightObj->GetDirection();
+                float Radius = SpotLightComponent->GetRadius();
+                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f"))
+                {
+                    SpotLightComponent->SetRadius(Radius);
+                }
+
+                LightDirection = SpotLightComponent->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
-                
-                float InnerDegree = spotlightObj->GetInnerDegree();
-                if (ImGui::SliderFloat("InnerDegree", &InnerDegree, 0.01f, 180.f, "%.1f")) {
-                    spotlightObj->SetInnerDegree(InnerDegree);
+
+                float InnerConeAngle = SpotLightComponent->GetInnerDegree();
+                float OuterConeAngle = SpotLightComponent->GetOuterDegree();
+                if (ImGui::DragFloat("InnerConeAngle", &InnerConeAngle, 0.5f, 0.0f, 80.0f))
+                {
+                    OuterConeAngle = std::max(InnerConeAngle, OuterConeAngle);
+
+                    SpotLightComponent->SetInnerDegree(InnerConeAngle);
+                    SpotLightComponent->SetOuterDegree(OuterConeAngle);
                 }
 
-                float OuterDegree = spotlightObj->GetOuterDegree();
-                if (ImGui::SliderFloat("OuterDegree", &OuterDegree, 0.01f, 180.f, "%.1f")) {
-                    spotlightObj->SetOuterDegree(OuterDegree);
+                if (ImGui::DragFloat("OuterConeAngle", &OuterConeAngle, 0.5f, 0.0f, 80.0f))
+                {
+                    InnerConeAngle = std::min(OuterConeAngle, InnerConeAngle);
+
+                    SpotLightComponent->SetOuterDegree(OuterConeAngle);
+                    SpotLightComponent->SetInnerDegree(InnerConeAngle);
                 }
 
                 ImGui::TreePop();
@@ -214,6 +232,7 @@ void PropertyEditorPanel::Render()
 
             ImGui::PopStyleColor();
         }
+    }
 
     if (PickedActor)
         if (UDirectionalLightComponent* dirlightObj = PickedActor->GetComponentByClass<UDirectionalLightComponent>())
