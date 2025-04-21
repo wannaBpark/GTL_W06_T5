@@ -6,6 +6,7 @@ struct AABBData
     float3 Extent;
     float Padding2;
 };
+
 cbuffer ConstantBufferDebugAABB : register(b11)
 {
     AABBData DataAABB[8];
@@ -16,6 +17,7 @@ struct SphereData
     float3 Position;
     float Radius;
 };
+
 cbuffer ConstantBufferDebugSphere : register(b11)
 {
     SphereData DataSphere[8];
@@ -23,15 +25,13 @@ cbuffer ConstantBufferDebugSphere : register(b11)
 
 struct ConeData
 {
-    float3 ApexPosition;
-    float InnerRadius;
-    
-    float OuterRadius;
+    float3 ApexPosiiton;
+    float Radius;
+
     float3 Direction;
-    
-    float Height;
-    float3 Padding;
+    float Angle;
 };
+
 cbuffer ConstantBufferDebugCone : register(b11)
 {
     ConeData DataCone[100];

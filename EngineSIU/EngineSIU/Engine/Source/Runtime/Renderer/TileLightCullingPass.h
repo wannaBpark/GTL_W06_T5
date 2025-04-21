@@ -49,6 +49,7 @@ class FTileLightCullingPass : public IRenderPass
 public:
     FTileLightCullingPass();
     ~FTileLightCullingPass();
+    void ResizeTiles(UINT InWidth, UINT InHeight);
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -58,13 +59,13 @@ public:
     void CreatePointLightBufferGPU();
     void CreateSpotLightBufferGPU();
     void CreateViews();
-    void CreateBuffers();
+    void CreateBuffers(uint32 InWidth, uint32 InHeight);
     void Release();
     void Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport);
     void ClearUAVs();
     void UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
-    void ResizeViewBuffers();
+    void ResizeViewBuffers(uint32 InWidth, uint32 InHeight);
 
     // UAV 결과를 파싱하여 타일별 영향을 주는 전역 조명 인덱스로 바꾸는 함수
     bool CopyTileLightMaskToCPU(TArray<uint32>& OutData, ID3D11Buffer*& TileUAVBuffer);

@@ -76,10 +76,12 @@ struct PS_INPUT_StaticMesh
 /// 공용: 11 ~ 13
 ///////
 
-cbuffer Shadow : register(b11)
+cbuffer ShadowMapBuffer : register(b11)
 {
-    row_major matrix ViewProj;
-    row_major matrix InvProj;
+    row_major matrix ShadowViewProj;
+    row_major matrix ShadowInvProj;
+    float4 gCascadeSplits;
+    float ShadowPadding;
 };
 
 cbuffer ObjectBuffer : register(b12)
