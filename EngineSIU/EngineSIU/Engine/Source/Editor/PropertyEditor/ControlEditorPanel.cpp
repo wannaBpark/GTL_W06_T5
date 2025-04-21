@@ -149,6 +149,18 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
 
         ImGui::Separator();
 
+        if (ImGui::Button("ImGui데모"))
+        {
+            bShowImGuiDemoWindow = !bShowImGuiDemoWindow;
+        }
+
+        if (bShowImGuiDemoWindow)
+        {
+            ImGui::ShowDemoWindow(&bShowImGuiDemoWindow); // 창이 닫힐 때 상태를 업데이트
+        }
+
+        ImGui::Separator();
+
         if (ImGui::BeginMenu("Import"))
         {
             if (ImGui::MenuItem("Wavefront (.obj)"))
