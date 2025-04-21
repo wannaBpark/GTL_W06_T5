@@ -287,6 +287,8 @@ struct FPrimitiveCounts
 };
 
 #define MAX_LIGHTS 16
+#define NUM_FACES 6
+
 enum ELightType {
     POINT_LIGHT = 1,
     SPOT_LIGHT = 2,
@@ -308,6 +310,12 @@ struct FMaterialConstants
 
     FVector AmbientColor;
     uint32 TextureFlag;
+};
+
+struct FPointLightGSBuffer
+{
+    FMatrix World;
+    FMatrix ViewProj[NUM_FACES]; // 6 : NUM_FACES
 };
 
 struct FShadowConstantBuffer

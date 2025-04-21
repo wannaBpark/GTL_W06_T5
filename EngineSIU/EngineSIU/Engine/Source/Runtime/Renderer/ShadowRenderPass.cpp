@@ -1,6 +1,7 @@
 #include "ShadowRenderPass.h"
 
 #include "Components/Light/LightComponent.h"
+#include "Components/Light/PointLightComponent.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
@@ -24,11 +25,13 @@ void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
     UpdateViewport(ShadowMapWidth, ShadowMapHeight);
 }
 
+
 void FShadowRenderPass::PrepareRenderState()
 {
     // Shader Hot Reload 대응 
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
     DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
+    
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
     Graphics->DeviceContext->VSSetShader(DepthOnlyVS, nullptr, 0);
 
@@ -51,6 +54,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 {
     ShadowMapWidth = Light->GetShadowMapWidth();
     ShadowMapHeight = Light->GetShadowMapHeight();
+    if (Light)
     Graphics->DeviceContext->ClearDepthStencilView(Light->GetShadowMap()[0].DSV, 
         D3D11_CLEAR_DEPTH, 1.0f, 0);
     PrepareRenderState();
@@ -67,6 +71,7 @@ void FShadowRenderPass::ClearRenderArr()
 {
     Graphics->DeviceContext->RSSetViewports(0, nullptr);
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
 }
 
 void FShadowRenderPass::CreateShader() const
@@ -75,6 +80,17 @@ void FShadowRenderPass::CreateShader() const
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyVS shader!"));
+    }
+    hr = ShaderManager->AddVertexShader(L"DepthCubeMapVS", L"Shaders/DepthCubeMapVS.hlsl", "mainVS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapVS shader!"));
+    }
+
+    hr = ShaderManager->AddGeometryShader(L"DepthCubeMapGS", L"Shaders/PointLightCubemapGS.hlsl", "mainGS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapGS shader!"));
     }
 }
 
@@ -106,4 +122,44 @@ void FShadowRenderPass::CreateSampler()
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Sampler!"));
     }
+}
+
+void FShadowRenderPass::PrepareCubeMapRenderState(UPointLightComponent*& PointLight)
+{
+    Graphics->DeviceContext->ClearDepthStencilView(PointLight->GetShadowMap()[0].DSV,
+        D3D11_CLEAR_DEPTH, 1.0f, 0);
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, PointLight->GetShadowMap()[0].DSV);
+    Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
+
+    DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
+    DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
+    Graphics->DeviceContext->VSSetShader(DepthCubeMapVS, nullptr, 0);
+    Graphics->DeviceContext->GSSetShader(DepthCubeMapGS, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    // VS, GS에 대한 상수버퍼 업데이트
+    BufferManager->BindConstantBuffer(TEXT("FPointLightGSBuffer"), 0, EShaderStage::Geometry);
+
+    UpdateViewport(ShadowMapWidth, ShadowMapHeight);
+    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
+    Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
+}
+
+void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight,
+    const FMatrix& WorldMatrix
+    ) const
+{
+    FPointLightGSBuffer DepthCubeMapBuffer;
+    DepthCubeMapBuffer.World = WorldMatrix;
+    for (uint32 i = 0; i < 6; ++i)
+    {
+        DepthCubeMapBuffer.ViewProj[i] = PointLight->GetViewMatrix(i);
+    }
+    BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
+}
+
+void FShadowRenderPass::RenderCubeMap(UPointLightComponent*& PointLight)
+{
+    //UpdateCubeMapConstantBuffer(PointLight);
+    PrepareCubeMapRenderState(PointLight);
+
 }

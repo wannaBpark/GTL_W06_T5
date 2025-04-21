@@ -340,27 +340,28 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
             {
                 if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
                 {
-                    
+                    ShadowRenderPass->RenderCubeMap(PointLight);
+                    RenderAllStaticMeshesForPointLight(Viewport, PointLight);
                 }
                 else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
                 {
                 }
-                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
-                {  
-                    FShadowConstantBuffer ShadowData;
-                    FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
-                    FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
-                    ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
-                    //ShadowData.ViewProj = Viewport->GetViewMatrix() *Viewport->GetProjectionMatrix();
-                    ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
-                    BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+                //else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
+                //{  
+                //    FShadowConstantBuffer ShadowData;
+                //    FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
+                //    FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
+                //    ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
+                //    //ShadowData.ViewProj = Viewport->GetViewMatrix() *Viewport->GetProjectionMatrix();
+                //    ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
+                //    BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
-                    ShadowRenderPass->Render(Viewport, DirectionalLight);
+                //    ShadowRenderPass->Render(Viewport, DirectionalLight);
 
-                    RenderAllStaticMeshes(Viewport);
-                }
-
+                //    RenderAllStaticMeshes(Viewport);
+                //}
             }
+            
             ShadowRenderPass->ClearRenderArr();
         }
     }
@@ -388,3 +389,22 @@ void FStaticMeshRenderPass::ClearRenderArr()
     StaticMeshComponents.Empty();
 }
 
+
+void FStaticMeshRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+{
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh()) { continue; }
+
+        OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr) { continue; }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+
+        ShadowRenderPass->UpdateCubeMapConstantBuffer(PointLight, WorldMatrix);
+
+        RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+    }
+}
