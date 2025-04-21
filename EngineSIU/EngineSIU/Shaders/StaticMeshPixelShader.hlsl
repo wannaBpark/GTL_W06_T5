@@ -35,12 +35,12 @@ cbuffer TextureConstants : register(b4)
 #include "Light.hlsl"
 
 
+
 float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
 {
     float bias = 0.001f;
     
-    float4 LightClipSpacePos = mul(input.WorldPosition, ShadowViewProj);
-    
+    float4 LightClipSpacePos = mul(float4(input.WorldPosition, 1.0f), ShadowViewProj);
     float2 ShadowMapTexCoord = {
         0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
         0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f

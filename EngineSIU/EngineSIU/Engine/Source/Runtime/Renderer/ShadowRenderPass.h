@@ -27,7 +27,7 @@ public:
     void CreateSampler();
     ID3D11SamplerState* GetSampler() const { return Sampler; }
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
-    void PrepareRenderState();
+    void PrepareRenderState(ULightComponentBase* Light);
     virtual void PrepareRenderArr() override;
     void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;

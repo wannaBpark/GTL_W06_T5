@@ -352,17 +352,14 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
                     FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
                     FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
                     ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
-                    //ShadowData.ViewProj = Viewport->GetViewMatrix() *Viewport->GetProjectionMatrix();
                     ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
                     BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
                     ShadowRenderPass->Render(Viewport, DirectionalLight);
-
                     RenderAllStaticMeshes(Viewport);
                 }
             }
-            ShadowRenderPass->ClearRenderArr();
-
+            ShadowRenderPass->ClearRenderArr(); 
         }
     }
 

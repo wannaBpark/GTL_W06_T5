@@ -4,6 +4,8 @@
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "UObject/Casts.h"
 
 FShadowRenderPass::FShadowRenderPass()
 {
@@ -25,7 +27,7 @@ void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
     UpdateViewport(ShadowMapWidth, ShadowMapHeight);
 }
 
-void FShadowRenderPass::PrepareRenderState()
+void FShadowRenderPass::PrepareRenderState(ULightComponentBase* Light)
 {
     // Shader Hot Reload 대응 
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
@@ -36,6 +38,9 @@ void FShadowRenderPass::PrepareRenderState()
     // Note : PS만 언바인드할 뿐, UpdateLightBuffer에서 바인딩된 SRV 슬롯들은 그대로 남아 있음
     Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
     Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
+
+    ShadowMapWidth = Light->GetShadowMapWidth();
+    ShadowMapHeight = Light->GetShadowMapHeight();
     UpdateViewport(ShadowMapWidth, ShadowMapHeight);
 }
 
@@ -50,14 +55,17 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light)
 {
-    ShadowMapWidth = Light->GetShadowMapWidth();
-    ShadowMapHeight = Light->GetShadowMapHeight();
-    Graphics->DeviceContext->ClearDepthStencilView(Light->GetShadowMap()[0].DSV, 
-        D3D11_CLEAR_DEPTH, 1.0f, 0);
-    PrepareRenderState();
-    BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
-    Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, Light->GetShadowMap()[0].DSV);
+    if (Cast<UDirectionalLightComponent>(Light))
+    {
+        Graphics->DeviceContext->ClearDepthStencilView(Light->GetShadowMap()[0].DSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+        PrepareRenderState(Light);
+        BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
+        BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Pixel);
+
+        Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
+        Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, Light->GetShadowMap()[0].DSV);
+    }
+
 }
 
 void FShadowRenderPass::ClearRenderArr()
