@@ -31,6 +31,10 @@ public:
     int GetType() const;
     void SetType(int InType);
 
+    
+    void UpdateViewMatrix() override;
+    void UpdateProjectionMatrix() override;
+
 private:
     FPointLightInfo PointLightInfo;
 

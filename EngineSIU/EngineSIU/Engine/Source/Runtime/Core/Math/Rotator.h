@@ -57,6 +57,7 @@ struct FRotator
     FRotator FromQuaternion(const FQuat& InQuat) const;
     FQuat ToQuaternion() const;
     FVector ToVector() const;
+    FVector RotateVector(const FVector& Vec) const;
     FMatrix ToMatrix() const;
 
     float Clamp(float Angle) const;

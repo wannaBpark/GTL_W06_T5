@@ -17,8 +17,24 @@ public:
 
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
+
+    virtual void UpdateViewMatrix();
+    virtual void UpdateProjectionMatrix();
+    
+    FMatrix GetViewMatrix(int Index = 0) const
+    {
+        return ViewMatrices[Index];
+    }
+    FMatrix GetProjectionMatrix() const
+    {
+        return ProjectionMatrix;
+    }
+    
 protected:
 
+    TArray<FMatrix>		ViewMatrices;
+    FMatrix		ProjectionMatrix;
+    
     FBoundingBox AABB;
 
 public:

@@ -64,6 +64,8 @@ void FTileLightCullingPass::PrepareRenderArr()
                 SpotLight->GetDirection();
                 SpotLights.Add(SpotLight);
             }
+            iter->UpdateViewMatrix();
+            iter->UpdateProjectionMatrix();
         }
     }
     CreatePointLightBufferGPU();
