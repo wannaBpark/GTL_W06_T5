@@ -10,6 +10,7 @@
 #include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "UObject/UObjectIterator.h"
 
 #include "UnrealEd/EditorViewportClient.h"
@@ -26,21 +27,26 @@ FTileLightCullingPass::~FTileLightCullingPass()
 {
 }
 
+void FTileLightCullingPass::ResizeTiles(UINT InWidth, UINT InHeight)
+{
+    TILE_COUNT_X = (InWidth + TILE_SIZE - 1) / TILE_SIZE;
+    TILE_COUNT_Y = (InHeight + TILE_SIZE - 1) / TILE_SIZE;
+    TILE_COUNT = TILE_COUNT_X * TILE_COUNT_Y;
+    SHADER_ENTITY_TILE_BUCKET_COUNT = MAX_LIGHTS_PER_TILE / 32;
+}
+
 void FTileLightCullingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManage;
 
-    TILE_COUNT_X = (Graphics->ScreenWidth + TILE_SIZE - 1) / TILE_SIZE;
-    TILE_COUNT_Y = (Graphics->ScreenHeight + TILE_SIZE - 1) / TILE_SIZE;
-    TILE_COUNT = TILE_COUNT_X * TILE_COUNT_Y;
-    SHADER_ENTITY_TILE_BUCKET_COUNT = MAX_LIGHTS_PER_TILE / 32;
+    ResizeTiles(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
     // 한 타일이 가질 수 있는 조명 ID 목록을 비트마스크로 표현한 총 슬롯 수
 
     CreateShader();
     CreateViews();
-    CreateBuffers();
+    CreateBuffers(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
 }
 
 void FTileLightCullingPass::PrepareRenderArr()
@@ -81,8 +87,8 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
 void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     // 한 스레드 그룹(groupSizeX, groupSizeY)은 16x16픽셀 영역처리
-    const UINT groupSizeX = (Graphics->ScreenWidth  + TILE_SIZE - 1) / TILE_SIZE;
-    const UINT groupSizeY = (Graphics->ScreenHeight + TILE_SIZE - 1) / TILE_SIZE; 
+    const UINT groupSizeX = (Viewport->GetD3DViewport().Width  + TILE_SIZE - 1)/ TILE_SIZE;
+const UINT groupSizeY = (Viewport->GetD3DViewport().Height + TILE_SIZE - 1) / TILE_SIZE;
 
     Graphics->DeviceContext->CSSetConstantBuffers(0, 1, &TileLightConstantBuffer);
 
@@ -299,12 +305,12 @@ void FTileLightCullingPass::CreateViews()
 	}
 }
 
-void FTileLightCullingPass::CreateBuffers()
+void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
 {
     // 3. Debug heatmap 텍스처 + UAV (디버깅용)
     D3D11_TEXTURE2D_DESC heatMapDesc = {};
-    heatMapDesc.Width = Graphics->ScreenWidth;
-    heatMapDesc.Height = Graphics->ScreenHeight;
+    heatMapDesc.Width = InWidth;
+    heatMapDesc.Height = InHeight;
     heatMapDesc.MipLevels = 1;
     heatMapDesc.ArraySize = 1;
     heatMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // R32G32B32A32_FLOAT
@@ -393,8 +399,8 @@ void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<
 {
     // 1. Constant Buffer 업데이트
     TileLightCullSettings settings;
-    settings.ScreenSize[0] = Graphics->ScreenWidth;
-    settings.ScreenSize[1] = Graphics->ScreenHeight;
+    settings.ScreenSize[0] = static_cast<uint32>(Viewport->GetD3DViewport().Width);
+    settings.ScreenSize[1] = static_cast<uint32>(Viewport->GetD3DViewport().Height);
     settings.TileSize[0] = TILE_SIZE;
     settings.TileSize[1] = TILE_SIZE;
     settings.NearZ = Viewport->NearClip;
@@ -418,11 +424,13 @@ void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<
 }
 
 // Compute Shader에 사용되는 모든 SRV와 UAV를 해제
-void FTileLightCullingPass::ResizeViewBuffers()
+void FTileLightCullingPass::ResizeViewBuffers(uint32 InWidth, uint32 InHeight)
 {
+    ResizeTiles(InWidth, InHeight);
+
     Release();
     CreateViews();
-    CreateBuffers();
+    CreateBuffers(InWidth, InHeight);
 }
 
 bool FTileLightCullingPass::CopyTileLightMaskToCPU(TArray<uint32>& OutData, ID3D11Buffer*& TileUAVBuffer)
@@ -506,8 +514,8 @@ void FTileLightCullingPass::ParseTileLightMaskData()
                 if (pointMask & (1u << bit))
                 {
                     // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
-                    uint32 globalLightIndex = bucket * 32 + bit;
                     // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
+                    uint32 globalLightIndex = bucket * 32 + bit;
                     if (globalLightIndex < TotalPointLightCount)
                     {
                         PointLightIndices.Add(globalLightIndex);
@@ -515,9 +523,7 @@ void FTileLightCullingPass::ParseTileLightMaskData()
                 }
                 if (spotMask & (1u << bit))
                 {
-                    // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
                     uint32 globalLightIndex = bucket * 32 + bit;
-                    // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
                     if (globalLightIndex < TotalSpotLightCount)
                     {
                         SpotLightIndices.Add(globalLightIndex);

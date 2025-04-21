@@ -62,42 +62,45 @@ HRESULT ULightComponentBase::CreateShadowMap()
 
     HRESULT hr = S_OK;
 
-    D3D11_TEXTURE2D_DESC DepthStencilTextureDesc = {};
-    DepthStencilTextureDesc.Width = ShadowMapWidth;
-    DepthStencilTextureDesc.Height = ShadowMapHeight;
-    DepthStencilTextureDesc.MipLevels = 1;
-    DepthStencilTextureDesc.ArraySize = 1;
-    DepthStencilTextureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-    DepthStencilTextureDesc.SampleDesc.Count = 1;
-    DepthStencilTextureDesc.SampleDesc.Quality = 0;
-    DepthStencilTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-    DepthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-    DepthStencilTextureDesc.CPUAccessFlags = 0;
-    DepthStencilTextureDesc.MiscFlags = 0;
-    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &NewResource.Texture2D);
+    D3D11_TEXTURE2D_DESC ShadowBufferDesc = {};
+    ShadowBufferDesc.Width = ShadowMapWidth;
+    ShadowBufferDesc.Height = ShadowMapHeight;
+    ShadowBufferDesc.MipLevels = 1;
+    ShadowBufferDesc.ArraySize = 1;
+    ShadowBufferDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    ShadowBufferDesc.SampleDesc.Count = 1;
+    ShadowBufferDesc.SampleDesc.Quality = 0;
+    ShadowBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    ShadowBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    ShadowBufferDesc.CPUAccessFlags = 0;
+    ShadowBufferDesc.MiscFlags = 0;
+    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&ShadowBufferDesc, nullptr, &NewResource.Texture2D);
     if (FAILED(hr))
     {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create shadow map texture!"));
         return hr;
     }
 
-    D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
-    DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    DepthStencilViewDesc.Texture2D.MipSlice = 0;
-    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D, &DepthStencilViewDesc, &NewResource.DSV);
+    D3D11_DEPTH_STENCIL_VIEW_DESC ShadowDSVDesc = {};
+    ShadowDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    ShadowDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    ShadowDSVDesc.Texture2D.MipSlice = 0;
+    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D, &ShadowDSVDesc, &NewResource.DSV);
     if (FAILED(hr))
     {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create shadow map DSV!"));
         return hr;
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC DepthStencilDesc = {};
-    DepthStencilDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-    DepthStencilDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    DepthStencilDesc.Texture2D.MostDetailedMip = 0;
-    DepthStencilDesc.Texture2D.MipLevels = 1;
-    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D, &DepthStencilDesc, &NewResource.SRV);
+    D3D11_SHADER_RESOURCE_VIEW_DESC ShadowSRVDesc = {};
+    ShadowSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    ShadowSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    ShadowSRVDesc.Texture2D.MostDetailedMip = 0;
+    ShadowSRVDesc.Texture2D.MipLevels = 1;
+    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D, &ShadowSRVDesc, &NewResource.SRV);
     if (FAILED(hr))
     {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create shadow map SRV!"));
         return hr;
     }
 
@@ -116,7 +119,7 @@ void ULightComponentBase::ReleaseShadowMap()
 
 void ULightComponentBase::ClearShadowMap(ID3D11DeviceContext* DeviceContext)
 {
-    for (auto ShadowMap : ShadowMaps)
+    for (const auto& ShadowMap : ShadowMaps)
     {
         DeviceContext->ClearDepthStencilView(ShadowMap.DSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
     }

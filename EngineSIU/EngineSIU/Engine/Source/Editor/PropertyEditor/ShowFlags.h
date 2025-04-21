@@ -5,28 +5,30 @@
 
 namespace EEngineShowFlags
 {
-enum Type : uint64
-{
-    None = 0,
-    SF_AABB = 1ULL << 0,
-    SF_Primitives = 1ULL << 1,
-    SF_BillboardText = 1ULL << 2,
-    SF_UUIDText = 1ULL << 3,
-    SF_Fog = 1ULL << 4
-};
+    enum Type : uint64
+    {
+        None = 0,
+        SF_AABB = 1ULL << 0,
+        SF_Primitives = 1ULL << 1,
+        SF_BillboardText = 1ULL << 2,
+        SF_UUIDText = 1ULL << 3,
+        SF_Fog = 1ULL << 4,
+        SF_LightWireframe = 1ULL << 5,
+        SF_LightWireframeSelectedOnly = 1ULL << 6,
+    };
 }
 
 class UWorld;
 class ShowFlags : public IWindowToggleable
 {
 private:
-	ShowFlags();
+	ShowFlags() = default;
 
 public:
 	static ShowFlags& GetInstance();
 
-	void Draw(const std::shared_ptr<FEditorViewportClient>& ActiveViewport) const;
-	uint64 ConvertSelectionToFlags(const bool selected[]) const;
+    static void Draw(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    static uint64 ConvertSelectionToFlags(const bool Selected[]);
 	void OnResize(HWND hWnd);
 
     virtual void Toggle() override {
@@ -34,9 +36,9 @@ public:
 			bWasOpen = false;
 		}
 	}
-	uint64 currentFlags;
+	uint64 CurrentFlags = 63;
 private:
 	bool bWasOpen = true;
-	UINT width;
-	UINT height;
+	UINT Width;
+	UINT Height;
 };
