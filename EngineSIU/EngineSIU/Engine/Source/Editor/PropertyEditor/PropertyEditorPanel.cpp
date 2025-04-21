@@ -158,7 +158,7 @@ void PropertyEditorPanel::Render()
     //        ImGui::PopStyleColor();
     //    }
 
-    if(PickedActor)
+    if (PickedActor)
     {
         if (UPointLightComponent* PointlightComponent = PickedActor->GetComponentByClass<UPointLightComponent>())
         {
@@ -182,6 +182,21 @@ void PropertyEditorPanel::Render()
                     PointlightComponent->SetRadius(Radius);
                 }
 
+                ImGui::Text("ShadowMap");
+                // CubeMap이므로 6개의 ShadowMap을 그립니다.
+                // X Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[0].SRV), ImVec2(100, 100));
+                ImGui::SameLine();
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
+                // Y Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
+                ImGui::SameLine();
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[3].SRV), ImVec2(100, 100));
+                // Z Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[4].SRV), ImVec2(100, 100));
+                ImGui::SameLine();
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[5].SRV), ImVec2(100, 100));
+
                 ImGui::TreePop();
             }
 
@@ -189,7 +204,7 @@ void PropertyEditorPanel::Render()
         }
     }
 
-    if(PickedActor)
+    if (PickedActor)
     {
         if (USpotLightComponent* SpotLightComponent = PickedActor->GetComponentByClass<USpotLightComponent>())
         {
@@ -234,6 +249,9 @@ void PropertyEditorPanel::Render()
                     SpotLightComponent->SetInnerDegree(InnerConeAngle);
                 }
 
+                ImGui::Text("ShadowMap");
+                ImGui::Image(reinterpret_cast<ImTextureID>(SpotLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
+
                 ImGui::TreePop();
             }
 
@@ -262,6 +280,9 @@ void PropertyEditorPanel::Render()
                 LightDirection = DirectionalLightComponent->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
 
+                ImGui::Text("ShadowMap");
+                ImGui::Image(reinterpret_cast<ImTextureID>(DirectionalLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
+
                 ImGui::TreePop();
             }
 
@@ -269,7 +290,7 @@ void PropertyEditorPanel::Render()
         }
     }
 
-    if(PickedActor)
+    if (PickedActor)
     {
         if (UAmbientLightComponent* AmbientLightComponent = PickedActor->GetComponentByClass<UAmbientLightComponent>())
         {
@@ -310,9 +331,9 @@ void PropertyEditorPanel::Render()
                 float Gravity = ProjectileComp->GetGravity();
                 if (ImGui::InputFloat("Gravity", &Gravity, 0.f, 10000.f, "%.1f"))
                 {
-                    ProjectileComp->SetGravity(Gravity); 
+                    ProjectileComp->SetGravity(Gravity);
                 }
-                
+
                 float ProjectileLifetime = ProjectileComp->GetLifetime();
                 if (ImGui::InputFloat("Lifetime", &ProjectileLifetime, 0.f, 10000.f, "%.1f"))
                 {
@@ -327,7 +348,7 @@ void PropertyEditorPanel::Render()
                 {
                     ProjectileComp->SetVelocity(FVector(Velocity[0], Velocity[1], Velocity[2]));
                 }
-                
+
                 ImGui::TreePop();
             }
 
