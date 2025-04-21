@@ -130,29 +130,34 @@ PS_INPUT sphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
     
     float3 pos = DataSphere[instanceID].Position;
     float scale = DataSphere[instanceID].Radius;
-    //scale = float3(1, 1, 1);
     
     float4 localPos = float4(input.position.xyz * scale + pos, 1.f);
         
     localPos = mul(localPos, ViewMatrix);
     localPos = mul(localPos, ProjectionMatrix);
     output.position = localPos;
-    
-    // color는 지정안해줌
+
+    output.color = float4(100.f / 255.f, 220.f / 255.f, 255.f / 255.f, 1.0f);
     
     return output;
 }
 
 float4 spherePS(PS_INPUT input) : SV_Target
 {
-    return float4(0.777f, 1.0f, 1.0f, 1.0f); // 하늘색
+    return input.color;
 }
 
 /////////////////////////////////////////////
 // Cone
-float3x3 CreateRotationMatrixFromZ(float3 targetDir)
+struct coneVSInput
 {
-    float3 from = float3(0.0f, 0.0f, 1.0f); // 기준 방향
+    uint vertexID : SV_VertexID;
+    uint instanceID : SV_InstanceID;
+};
+
+float3x3 CreateRotationMatrixFromX(float3 targetDir)
+{
+    float3 from = float3(1, 0, 0); // 기준 방향 X축
     float3 to = normalize(targetDir); // 타겟 방향 정규화
 
     float cosTheta = dot(from, to);
@@ -167,7 +172,7 @@ float3x3 CreateRotationMatrixFromZ(float3 targetDir)
         );
     }
 
-    // 반대 방향인 경우: 180도 회전, 축은 X축이나 Y축 아무거나 가능
+    // 반대 방향인 경우: 180도 회전, 축은 Y축이나 Z축 아무거나 가능
     if (cosTheta < -0.9999f)
     {
         float3 up = float3(0.0f, 1.0f, 0.0f);
@@ -175,8 +180,8 @@ float3x3 CreateRotationMatrixFromZ(float3 targetDir)
         float x = axis.x, y = axis.y, z = axis.z;
         float3x3 rot180 = float3x3(
             -1 + 2 * x * x, 2 * x * y, 2 * x * z,
-                2 * x * y, -1 + 2 * y * y, 2 * y * z,
-                2 * x * z, 2 * y * z, -1 + 2 * z * z
+            2 * x * y, -1 + 2 * y * y, 2 * y * z,
+            2 * x * z, 2 * y * z, -1 + 2 * z * z
         );
         return rot180;
     }
@@ -185,8 +190,8 @@ float3x3 CreateRotationMatrixFromZ(float3 targetDir)
     float3 axis = normalize(cross(to, from)); // 왼손 좌표계 보정
     float s = sqrt(1.0f - cosTheta * cosTheta); // sin(theta)
     float3x3 K = float3x3(
-         0, -axis.z, axis.y,
-         axis.z, 0, -axis.x,
+        0, -axis.z, axis.y,
+        axis.z, 0, -axis.x,
         -axis.y, axis.x, 0
     );
 
@@ -194,35 +199,123 @@ float3x3 CreateRotationMatrixFromZ(float3 targetDir)
     float3x3 R = I + s * K + (1 - cosTheta) * mul(K, K);
     return R;
 }
-PS_INPUT coneVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
+
+PS_INPUT coneVS(coneVSInput input)
 {
     PS_INPUT output;
-    
-    float3 pos   = DataCone[instanceID % 2].ApexPosition;
-    float radius = DataCone[instanceID    ].InnerRadius;
-    if (instanceID % 2 == 1)
+
+    int NumConeSegments = 24;
+    int NumSphereSegments = 10;
+    const float PI = 3.1415926535897932f;
+
+    float Angle = DataCone[input.instanceID].Angle;
+    float TangentAngle = tan(Angle);
+    float SinAngle = sin(Angle);
+    float CosAngle = cos(Angle);
+    float Radius = DataCone[input.instanceID].Radius;
+
+    int NumSide = 2 * NumConeSegments;
+    int NumBase = 2 * NumConeSegments;
+    int NumXZ = 2 * NumSphereSegments;
+
+    float3 LocalPos3;
+
+    int SegmentIndex;
+
+    // ConeSide
+    if (input.vertexID < NumSide)
     {
-        radius = DataCone[instanceID].OuterRadius;
-        output.color = float4(0.776, 1.0, 1.0, 1.0); // 하늘색
+        int LineIndex = input.vertexID / 2;
+        // ConeApex
+        if (input.vertexID % 2 == 0)
+        {
+            LocalPos3 = float3(0, 0, 0);
+        }
+        // ConeBase
+        else
+        {
+            float ConeBaseRadius = Radius * SinAngle;
+            float ConeHeight = Radius * CosAngle;
+            SegmentIndex = (input.vertexID / 2);  // Start After Apex
+            // Angle = Index * 2PI / NumSegments
+            float SegmentAngle = SegmentIndex * (2.0f * PI / (float)NumConeSegments);
+            LocalPos3 = float3(ConeHeight, ConeBaseRadius, ConeBaseRadius);
+            LocalPos3 = LocalPos3 * float3(1.f, cos(SegmentAngle), sin(SegmentAngle));
+        }
     }
-    else
+    // ConeBase
+    else if (input.vertexID < NumSide + NumBase)
     {
-        output.color = float4(0.4157, 0.5765, 0.7765, 1.0); // 짙은 하늘색
+        float ConeBaseRadius = Radius * SinAngle;
+        float ConeHeight = Radius * CosAngle;
+        if (input.vertexID % 2 == 0)
+        {
+            SegmentIndex = ((input.vertexID - (2 * NumConeSegments)) / 2);
+        }
+        else
+        {
+            SegmentIndex = ((input.vertexID - (2 * NumConeSegments) + 1) / 2);
+        }
+        float SegmentAngle = SegmentIndex / (float)NumConeSegments * 2.0f * PI;
+        LocalPos3 = float3(ConeHeight, ConeBaseRadius, ConeBaseRadius);
+        LocalPos3 = LocalPos3 * float3(1.f, cos(SegmentAngle), sin(SegmentAngle));
     }
-    float3 scale = float3(radius.xx, DataCone[instanceID % 2].Height);
-    float3x3 rot = CreateRotationMatrixFromZ(DataCone[instanceID%2].Direction);
-    
-    float3 localPos3 = input.position.xyz;
-    localPos3 = localPos3 * scale;
-    localPos3 = mul(localPos3, rot);
-    localPos3 = localPos3 + pos;
-    
-    float4 localPos = float4(localPos3, 1.f);
-        
+    // XZ Plane Sphere
+    else if (input.vertexID < NumSide + NumBase + NumXZ)
+    {
+        if (input.vertexID % 2 == 0)
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments)) / 2);
+        }
+        else
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments) + 1) / 2);
+        }
+        float SegmentAngle = SegmentIndex / (float)(NumSphereSegments) * (2 * Angle);
+        float angleOffset = -Angle;
+        LocalPos3 = float3(cos(angleOffset + SegmentAngle), 0, sin(angleOffset + SegmentAngle));
+        LocalPos3 = LocalPos3 * float3(Radius, Radius, Radius) * 1;
+    }
+    // YZ Plane Sphere
+    else// if (vertexID < NumSphereSegments + 1 + 2 * (NumConeSegments + 1))
+    {
+        if (input.vertexID % 2 == 0)
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments)) / 2);
+        }
+        else
+        {
+            SegmentIndex = ((input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments) + 1) / 2);
+        }
+        float SegmentAngle = SegmentIndex / (float)(NumSphereSegments) * (2 * Angle);
+        float angleOffset = -Angle;
+        LocalPos3 = float3(cos(angleOffset + SegmentAngle), sin(angleOffset + SegmentAngle), 0);
+        LocalPos3 = LocalPos3 * float3(Radius, Radius, Radius) * 1;
+    }
+
+    float3 pos = DataCone[input.instanceID].ApexPosiiton;
+    float3x3 rot = CreateRotationMatrixFromX(DataCone[input.instanceID].Direction);
+
+    LocalPos3 = mul(LocalPos3, rot);
+    LocalPos3 = LocalPos3 + pos;
+
+    float4 localPos = float4(LocalPos3, 1.f);
+
     localPos = mul(localPos, ViewMatrix);
     localPos = mul(localPos, ProjectionMatrix);
     output.position = localPos;
-    
+
+    if (input.instanceID % 2 == 0)
+    {
+        //Inner
+        output.color = float4(40.f / 255.f, 100.f / 255.f, 255.f / 255.f, 1.0f);
+    }
+    else
+    {
+        // Outer
+        output.color = float4(100.f / 255.f, 220.f / 255.f, 255.f / 255.f, 1.0f);
+    }
+
     return output;
 }
 

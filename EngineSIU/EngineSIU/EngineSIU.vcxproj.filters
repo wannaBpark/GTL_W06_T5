@@ -923,5 +923,6 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DepthOnlyVS.hlsl" />
+    <FxCompile Include="Shaders\CascadedGS.hlsl" />
   </ItemGroup>
 </Project>

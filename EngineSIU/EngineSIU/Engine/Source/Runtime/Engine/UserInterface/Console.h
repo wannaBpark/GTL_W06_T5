@@ -7,7 +7,6 @@
 
 #define UE_LOG Console::GetInstance().AddLog
 
-
 enum class LogLevel : uint8
 {
     Display,
@@ -15,21 +14,17 @@ enum class LogLevel : uint8
     Error
 };
 
-
 class StatOverlay
 {
 public:
-    bool showFPS = false;
-    bool showMemory = false;
-    bool showRender = false;
+    // @todo Stat-FPS Default 설정 복구 (showFPS = false, showRender = false)
+    bool ShowFPS = true;
+    bool ShowMemory = false;
+    bool ShowLight = false;
+    bool ShowRender = true;
 
-    void ToggleStat(const std::string& command);
-    void Render(ID3D11DeviceContext* context, UINT width, UINT height) const;
-
-private:
-    float CalculateFPS() const;
-
-    void DrawTextOverlay(const std::string& text, int x, int y) const;
+    void ToggleStat(const std::string& Command);
+    void Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) const;
 };
 
 class Console : public IWindowToggleable
@@ -38,12 +33,19 @@ private:
     Console() = default;
 
 public:
+    // 복사 방지
+    Console(const Console&) = delete;
+    Console& operator=(const Console&) = delete;
+    Console(Console&&) = delete;
+    Console& operator=(Console&&) = delete;
+
+public:
     static Console& GetInstance(); // 참조 반환으로 변경
 
     void Clear();
-    void AddLog(LogLevel level, const char* fmt, ...);
+    void AddLog(LogLevel Level, const char* Format, ...);
     void Draw();
-    void ExecuteCommand(const std::string& command);
+    void ExecuteCommand(const std::string& Command);
     void OnResize(HWND hWnd);
 
     virtual void Toggle() override
@@ -56,41 +58,33 @@ public:
         {
             bWasOpen = true;
         }
-    } // Toggle() 구현 
+    }
 
 public:
     struct LogEntry
     {
-        LogLevel level;
-        FString message;
+        LogLevel Level;
+        FString Message;
     };
 
-    TArray<LogEntry> items;
-    TArray<FString> history;
-    int32 historyPos = -1;
-    char inputBuf[256] = "";
-    bool scrollToBottom = false;
+    TArray<LogEntry> Items;
+    TArray<FString> History;
+    int32 HistoryPos = -1;
+    char InputBuf[256] = "";
+    bool ScrollToBottom = false;
 
-    ImGuiTextFilter filter; // 필터링을 위한 ImGuiTextFilter
+    ImGuiTextFilter Filter; // 필터링을 위한 ImGuiTextFilter
 
-    // 추가된 멤버 변수들
-    bool showLogTemp = true; // LogTemp 체크박스
-    bool showWarning = true; // Warning 체크박스
-    bool showError = true;   // Error 체크박스
+    bool ShowLogTemp = true; // LogTemp 체크박스
+    bool ShowWarning = true; // Warning 체크박스
+    bool ShowError = true;   // Error 체크박스
 
     bool bWasOpen = true;
-    bool showFPS = false;
-    bool showMemory = false;
-    // 복사 방지
-    Console(const Console&) = delete;
-    Console& operator=(const Console&) = delete;
-    Console(Console&&) = delete;
-    Console& operator=(Console&&) = delete;
 
-    StatOverlay overlay;
+    StatOverlay Overlay;
 
 private:
     bool bExpand = true;
-    UINT width;
-    UINT height;
+    UINT Width;
+    UINT Height;
 };

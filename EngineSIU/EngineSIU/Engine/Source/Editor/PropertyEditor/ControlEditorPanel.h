@@ -9,19 +9,18 @@ public:
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
-
 private:
     void CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont);
     void CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont);
-    void CreateFlagButton() const;
-    void CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont) const;
-    void CreateSRTButton(ImVec2 ButtonSize) const;
-    void CreateLightSpawnButton(ImVec2 ButtonSize, ImFont* IconFont);
-    uint64 ConvertSelectionToFlags(const bool selected[]) const;
+    static void CreateFlagButton();
+    static void CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont);
+    static void CreateSRTButton(ImVec2 ButtonSize);
+    void CreateLightSpawnButton(ImVec2 InButtonSize, ImFont* IconFont);
     
 private:
     float Width = 300, Height = 100;
     bool bOpenMenu = false;
+    bool bShowImGuiDemoWindow = false; // 데모 창 표시 여부를 관리하는 변수
 
     float* FOV = nullptr;
     float CameraSpeed = 0.0f;

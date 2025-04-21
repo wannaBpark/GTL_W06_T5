@@ -162,6 +162,11 @@ FVector FRotator::ToVector() const
     return FVector(FMath::DegreesToRadians(Roll), FMath::DegreesToRadians(Pitch), FMath::DegreesToRadians(Yaw));
 }
 
+FVector FRotator::RotateVector(const FVector& Vec) const
+{
+    return ToQuaternion().RotateVector(Vec);
+}
+
 FMatrix FRotator::ToMatrix() const
 {
     return FMatrix::GetRotationMatrix(*this);

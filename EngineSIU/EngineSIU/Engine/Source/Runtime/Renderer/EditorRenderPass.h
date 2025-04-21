@@ -56,12 +56,12 @@ private:
     void UdpateConstantbufferAABBInstanced(TArray<FConstantBufferDebugAABB> Buffer);
 
     // Sphere
-    void RenderPointlightInstanced();
+    void RenderPointlightInstanced(uint64 ShowFlag);
     void PrepareConstantbufferPointlight();
     void UdpateConstantbufferPointlightInstanced(TArray<FConstantBufferDebugSphere> Buffer);
      
     // Cone
-    void RenderSpotlightInstanced();
+    void RenderSpotlightInstanced(uint64 ShowFlag);
     void PrepareConstantbufferSpotlight();
     void UdpateConstantbufferSpotlightInstanced(TArray<FConstantBufferDebugCone> Buffer);
 

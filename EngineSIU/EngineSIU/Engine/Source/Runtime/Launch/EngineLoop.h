@@ -57,7 +57,8 @@ private:
     FDXDBufferManager* BufferManager; //TODO: UEngine으로 옮겨야함.
 
     bool bIsExit = false;
-    int32 TargetFPS = 200;
+    // @todo Option으로 선택 가능하도록
+    int32 TargetFPS = 999;
 
 public:
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }

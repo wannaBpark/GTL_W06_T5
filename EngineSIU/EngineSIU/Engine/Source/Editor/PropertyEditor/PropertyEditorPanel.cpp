@@ -1,5 +1,7 @@
 #include "PropertyEditorPanel.h"
 
+#include <algorithm>
+
 #include "World/World.h"
 #include "Actors/Player.h"
 #include "Components/Light/LightComponent.h"
@@ -48,13 +50,15 @@ void PropertyEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
-
-
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
+    {
         return;
-    AEditorPlayer* player = Engine->GetEditorPlayer();
+    }
+
+    AEditorPlayer* Player = Engine->GetEditorPlayer();
     AActor* PickedActor = Engine->GetSelectedActor();
+
     if (PickedActor)
     {
         ImGui::SetItemDefaultFocus();
@@ -80,17 +84,23 @@ void PropertyEditorPanel::Render()
             PickedActor->SetActorScale(Scale);
 
             std::string coordiButtonLabel;
-            if (player->GetCoordMode() == ECoordMode::CDM_WORLD)
+            if (Player->GetCoordMode() == ECoordMode::CDM_WORLD)
+            {
                 coordiButtonLabel = "World";
-            else if (player->GetCoordMode() == ECoordMode::CDM_LOCAL)
+            }
+            else if (Player->GetCoordMode() == ECoordMode::CDM_LOCAL)
+            {
                 coordiButtonLabel = "Local";
+            }
 
             if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
             {
-                player->AddCoordiMode();
+                Player->AddCoordiMode();
             }
+
             ImGui::TreePop(); // 트리 닫기
         }
+
         ImGui::PopStyleColor();
     }
 
@@ -98,7 +108,6 @@ void PropertyEditorPanel::Render()
     {
         if (ImGui::Button("Duplicate"))
         {
-            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
             AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
             Engine->SelectActor(NewActor);
         }
@@ -149,113 +158,158 @@ void PropertyEditorPanel::Render()
     //        ImGui::PopStyleColor();
     //    }
 
-    if(PickedActor)
-        if (UPointLightComponent* pointlightObj = PickedActor->GetComponentByClass<UPointLightComponent>())
+    if (PickedActor)
+    {
+        if (UPointLightComponent* PointlightComponent = PickedActor->GetComponentByClass<UPointLightComponent>())
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
             if (ImGui::TreeNodeEx("PointLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
                 DrawColorProperty("Light Color",
-                    [&]() { return pointlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { pointlightObj->SetLightColor(c); });
+                    [&]() { return PointlightComponent->GetLightColor(); },
+                    [&](FLinearColor c) { PointlightComponent->SetLightColor(c); });
 
-                float Intensity = pointlightObj->GetIntensity();
+                float Intensity = PointlightComponent->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
-                    pointlightObj->SetIntensity(Intensity);
-
-                float Radius = pointlightObj->GetRadius();
-                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f")) {
-                    pointlightObj->SetRadius(Radius);
+                {
+                    PointlightComponent->SetIntensity(Intensity);
                 }
 
+                float Radius = PointlightComponent->GetRadius();
+                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f"))
+                {
+                    PointlightComponent->SetRadius(Radius);
+                }
+
+                ImGui::Text("ShadowMap");
+                // CubeMap이므로 6개의 ShadowMap을 그립니다.
+                // X Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[0].SRV), ImVec2(100, 100));
+                ImGui::SameLine();
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
+                // Y Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
+                ImGui::SameLine();
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[3].SRV), ImVec2(100, 100));
+                // Z Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[4].SRV), ImVec2(100, 100));
+                ImGui::SameLine();
+                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[5].SRV), ImVec2(100, 100));
 
                 ImGui::TreePop();
             }
 
             ImGui::PopStyleColor();
         }
+    }
 
-    if(PickedActor)
-        if (USpotLightComponent* spotlightObj = PickedActor->GetComponentByClass<USpotLightComponent>())
+    if (PickedActor)
+    {
+        if (USpotLightComponent* SpotLightComponent = PickedActor->GetComponentByClass<USpotLightComponent>())
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
             if (ImGui::TreeNodeEx("SpotLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
                 DrawColorProperty("Light Color",
-                    [&]() { return spotlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { spotlightObj->SetLightColor(c); });
+                    [&]() { return SpotLightComponent->GetLightColor(); },
+                    [&](FLinearColor c) { SpotLightComponent->SetLightColor(c); });
 
-                float Intensity = spotlightObj->GetIntensity();
+                float Intensity = SpotLightComponent->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
-                    spotlightObj->SetIntensity(Intensity);
-
-                float Radius = spotlightObj->GetRadius();
-                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f")) {
-                    spotlightObj->SetRadius(Radius);
+                {
+                    SpotLightComponent->SetIntensity(Intensity);
                 }
 
-                LightDirection = spotlightObj->GetDirection();
+                float Radius = SpotLightComponent->GetRadius();
+                if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f"))
+                {
+                    SpotLightComponent->SetRadius(Radius);
+                }
+
+                LightDirection = SpotLightComponent->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
-                
-                float InnerDegree = spotlightObj->GetInnerDegree();
-                if (ImGui::SliderFloat("InnerDegree", &InnerDegree, 0.01f, 180.f, "%.1f")) {
-                    spotlightObj->SetInnerDegree(InnerDegree);
+
+                float InnerConeAngle = SpotLightComponent->GetInnerDegree();
+                float OuterConeAngle = SpotLightComponent->GetOuterDegree();
+                if (ImGui::DragFloat("InnerConeAngle", &InnerConeAngle, 0.5f, 0.0f, 80.0f))
+                {
+                    OuterConeAngle = std::max(InnerConeAngle, OuterConeAngle);
+
+                    SpotLightComponent->SetInnerDegree(InnerConeAngle);
+                    SpotLightComponent->SetOuterDegree(OuterConeAngle);
                 }
 
-                float OuterDegree = spotlightObj->GetOuterDegree();
-                if (ImGui::SliderFloat("OuterDegree", &OuterDegree, 0.01f, 180.f, "%.1f")) {
-                    spotlightObj->SetOuterDegree(OuterDegree);
+                if (ImGui::DragFloat("OuterConeAngle", &OuterConeAngle, 0.5f, 0.0f, 80.0f))
+                {
+                    InnerConeAngle = std::min(OuterConeAngle, InnerConeAngle);
+
+                    SpotLightComponent->SetOuterDegree(OuterConeAngle);
+                    SpotLightComponent->SetInnerDegree(InnerConeAngle);
                 }
+
+                ImGui::Text("ShadowMap");
+                ImGui::Image(reinterpret_cast<ImTextureID>(SpotLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
 
                 ImGui::TreePop();
             }
 
             ImGui::PopStyleColor();
         }
+    }
 
     if (PickedActor)
-        if (UDirectionalLightComponent* dirlightObj = PickedActor->GetComponentByClass<UDirectionalLightComponent>())
+    {
+        if (UDirectionalLightComponent* DirectionalLightComponent = PickedActor->GetComponentByClass<UDirectionalLightComponent>())
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
             if (ImGui::TreeNodeEx("DirectionalLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
                 DrawColorProperty("Light Color",
-                    [&]() { return dirlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { dirlightObj->SetLightColor(c); });
+                    [&]() { return DirectionalLightComponent->GetLightColor(); },
+                    [&](FLinearColor c) { DirectionalLightComponent->SetLightColor(c); });
 
-                float Intensity = dirlightObj->GetIntensity();
+                float Intensity = DirectionalLightComponent->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 150.0f, "%.1f"))
-                    dirlightObj->SetIntensity(Intensity);
+                {
+                    DirectionalLightComponent->SetIntensity(Intensity);
+                }
 
-                LightDirection = dirlightObj->GetDirection();
+                LightDirection = DirectionalLightComponent->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
+
+                ImGui::Text("ShadowMap");
+                ImGui::Image(reinterpret_cast<ImTextureID>(DirectionalLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
 
                 ImGui::TreePop();
             }
 
             ImGui::PopStyleColor();
         }
+    }
 
-    if(PickedActor)
-        if (UAmbientLightComponent* ambientLightObj = PickedActor->GetComponentByClass<UAmbientLightComponent>())
+    if (PickedActor)
+    {
+        if (UAmbientLightComponent* AmbientLightComponent = PickedActor->GetComponentByClass<UAmbientLightComponent>())
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
             if (ImGui::TreeNodeEx("AmbientLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
                 DrawColorProperty("Light Color",
-                    [&]() { return ambientLightObj->GetLightColor(); },
-                    [&](FLinearColor c) { ambientLightObj->SetLightColor(c); });
+                    [&]() { return AmbientLightComponent->GetLightColor(); },
+                    [&](FLinearColor c) { AmbientLightComponent->SetLightColor(c); });
                 ImGui::TreePop();
             }
 
             ImGui::PopStyleColor();
         }
+    }
 
     if (PickedActor)
+    {
         if (UProjectileMovementComponent* ProjectileComp = (PickedActor->GetComponentByClass<UProjectileMovementComponent>()))
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -264,61 +318,73 @@ void PropertyEditorPanel::Render()
             {
                 float InitialSpeed = ProjectileComp->GetInitialSpeed();
                 if (ImGui::InputFloat("InitialSpeed", &InitialSpeed, 0.f, 10000.0f, "%.1f"))
+                {
                     ProjectileComp->SetInitialSpeed(InitialSpeed);
+                }
 
                 float MaxSpeed = ProjectileComp->GetMaxSpeed();
                 if (ImGui::InputFloat("MaxSpeed", &MaxSpeed, 0.f, 10000.0f, "%.1f"))
+                {
                     ProjectileComp->SetMaxSpeed(MaxSpeed);
+                }
 
                 float Gravity = ProjectileComp->GetGravity();
                 if (ImGui::InputFloat("Gravity", &Gravity, 0.f, 10000.f, "%.1f"))
-                    ProjectileComp->SetGravity(Gravity); 
-                
+                {
+                    ProjectileComp->SetGravity(Gravity);
+                }
+
                 float ProjectileLifetime = ProjectileComp->GetLifetime();
                 if (ImGui::InputFloat("Lifetime", &ProjectileLifetime, 0.f, 10000.f, "%.1f"))
+                {
                     ProjectileComp->SetLifetime(ProjectileLifetime);
-
-                FVector currentVelocity = ProjectileComp->GetVelocity();
-
-                float velocity[3] = { currentVelocity.X, currentVelocity.Y, currentVelocity.Z };
-
-                if (ImGui::InputFloat3("Velocity", velocity, "%.1f")) {
-                    ProjectileComp->SetVelocity(FVector(velocity[0], velocity[1], velocity[2]));
                 }
-                
+
+                FVector CurrentVelocity = ProjectileComp->GetVelocity();
+
+                float Velocity[3] = { CurrentVelocity.X, CurrentVelocity.Y, CurrentVelocity.Z };
+
+                if (ImGui::InputFloat3("Velocity", Velocity, "%.1f"))
+                {
+                    ProjectileComp->SetVelocity(FVector(Velocity[0], Velocity[1], Velocity[2]));
+                }
+
                 ImGui::TreePop();
             }
 
             ImGui::PopStyleColor();
         }
+    }
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
-        if (UTextComponent* textOBj = Cast<UTextComponent>(PickedActor->GetRootComponent()))
+    {
+        if (UTextComponent* TextComponent = Cast<UTextComponent>(PickedActor->GetRootComponent()))
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
             if (ImGui::TreeNodeEx("Text Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
             {
-                if (textOBj) {
-                    textOBj->SetTexture(L"Assets/Texture/font.png");
-                    textOBj->SetRowColumnCount(106, 106);
-                    FWString wText = textOBj->GetText();
-                    int len = WideCharToMultiByte(CP_UTF8, 0, wText.c_str(), -1, nullptr, 0, nullptr, nullptr);
-                    std::string u8Text(len, '\0');
-                    WideCharToMultiByte(CP_UTF8, 0, wText.c_str(), -1, u8Text.data(), len, nullptr, nullptr);
+                if (TextComponent)
+                {
+                    TextComponent->SetTexture(L"Assets/Texture/font.png");
+                    TextComponent->SetRowColumnCount(106, 106);
+                    FWString wText = TextComponent->GetText();
+                    int Len = WideCharToMultiByte(CP_UTF8, 0, wText.c_str(), -1, nullptr, 0, nullptr, nullptr);
+                    std::string u8Text(Len, '\0');
+                    WideCharToMultiByte(CP_UTF8, 0, wText.c_str(), -1, u8Text.data(), Len, nullptr, nullptr);
 
-                    static char buf[256];
-                    strcpy_s(buf, u8Text.c_str());
+                    static char Buf[256];
+                    strcpy_s(Buf, u8Text.c_str());
 
-                    ImGui::Text("Text: ", buf);
+                    ImGui::Text("Text: ", Buf);
                     ImGui::SameLine();
                     ImGui::PushItemFlag(ImGuiItemFlags_NoNavDefaultFocus, true);
-                    if (ImGui::InputText("##Text", buf, 256, ImGuiInputTextFlags_EnterReturnsTrue))
+                    if (ImGui::InputText("##Text", Buf, 256, ImGuiInputTextFlags_EnterReturnsTrue))
                     {
-                        textOBj->ClearText();
-                        int wlen = MultiByteToWideChar(CP_UTF8, 0, buf, -1, nullptr, 0);
-                        FWString newWText(wlen, L'\0');
-                        MultiByteToWideChar(CP_UTF8, 0, buf, -1, newWText.data(), wlen);
-                        textOBj->SetText(newWText.c_str());
+                        TextComponent->ClearText();
+                        int wLen = MultiByteToWideChar(CP_UTF8, 0, Buf, -1, nullptr, 0);
+                        FWString wNewText(wLen, L'\0');
+                        MultiByteToWideChar(CP_UTF8, 0, Buf, -1, wNewText.data(), wLen);
+                        TextComponent->SetText(wNewText.c_str());
                     }
                     ImGui::PopItemFlag();
                 }
@@ -326,79 +392,82 @@ void PropertyEditorPanel::Render()
             }
             ImGui::PopStyleColor();
         }
+    }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
+    {
         if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(PickedActor->GetRootComponent()))
         {
             RenderForStaticMesh(StaticMeshComponent);
             RenderForMaterial(StaticMeshComponent);
         }
+    }
 
     if (PickedActor)
+    {
         if (UHeightFogComponent* FogComponent = Cast<UHeightFogComponent>(PickedActor->GetRootComponent()))
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
             if (ImGui::TreeNodeEx("Exponential Height Fog", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
             {
-                FLinearColor currColor = FogComponent->GetFogColor();
+                FLinearColor CurrColor = FogComponent->GetFogColor();
 
-                float r = currColor.R;
-                float g = currColor.G;
-                float b = currColor.B;
-                float a = currColor.A;
-                float h, s, v;
-                float lightColor[4] = { r, g, b, a };
+                float R = CurrColor.R;
+                float G = CurrColor.G;
+                float B = CurrColor.B;
+                float A = CurrColor.A;
+                float H, S, V;
+                float LightColor[4] = { R, G, B, A };
 
                 // Fog Color
-                if (ImGui::ColorPicker4("##Fog Color", lightColor,
+                if (ImGui::ColorPicker4("##Fog Color", LightColor,
                     ImGuiColorEditFlags_DisplayRGB |
                     ImGuiColorEditFlags_NoSidePreview |
                     ImGuiColorEditFlags_NoInputs |
                     ImGuiColorEditFlags_Float))
-
                 {
 
-                    r = lightColor[0];
-                    g = lightColor[1];
-                    b = lightColor[2];
-                    a = lightColor[3];
-                    FogComponent->SetFogColor(FLinearColor(r, g, b, a));
+                    R = LightColor[0];
+                    G = LightColor[1];
+                    B = LightColor[2];
+                    A = LightColor[3];
+                    FogComponent->SetFogColor(FLinearColor(R, G, B, A));
                 }
-                RGBToHSV(r, g, b, h, s, v);
+                RGBToHSV(R, G, B, H, S, V);
                 // RGB/HSV
-                bool changedRGB = false;
-                bool changedHSV = false;
+                bool ChangedRGB = false;
+                bool ChangedHSV = false;
 
                 // RGB
                 ImGui::PushItemWidth(50.0f);
-                if (ImGui::DragFloat("R##R", &r, 0.001f, 0.f, 1.f)) changedRGB = true;
+                if (ImGui::DragFloat("R##R", &R, 0.001f, 0.f, 1.f)) ChangedRGB = true;
                 ImGui::SameLine();
-                if (ImGui::DragFloat("G##G", &g, 0.001f, 0.f, 1.f)) changedRGB = true;
+                if (ImGui::DragFloat("G##G", &G, 0.001f, 0.f, 1.f)) ChangedRGB = true;
                 ImGui::SameLine();
-                if (ImGui::DragFloat("B##B", &b, 0.001f, 0.f, 1.f)) changedRGB = true;
+                if (ImGui::DragFloat("B##B", &B, 0.001f, 0.f, 1.f)) ChangedRGB = true;
                 ImGui::Spacing();
 
                 // HSV
-                if (ImGui::DragFloat("H##H", &h, 0.1f, 0.f, 360)) changedHSV = true;
+                if (ImGui::DragFloat("H##H", &H, 0.1f, 0.f, 360)) ChangedHSV = true;
                 ImGui::SameLine();
-                if (ImGui::DragFloat("S##S", &s, 0.001f, 0.f, 1)) changedHSV = true;
+                if (ImGui::DragFloat("S##S", &S, 0.001f, 0.f, 1)) ChangedHSV = true;
                 ImGui::SameLine();
-                if (ImGui::DragFloat("V##V", &v, 0.001f, 0.f, 1)) changedHSV = true;
+                if (ImGui::DragFloat("V##V", &V, 0.001f, 0.f, 1)) ChangedHSV = true;
                 ImGui::PopItemWidth();
                 ImGui::Spacing();
 
-                if (changedRGB && !changedHSV)
+                if (ChangedRGB && !ChangedHSV)
                 {
                     // RGB -> HSV
-                    RGBToHSV(r, g, b, h, s, v);
-                    FogComponent->SetFogColor(FLinearColor(r, g, b, a));
+                    RGBToHSV(R, G, B, H, S, V);
+                    FogComponent->SetFogColor(FLinearColor(R, G, B, A));
                 }
-                else if (changedHSV && !changedRGB)
+                else if (ChangedHSV && !ChangedRGB)
                 {
                     // HSV -> RGB
-                    HSVToRGB(h, s, v, r, g, b);
-                    FogComponent->SetFogColor(FLinearColor(r, g, b, a));
+                    HSVToRGB(H, S, V, R, G, B);
+                    FogComponent->SetFogColor(FLinearColor(R, G, B, A));
                 }
 
                 float FogDensity = FogComponent->GetFogDensity();
@@ -435,65 +504,66 @@ void PropertyEditorPanel::Render()
             }
             ImGui::PopStyleColor();
         }
+    }
     ImGui::End();
 }
 
-void PropertyEditorPanel::RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const
+void PropertyEditorPanel::RGBToHSV(const float R, const float G, const float B, float& H, float& S, float& V)
 {
-    float mx = FMath::Max(r, FMath::Max(g, b));
-    float mn = FMath::Min(r, FMath::Min(g, b));
-    float delta = mx - mn;
+    const float MX = FMath::Max(R, FMath::Max(G, B));
+    const float MN = FMath::Min(R, FMath::Min(G, B));
+    const float Delta = MX - MN;
 
-    v = mx;
+    V = MX;
 
-    if (mx == 0.0f) {
-        s = 0.0f;
-        h = 0.0f;
+    if (MX == 0.0f) {
+        S = 0.0f;
+        H = 0.0f;
         return;
     }
     else {
-        s = delta / mx;
+        S = Delta / MX;
     }
 
-    if (delta < 1e-6) {
-        h = 0.0f;
+    if (Delta < 1e-6) {
+        H = 0.0f;
     }
     else {
-        if (r >= mx) {
-            h = (g - b) / delta;
+        if (R >= MX) {
+            H = (G - B) / Delta;
         }
-        else if (g >= mx) {
-            h = 2.0f + (b - r) / delta;
+        else if (G >= MX) {
+            H = 2.0f + (B - R) / Delta;
         }
         else {
-            h = 4.0f + (r - g) / delta;
+            H = 4.0f + (R - G) / Delta;
         }
-        h *= 60.0f;
-        if (h < 0.0f) {
-            h += 360.0f;
+        H *= 60.0f;
+        if (H < 0.0f) {
+            H += 360.0f;
         }
     }
 }
 
-void PropertyEditorPanel::HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const
+void PropertyEditorPanel::HSVToRGB(const float H, const float S, const float V, float& R, float& G, float& B)
 {
     // h: 0~360, s:0~1, v:0~1
-    float c = v * s;
-    float hp = h / 60.0f;             // 0~6 구간
-    float x = c * (1.0f - fabsf(fmodf(hp, 2.0f) - 1.0f));
-    float m = v - c;
+    const float C = V * S;
+    const float Hp = H / 60.0f;             // 0~6 구간
+    const float X = C * (1.0f - fabsf(fmodf(Hp, 2.0f) - 1.0f));
+    const float M = V - C;
 
-    if (hp < 1.0f) { r = c;  g = x;  b = 0.0f; }
-    else if (hp < 2.0f) { r = x;  g = c;  b = 0.0f; }
-    else if (hp < 3.0f) { r = 0.0f; g = c;  b = x; }
-    else if (hp < 4.0f) { r = 0.0f; g = x;  b = c; }
-    else if (hp < 5.0f) { r = x;  g = 0.0f; b = c; }
-    else { r = c;  g = 0.0f; b = x; }
+    if (Hp < 1.0f) { R = C;  G = X;  B = 0.0f; }
+    else if (Hp < 2.0f) { R = X;  G = C;  B = 0.0f; }
+    else if (Hp < 3.0f) { R = 0.0f; G = C;  B = X; }
+    else if (Hp < 4.0f) { R = 0.0f; G = X;  B = C; }
+    else if (Hp < 5.0f) { R = X;  G = 0.0f; B = C; }
+    else { R = C;  G = 0.0f; B = X; }
 
-    r += m;  g += m;  b += m;
+    R += M;  G += M;  B += M;
 }
 
-void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const
+void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp)
 {
     if (StaticMeshComp->GetStaticMesh() == nullptr)
     {
@@ -594,8 +664,8 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = StaticMeshComp->GetStaticMesh()->GetRenderData()->MaterialSubsets;
-        for (uint32 i = 0; i < subsets.Num(); ++i)
+        const auto Subsets = StaticMeshComp->GetStaticMesh()->GetRenderData()->MaterialSubsets;
+        for (uint32 i = 0; i < Subsets.Num(); ++i)
         {
             std::string temp = "subset " + std::to_string(i);
             if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
@@ -607,8 +677,8 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
                 }
             }
         }
-        std::string temp = "clear subset";
-        if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+        const std::string Temp = "clear subset";
+        if (ImGui::Selectable(Temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
         {
             if (ImGui::IsMouseDoubleClicked(0))
                 StaticMeshComp->SetselectedSubMeshIndex(-1);
@@ -635,16 +705,16 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
 
     static ImGuiSelectableFlags BaseFlag = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_None | ImGuiColorEditFlags_NoAlpha;
 
-    FVector MatDiffuseColor = Material->GetMaterialInfo().Diffuse;
-    FVector MatSpecularColor = Material->GetMaterialInfo().Specular;
-    FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
-    FVector MatEmissiveColor = Material->GetMaterialInfo().Emissive;
+    const FVector MatDiffuseColor = Material->GetMaterialInfo().Diffuse;
+    const FVector MatSpecularColor = Material->GetMaterialInfo().Specular;
+    const FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
+    const FVector MatEmissiveColor = Material->GetMaterialInfo().Emissive;
 
-    float dr = MatDiffuseColor.X;
-    float dg = MatDiffuseColor.Y;
-    float db = MatDiffuseColor.Z;
-    float da = 1.0f;
-    float DiffuseColorPick[4] = { dr, dg, db, da };
+    const float DiffuseR = MatDiffuseColor.X;
+    const float DiffuseG = MatDiffuseColor.Y;
+    const float DiffuseB = MatDiffuseColor.Z;
+    constexpr float DiffuseA = 1.0f;
+    float DiffuseColorPick[4] = { DiffuseR, DiffuseG, DiffuseB, DiffuseA };
 
     ImGui::Text("Material Name |");
     ImGui::SameLine();
@@ -653,53 +723,51 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
 
     ImGui::Text("  Diffuse Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Diffuse##Color", (float*)&DiffuseColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Diffuse##Color", reinterpret_cast<float*>(&DiffuseColorPick), BaseFlag))
     {
-        FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
+        const FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
         Material->SetDiffuse(NewColor);
     }
 
-    float sr = MatSpecularColor.X;
-    float sg = MatSpecularColor.Y;
-    float sb = MatSpecularColor.Z;
-    float sa = 1.0f;
-    float SpecularColorPick[4] = { sr, sg, sb, sa };
+    const float SpecularR = MatSpecularColor.X;
+    const float SpecularG = MatSpecularColor.Y;
+    const float SpecularB = MatSpecularColor.Z;
+    constexpr float SpecularA = 1.0f;
+    float SpecularColorPick[4] = { SpecularR, SpecularG, SpecularB, SpecularA };
 
     ImGui::Text("Specular Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Specular##Color", (float*)&SpecularColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Specular##Color", reinterpret_cast<float*>(&SpecularColorPick), BaseFlag))
     {
-        FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
+        const FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
         Material->SetSpecular(NewColor);
     }
 
-
-    float ar = MatAmbientColor.X;
-    float ag = MatAmbientColor.Y;
-    float ab = MatAmbientColor.Z;
-    float aa = 1.0f;
-    float AmbientColorPick[4] = { ar, ag, ab, aa };
+    const float AmbientR = MatAmbientColor.X;
+    const float AmbientG = MatAmbientColor.Y;
+    const float AmbientB = MatAmbientColor.Z;
+    constexpr float AmbientA = 1.0f;
+    float AmbientColorPick[4] = { AmbientR, AmbientG, AmbientB, AmbientA };
 
     ImGui::Text("Ambient Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Ambient##Color", (float*)&AmbientColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Ambient##Color", reinterpret_cast<float*>(&AmbientColorPick), BaseFlag))
     {
-        FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
+        const FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
         Material->SetAmbient(NewColor);
     }
 
-
-    float er = MatEmissiveColor.X;
-    float eg = MatEmissiveColor.Y;
-    float eb = MatEmissiveColor.Z;
-    float ea = 1.0f;
-    float EmissiveColorPick[4] = { er, eg, eb, ea };
+    const float EmissiveR = MatEmissiveColor.X;
+    const float EmissiveG = MatEmissiveColor.Y;
+    const float EmissiveB = MatEmissiveColor.Z;
+    constexpr float EmissiveA = 1.0f;
+    float EmissiveColorPick[4] = { EmissiveR, EmissiveG, EmissiveB, EmissiveA };
 
     ImGui::Text("Emissive Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Emissive##Color", (float*)&EmissiveColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Emissive##Color", reinterpret_cast<float*>(&EmissiveColorPick), BaseFlag))
     {
-        FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
+        const FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
         Material->SetEmissive(NewColor);
     }
 
@@ -717,18 +785,18 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     ImGui::SameLine();
     ImGui::SetNextItemWidth(160);
     // 메테리얼 이름 목록을 const char* 배열로 변환
-    std::vector<const char*> materialChars;
-    for (const auto& material : FManagerOBJ::GetMaterials()) {
-        materialChars.push_back(*material.Value->GetMaterialInfo().MaterialName);
+    std::vector<const char*> MaterialChars;
+    for (const auto& Material : FManagerOBJ::GetMaterials()) {
+        MaterialChars.push_back(*Material.Value->GetMaterialInfo().MaterialName);
     }
 
     //// 드롭다운 표시 (currentMaterialIndex가 범위를 벗어나지 않도록 확인)
     //if (currentMaterialIndex >= FManagerOBJ::GetMaterialNum())
     //    currentMaterialIndex = 0;
 
-    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, materialChars.data(), FManagerOBJ::GetMaterialNum())) {
-        UMaterial* material = FManagerOBJ::GetMaterial(materialChars[CurMaterialIndex]);
-        SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, material);
+    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, MaterialChars.data(), FManagerOBJ::GetMaterialNum())) {
+        UMaterial* Material = FManagerOBJ::GetMaterial(MaterialChars[CurMaterialIndex]);
+        SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, Material);
     }
 
     if (ImGui::Button("Close"))
@@ -749,76 +817,74 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::Text("New Name");
     ImGui::SameLine();
-    static char materialName[256] = "New Material";
+    static char MaterialName[256] = "New Material";
     // 기본 텍스트 입력 필드
     ImGui::SetNextItemWidth(128);
-    if (ImGui::InputText("##NewName", materialName, IM_ARRAYSIZE(materialName))) {
-        tempMaterialInfo.MaterialName = materialName;
+    if (ImGui::InputText("##NewName", MaterialName, IM_ARRAYSIZE(MaterialName))) {
+        tempMaterialInfo.MaterialName = MaterialName;
     }
 
-    FVector MatDiffuseColor = tempMaterialInfo.Diffuse;
-    FVector MatSpecularColor = tempMaterialInfo.Specular;
-    FVector MatAmbientColor = tempMaterialInfo.Ambient;
-    FVector MatEmissiveColor = tempMaterialInfo.Emissive;
+    const FVector MatDiffuseColor = tempMaterialInfo.Diffuse;
+    const FVector MatSpecularColor = tempMaterialInfo.Specular;
+    const FVector MatAmbientColor = tempMaterialInfo.Ambient;
+    const FVector MatEmissiveColor = tempMaterialInfo.Emissive;
 
-    float dr = MatDiffuseColor.X;
-    float dg = MatDiffuseColor.Y;
-    float db = MatDiffuseColor.Z;
-    float da = 1.0f;
-    float DiffuseColorPick[4] = { dr, dg, db, da };
+    const float DiffuseR = MatDiffuseColor.X;
+    const float DiffuseG = MatDiffuseColor.Y;
+    const float DiffuseB = MatDiffuseColor.Z;
+    constexpr float DiffuseA = 1.0f;
+    float DiffuseColorPick[4] = { DiffuseR, DiffuseG, DiffuseB, DiffuseA };
 
     ImGui::Text("Set Property");
     ImGui::Indent();
 
     ImGui::Text("  Diffuse Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Diffuse##Color", (float*)&DiffuseColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Diffuse##Color", reinterpret_cast<float*>(&DiffuseColorPick), BaseFlag))
     {
-        FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
+        const FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
         tempMaterialInfo.Diffuse = NewColor;
     }
 
-    float sr = MatSpecularColor.X;
-    float sg = MatSpecularColor.Y;
-    float sb = MatSpecularColor.Z;
-    float sa = 1.0f;
-    float SpecularColorPick[4] = { sr, sg, sb, sa };
+    const float SpecularR = MatSpecularColor.X;
+    const float SpecularG = MatSpecularColor.Y;
+    const float SpecularB = MatSpecularColor.Z;
+    constexpr float SpecularA = 1.0f;
+    float SpecularColorPick[4] = { SpecularR, SpecularG, SpecularB, SpecularA };
 
     ImGui::Text("Specular Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Specular##Color", (float*)&SpecularColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Specular##Color", reinterpret_cast<float*>(&SpecularColorPick), BaseFlag))
     {
-        FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
+        const FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
         tempMaterialInfo.Specular = NewColor;
     }
 
-
-    float ar = MatAmbientColor.X;
-    float ag = MatAmbientColor.Y;
-    float ab = MatAmbientColor.Z;
-    float aa = 1.0f;
-    float AmbientColorPick[4] = { ar, ag, ab, aa };
+    const float AmbientR = MatAmbientColor.X;
+    const float AmbientG = MatAmbientColor.Y;
+    const float AmbientB = MatAmbientColor.Z;
+    constexpr float AmbientA = 1.0f;
+    float AmbientColorPick[4] = { AmbientR, AmbientG, AmbientB, AmbientA };
 
     ImGui::Text("Ambient Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Ambient##Color", (float*)&AmbientColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Ambient##Color", reinterpret_cast<float*>(&AmbientColorPick), BaseFlag))
     {
-        FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
+        const FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
         tempMaterialInfo.Ambient = NewColor;
     }
 
-
-    float er = MatEmissiveColor.X;
-    float eg = MatEmissiveColor.Y;
-    float eb = MatEmissiveColor.Z;
-    float ea = 1.0f;
-    float EmissiveColorPick[4] = { er, eg, eb, ea };
+    const float EmissiveR = MatEmissiveColor.X;
+    const float EmissiveG = MatEmissiveColor.Y;
+    const float EmissiveB = MatEmissiveColor.Z;
+    constexpr float EmissiveA = 1.0f;
+    float EmissiveColorPick[4] = { EmissiveR, EmissiveG, EmissiveB, EmissiveA };
 
     ImGui::Text("Emissive Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Emissive##Color", (float*)&EmissiveColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Emissive##Color", reinterpret_cast<float*>(&EmissiveColorPick), BaseFlag))
     {
-        FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
+        const FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
         tempMaterialInfo.Emissive = NewColor;
     }
     ImGui::Unindent();
@@ -839,8 +905,8 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
 void PropertyEditorPanel::OnResize(HWND hWnd)
 {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    Width = clientRect.right - clientRect.left;
-    Height = clientRect.bottom - clientRect.top;
+    RECT ClientRect;
+    GetClientRect(hWnd, &ClientRect);
+    Width = ClientRect.right - ClientRect.left;
+    Height = ClientRect.bottom - ClientRect.top;
 }
