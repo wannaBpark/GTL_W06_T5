@@ -33,18 +33,18 @@
 void ControlEditorPanel::Render()
 {
     /* Pre Setup */
-    ImGuiIO& io = ImGui::GetIO();
-    ImFont* IconFont = io.Fonts->Fonts[FEATHER_FONT];
-    ImVec2 IconSize = ImVec2(32, 32);
+    const ImGuiIO& IO = ImGui::GetIO();
+    ImFont* IconFont = IO.Fonts->Fonts[FEATHER_FONT];
+    constexpr ImVec2 IconSize = ImVec2(32, 32);
 
-    float PanelWidth = (Width) * 0.8f;
-    float PanelHeight = 45.0f;
+    const float PanelWidth = (Width) * 0.8f;
+    constexpr float PanelHeight = 45.0f;
 
-    float PanelPosX = 1.0f;
-    float PanelPosY = 1.0f;
+    constexpr float PanelPosX = 1.0f;
+    constexpr float PanelPosY = 1.0f;
 
-    ImVec2 MinSize(300, 50);
-    ImVec2 MaxSize(FLT_MAX, 50);
+    constexpr ImVec2 MinSize(300, 50);
+    constexpr ImVec2 MaxSize(FLT_MAX, 50);
 
     /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
@@ -56,45 +56,36 @@ void ControlEditorPanel::Render()
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
     /* Panel Flags */
-    ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground;
+    constexpr ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground;
 
     /* Render Start */
     ImGui::Begin("Control Panel", nullptr, PanelFlags);
 
     CreateMenuButton(IconSize, IconFont);
-
     ImGui::SameLine();
-
     CreateFlagButton();
-
     ImGui::SameLine();
-
     CreateModifyButton(IconSize, IconFont);
-
     ImGui::SameLine();
-
-    /* Get Window Content Region */
-    float ContentWidth = ImGui::GetWindowContentRegionMax().x;
     ImGui::SameLine();
     CreateLightSpawnButton(IconSize, IconFont);
-
     ImGui::SameLine();
-    ImGui::PushFont(IconFont);
-
-    CreatePIEButton(IconSize, IconFont);
-
-    ImGui::SameLine();
-
-    /* Move Cursor X Position */
-    ImGui::SetCursorPosX(ContentWidth - (IconSize.x * 3.0f + 16.0f));
-
-    CreateSRTButton(IconSize);
-    ImGui::PopFont();
+    {
+        ImGui::PushFont(IconFont);
+        CreatePIEButton(IconSize, IconFont);
+        ImGui::SameLine();
+        /* Get Window Content Region */
+        const float ContentWidth = ImGui::GetWindowContentRegionMax().x;
+        /* Move Cursor X Position */
+        ImGui::SetCursorPosX(ContentWidth - (IconSize.x * 3.0f + 16.0f));
+        CreateSRTButton(IconSize);
+        ImGui::PopFont();
+    }
 
     ImGui::End();
 }
 
-void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
+void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9ad", ButtonSize)) // Menu
@@ -148,7 +139,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
                 ImGui::End();
                 return;
             }
-            if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+            if (const UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
             {
                 EditorEngine->SaveLevel(FileName);
             }
@@ -167,7 +158,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
                 if (FileName != nullptr)
                 {
-                    std::cout << FileName << std::endl;
+                    std::cout << FileName << '\n';
 
                     if (FManagerOBJ::CreateStaticMesh(FileName) == nullptr)
                     {
@@ -186,29 +177,32 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             ImGui::OpenPopup("프로그램 종료");
         }
 
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        const ImVec2 Center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(Center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         if (ImGui::BeginPopupModal("프로그램 종료", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Text("정말 프로그램을 종료하시겠습니까?");
+
             ImGui::Separator();
 
-            float ContentWidth = ImGui::GetWindowContentRegionMax().x;
-
+            const float ContentWidth = ImGui::GetWindowContentRegionMax().x;
             /* Move Cursor X Position */
             ImGui::SetCursorPosX(ContentWidth - (160.f + 10.0f));
-
-            if (ImGui::Button("OK", ImVec2(80, 0))) { PostQuitMessage(0); }
-
+            if (ImGui::Button("OK", ImVec2(80, 0)))
+            {
+                PostQuitMessage(0);
+            }
             ImGui::SameLine();
-
             ImGui::SetItemDefaultFocus();
             ImGui::PushID("CancelButtonWithQuitWindow");
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.9f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
-            if (ImGui::Button("Cancel", ImVec2(80, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(ImColor::HSV(0.0f, 1.0f, 1.0f)));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(ImColor::HSV(0.0f, 0.9f, 1.0f)));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(ImColor::HSV(0.0f, 1.0f, 1.0f)));
+            if (ImGui::Button("Cancel", ImVec2(80, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
             ImGui::PopStyleColor(3);
             ImGui::PopID();
 
@@ -219,7 +213,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
     }
 }
 
-void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
+void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9c4", ButtonSize)) // Slider
@@ -237,6 +231,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         {
             GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->SetGridSize(GridScale);
         }
+
         ImGui::Separator();
 
         ImGui::Text("Camera FOV");
@@ -245,8 +240,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         if (ImGui::DragFloat("##Fov", FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
         {
             //GEngineLoop.GetWorld()->GetCamera()->SetFOV(FOV);
-
         }
+
         ImGui::Spacing();
 
         ImGui::Text("Camera Speed");
@@ -262,6 +257,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
     ImGui::SameLine();
 
+    // @todo 적절한 이름으로 변경 바람
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9c8", ButtonSize))
     {
@@ -271,32 +267,33 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
     if (ImGui::BeginPopup("PrimitiveControl"))
     {
-        struct Primitive {
-            const char* label;
-            int obj;
+        struct Primitive
+        {
+            const char* Label;
+            int OBJ;
         };
 
-        static const Primitive primitives[] = {
-            { .label= "Cube",      .obj= OBJ_CUBE },
-            { .label= "Sphere",    .obj= OBJ_SPHERE },
-            { .label= "PointLight", .obj= OBJ_POINTLIGHT },
-            { .label= "SpotLight", .obj= OBJ_SPOTLIGHT },
-            { .label= "DirectionalLight", .obj= OBJ_DIRECTIONALLGIHT },
-            { .label= "AmbientLight", .obj= OBJ_AMBIENTLIGHT },
-            { .label= "Particle",  .obj= OBJ_PARTICLE },
-            { .label= "Text",      .obj= OBJ_TEXT },
-            { .label= "Fireball",  .obj = OBJ_FIREBALL},
-            { .label= "Fog",       .obj= OBJ_FOG }
+        static const Primitive primitives[] = 
+        {
+            { .Label= "Cube",      .OBJ= OBJ_CUBE },
+            { .Label= "Sphere",    .OBJ= OBJ_SPHERE },
+            { .Label= "PointLight", .OBJ= OBJ_POINTLIGHT },
+            { .Label= "SpotLight", .OBJ= OBJ_SPOTLIGHT },
+            { .Label= "DirectionalLight", .OBJ= OBJ_DIRECTIONALLGIHT },
+            { .Label= "AmbientLight", .OBJ= OBJ_AMBIENTLIGHT },
+            { .Label= "Particle",  .OBJ= OBJ_PARTICLE },
+            { .Label= "Text",      .OBJ= OBJ_TEXT },
+            { .Label= "Fireball",  .OBJ = OBJ_FIREBALL},
+            { .Label= "Fog",       .OBJ= OBJ_FOG }
         };
 
         for (const auto& primitive : primitives)
         {
-            if (ImGui::Selectable(primitive.label))
+            if (ImGui::Selectable(primitive.Label))
             {
-                // GEngineLoop.GetWorld()->SpawnObject(static_cast<OBJECTS>(primitive.obj));
                 UWorld* World = GEngine->ActiveWorld;
                 AActor* SpawnedActor = nullptr;
-                switch (static_cast<OBJECTS>(primitive.obj))
+                switch (static_cast<OBJECTS>(primitive.OBJ))
                 {
                 case OBJ_SPHERE:
                 {
@@ -392,12 +389,12 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
     }
 }
 
-void ControlEditorPanel::CreateFlagButton() const
+void ControlEditorPanel::CreateFlagButton()
 {
-    auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
+    const std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
 
     const char* ViewTypeNames[] = { "Perspective", "Top", "Bottom", "Left", "Right", "Front", "Back" };
-    ELevelViewportType ActiveViewType = ActiveViewport->GetViewportType();
+    const ELevelViewportType ActiveViewType = ActiveViewport->GetViewportType();
     FString TextViewType = ViewTypeNames[ActiveViewType];
 
     if (ImGui::Button(GetData(TextViewType), ImVec2(120, 32)))
@@ -410,10 +407,10 @@ void ControlEditorPanel::CreateFlagButton() const
     {
         for (int i = 0; i < IM_ARRAYSIZE(ViewTypeNames); i++)
         {
-            bool bIsSelected = ((int)ActiveViewport->GetViewportType() == i);
+            bool bIsSelected = (static_cast<int>(ActiveViewport->GetViewportType()) == i);
             if (ImGui::Selectable(ViewTypeNames[i], bIsSelected))
             {
-                ActiveViewport->SetViewportType((ELevelViewportType)i);
+                ActiveViewport->SetViewportType(static_cast<ELevelViewportType>(i));
             }
 
             if (bIsSelected)
@@ -423,22 +420,17 @@ void ControlEditorPanel::CreateFlagButton() const
         }
         ImGui::EndPopup();
     }
-
     ImGui::SameLine();
-
     const char* ViewModeNames[] = { 
         "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", 
         "Unlit", "Wireframe",
         "Scene Depth", "World Normal", "Light Heat Map"
     };
-    uint32 ViewModeCount = sizeof(ViewModeNames) / sizeof(ViewModeNames[0]);
-    
-    int RawViewMode = (int)ActiveViewport->GetViewMode();
-    int SafeIndex = (RawViewMode >= 0) ? (RawViewMode % ViewModeCount) : 0;
+    constexpr uint32 ViewModeCount = std::size(ViewModeNames);
+    const int RawViewMode = static_cast<int>(ActiveViewport->GetViewMode());
+    const int SafeIndex = (RawViewMode >= 0) ? (RawViewMode % ViewModeCount) : 0;
     FString ViewModeControl = ViewModeNames[SafeIndex];
-
-    ImVec2 ViewModeTextSize = ImGui::CalcTextSize(GetData(ViewModeControl));
-
+    const ImVec2 ViewModeTextSize = ImGui::CalcTextSize(GetData(ViewModeControl));
     if (ImGui::Button(GetData(ViewModeControl), ImVec2(30 + ViewModeTextSize.x, 32)))
     {
         ImGui::OpenPopup("ViewModeControl");
@@ -461,46 +453,21 @@ void ControlEditorPanel::CreateFlagButton() const
         }
         ImGui::EndPopup();
     }
-
     ImGui::SameLine();
-
-    if (ImGui::Button("Show", ImVec2(60, 32)))
-    {
-        ImGui::OpenPopup("ShowControl");
-    }
-
-    const char* items[] = { "AABB", "Primitive", "BillBoard", "UUID", "Fog"};
-    uint64 ActiveViewportFlags = ActiveViewport->GetShowFlag();
-
-    if (ImGui::BeginPopup("ShowControl"))
-    {
-        bool selected[IM_ARRAYSIZE(items)] =
-        {
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_AABB)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Primitives)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_UUIDText)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) !=0
-        };  // 각 항목의 체크 상태 저장
-
-        for (int i = 0; i < IM_ARRAYSIZE(items); i++)
-        {
-            ImGui::Checkbox(items[i], &selected[i]);
-        }
-        ActiveViewport->SetShowFlag(ConvertSelectionToFlags(selected));
-        ImGui::EndPopup();
-    }
+    ShowFlags::GetInstance().Draw(ActiveViewport);
 }
 
-void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont) const
+void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
+    {
         return;
+    }
 
-    ImVec2 WindowSize = ImGui::GetIO().DisplaySize;
+    const ImVec2 WindowSize = ImGui::GetIO().DisplaySize;
 
-    float CenterX = (WindowSize.x - ButtonSize.x) / 2.5f;
+    const float CenterX = (WindowSize.x - ButtonSize.x) / 2.5f;
 
     ImGui::SetCursorScreenPos(ImVec2(CenterX - 40.0f, 10.0f));
     
@@ -516,18 +483,17 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont) co
         UE_LOG(LogLevel::Display, TEXT("Stop Button Clicked"));
         Engine->EndPIE();
     }
-    
 }
 
 // code is so dirty / Please refactor
-void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
+void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize)
 {
-    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    const UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     AEditorPlayer* Player = Engine->GetEditorPlayer();
 
-    ImVec4 ActiveColor = ImVec4(0.00f, 0.00f, 0.85f, 1.0f);
+    constexpr ImVec4 ActiveColor = ImVec4(0.00f, 0.00f, 0.85f, 1.0f);
 
-    EControlMode ControlMode = Player->GetControlMode();
+    const EControlMode ControlMode = Player->GetControlMode();
 
     if (ControlMode == CM_TRANSLATION)
     {
@@ -541,9 +507,7 @@ void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     {
         ImGui::PopStyleColor();
     }
-
     ImGui::SameLine();
-
     if (ControlMode == CM_ROTATION)
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
@@ -556,9 +520,7 @@ void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     {
         ImGui::PopStyleColor();
     }
-
     ImGui::SameLine();
-
     if (ControlMode == CM_SCALE)
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
@@ -573,72 +535,55 @@ void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     }
 }
 
-uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool selected[]) const
+void ControlEditorPanel::OnResize(const HWND hWnd)
 {
-    uint64 flags = EEngineShowFlags::None;
-
-    if (selected[0])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_AABB);
-    if (selected[1])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_Primitives);
-    if (selected[2])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
-    if (selected[3])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_UUIDText);
-    if (selected[4])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_Fog);
-    return flags;
+    RECT ClientRect;
+    GetClientRect(hWnd, &ClientRect);
+    Width = ClientRect.right - ClientRect.left;
+    Height = ClientRect.bottom - ClientRect.top;
 }
 
-
-void ControlEditorPanel::OnResize(HWND hWnd)
-{
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    Width = clientRect.right - clientRect.left;
-    Height = clientRect.bottom - clientRect.top;
-}
-
-
-void ControlEditorPanel::CreateLightSpawnButton(ImVec2 ButtonSize, ImFont* IconFont)
+void ControlEditorPanel::CreateLightSpawnButton(const ImVec2 InButtonSize, ImFont* IconFont)
 {
     UWorld* World = GEngine->ActiveWorld;
-    ImVec2 WindowSize = ImGui::GetIO().DisplaySize;
+    const ImVec2 WindowSize = ImGui::GetIO().DisplaySize;
 
-    float CenterX = (WindowSize.x - ButtonSize.x) / 2.5f;
+    const float CenterX = (WindowSize.x - InButtonSize.x) / 2.5f;
 
     ImGui::SetCursorScreenPos(ImVec2(CenterX + 40.0f, 10.0f));
-    const char* label = "Light";
-    ImVec2 textSize = ImGui::CalcTextSize(label);
-    ImVec2 padding = ImGui::GetStyle().FramePadding;
-    ImVec2 buttonSize = ImVec2(
-        textSize.x + padding.x * 2.0f,
-        textSize.y + padding.y * 2.0f
+    const char* Text = "Light";
+    const ImVec2 TextSize = ImGui::CalcTextSize(Text);
+    const ImVec2 Padding = ImGui::GetStyle().FramePadding;
+    ImVec2 ButtonSize = ImVec2(
+        TextSize.x + Padding.x * 2.0f,
+        TextSize.y + Padding.y * 2.0f
     );
-    buttonSize.y = ButtonSize.y;
-    if (ImGui::Button("Light", buttonSize))
+    ButtonSize.y = InButtonSize.y;
+    if (ImGui::Button("Light", ButtonSize))
     {
         ImGui::OpenPopup("LightGeneratorControl");
     }
 
     if (ImGui::BeginPopup("LightGeneratorControl"))
     {
-        struct LightGeneratorMode {
-            const char* label;
-            int mode;
-        };
-
-        static const LightGeneratorMode modes[] = {
-            {.label = "Generate",      .mode = ELightGridGenerator::Generate },
-            {.label = "Delete",    .mode = ELightGridGenerator::Delete },
-            {.label = "Reset", .mode = ELightGridGenerator::Reset },
-        };
-
-        for (const auto& mode : modes)
+        struct LightGeneratorMode
         {
-            if (ImGui::Selectable(mode.label))
+            const char* Label;
+            int Mode;
+        };
+
+        static constexpr LightGeneratorMode modes[] = 
+        {
+            {.Label = "Generate", .Mode = ELightGridGenerator::Generate },
+            {.Label = "Delete", .Mode = ELightGridGenerator::Delete },
+            {.Label = "Reset", .Mode = ELightGridGenerator::Reset },
+        };
+
+        for (const auto& [Label, Mode] : modes)
+        {
+            if (ImGui::Selectable(Label))
             {
-                switch (mode.mode)
+                switch (Mode)
                 {
                 case ELightGridGenerator::Generate:
                     LightGridGenerator.GenerateLight(World);

@@ -8,19 +8,19 @@ class UStaticMeshComponent;
 
 // 헬퍼 함수 예시
 template<typename Getter, typename Setter>
-void DrawColorProperty(const char* label, Getter get, Setter set)
+void DrawColorProperty(const char* Label, Getter Get, Setter Set)
 {
     ImGui::PushItemWidth(200.0f);
-    FLinearColor curr = get();
-    float col[4] = { curr.R, curr.G, curr.B, curr.A };
+    const FLinearColor CurrentColor = Get();
+    float Col[4] = { CurrentColor.R, CurrentColor.G, CurrentColor.B, CurrentColor.A };
 
-    if (ImGui::ColorEdit4(label, col,
+    if (ImGui::ColorEdit4(Label, Col,
         ImGuiColorEditFlags_DisplayRGB |
         ImGuiColorEditFlags_NoSidePreview |
         ImGuiColorEditFlags_NoInputs |
         ImGuiColorEditFlags_Float))
     {
-        set(FLinearColor(col[0], col[1], col[2], col[3]));
+        Set(FLinearColor(Col[0], Col[1], Col[2], Col[3]));
     }
     ImGui::PopItemWidth();
 }
@@ -34,11 +34,11 @@ public:
 
 
 private:
-    void RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const;
-    void HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const;
+    static void RGBToHSV(float R, float G, float B, float& H, float& S, float& V);
+    static void HSVToRGB(float H, float S, float V, float& R, float& G, float& B);
 
     /* Static Mesh Settings */
-    void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const;
+    static void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
     
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
