@@ -326,6 +326,7 @@ TArray<FDepthStencilRHI> UPointLightComponent::GetShadowMap()
 
 ID3D11ShaderResourceView* UPointLightComponent::GetSliceSRV(int SliceIndex)
 {
+    //return ShadowMaps[0].SRV;
     UINT subresource = D3D11CalcSubresource(0, SliceIndex, 1);
     FEngineLoop::GraphicDevice.DeviceContext->CopySubresourceRegion(
         OutputTextures[SliceIndex],

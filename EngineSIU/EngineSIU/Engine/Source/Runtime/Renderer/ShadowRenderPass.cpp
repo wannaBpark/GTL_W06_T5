@@ -152,7 +152,7 @@ void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& Point
     DepthCubeMapBuffer.World = WorldMatrix;
     for (uint32 i = 0; i < 6; ++i)
     {
-        DepthCubeMapBuffer.ViewProj[i] = PointLight->GetViewMatrix(i);
+        DepthCubeMapBuffer.ViewProj[i] = PointLight->GetViewMatrix(i) * PointLight->GetProjectionMatrix();
     }
     BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
 }

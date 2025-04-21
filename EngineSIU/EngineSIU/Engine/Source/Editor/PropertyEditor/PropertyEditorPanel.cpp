@@ -194,6 +194,10 @@ void PropertyEditorPanel::Render()
                         ImGui::SameLine();
                     }
                 }
+                auto s = PointlightComponent->GetSliceSRV(0);
+                // X Pos, Neg
+                ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
+                ImGui::SameLine();
                 //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
                 //// Y Pos, Neg
                 //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
