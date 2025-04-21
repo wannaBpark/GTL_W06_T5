@@ -3,6 +3,11 @@
 #include "Rotator.h"
 #include "Quat.h"
 
+//  Near Clip Plane 값을 정의한 헤더
+#ifndef NEAR_PLANE
+#define NEAR_PLANE 0.001f 
+#endif
+
 class JungleMath
 {
 public:

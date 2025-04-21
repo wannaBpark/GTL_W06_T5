@@ -41,7 +41,12 @@ public:
     float GetOuterDegree() const;
     void SetOuterDegree(float InOuterDegree);
 
+    
+    void UpdateViewMatrix() override;
+    void UpdateProjectionMatrix() override;
+
 private:
     FSpotLightInfo SpotLightInfo;
+    float AspectRatio;
 };
 

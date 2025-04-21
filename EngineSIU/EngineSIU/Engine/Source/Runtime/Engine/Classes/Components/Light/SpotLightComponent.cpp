@@ -1,7 +1,11 @@
 #include "SpotLightComponent.h"
+
+#include "Math/JungleMath.h"
 #include "Math/Rotator.h"
 #include "Math/Quat.h"
 #include "UObject/Casts.h"
+
+
 
 USpotLightComponent::USpotLightComponent()
 {
@@ -195,4 +199,46 @@ float USpotLightComponent::GetOuterDegree() const
 void USpotLightComponent::SetOuterDegree(float InOuterDegree)
 {
     SpotLightInfo.OuterRad = InOuterDegree * (PI / 180.0f);
+}
+
+void USpotLightComponent::UpdateViewMatrix()
+{
+    FVector SpotLightPos = GetWorldLocation();
+    FRotator SpotLightRot = GetWorldRotation(); // 월드 회전 값 가져오기
+
+    // 월드 공간에서의 Forward 벡터 계산
+    FVector Forward = FVector(1.f, 0.f, 0.0f); // 로컬 +X 축
+    Forward = JungleMath::FVectorRotate(Forward, SpotLightRot);
+
+    // 월드 공간에서의 Up 벡터 계산
+    FVector Up = FVector(0.f, 0.f, 1.f); // 로컬 +Z 축 (또는 엔진 컨벤션에 맞는 로컬 Up)
+    Up = JungleMath::FVectorRotate(Up, SpotLightRot);
+
+    // 개선된 Up 벡터를 사용하여 View Matrix 생성
+    ViewMatrices[0] = JungleMath::CreateViewMatrix(SpotLightPos, SpotLightPos + Forward, Up);
+}
+
+void USpotLightComponent::UpdateProjectionMatrix()
+{
+    // TODO: 텍스쳐 비율 반영
+    AspectRatio = 1.0f;
+
+    const float OuterCosine = SpotLightInfo.OuterRad;
+    // 각도(radian) = acos(cos(angle)) * 2. 스포트라이트 FOV는 전체 원뿔 각도임.
+    const float FieldOfViewRadians = FMath::Acos(OuterCosine) * 2.0f;
+
+    // Near Clip Plane 값 설정 (매우 작은 값 사용)
+    const float NearClipPlane = NEAR_PLANE; // 또는 직접 상수 값 사용 (예: 0.01f)
+
+    // Far Clip Plane 값 설정 (라이트의 감쇠 반경 사용)
+    const float FarClipPlane = SpotLightInfo.Radius; // 또는 GetRadius() 함수 사용 가능
+
+
+    ProjectionMatrix = JungleMath::CreateProjectionMatrix(
+        FieldOfViewRadians,
+        AspectRatio,
+        NearClipPlane,
+        FarClipPlane
+    );
+    
 }

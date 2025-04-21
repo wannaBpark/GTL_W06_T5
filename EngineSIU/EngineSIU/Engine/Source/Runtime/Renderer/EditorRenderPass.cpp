@@ -22,7 +22,7 @@
 #include "Engine/Classes/Components/HeightFogComponent.h"
 #include "Engine/Classes/Components/Light/AmbientLightComponent.h"
 #include "Engine/FLoaderOBJ.h"
-
+#include "PropertyEditor/ShowFlags.h"
 
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
@@ -73,7 +73,7 @@ void FEditorRenderPass::CreateShaders()
 
     // Cone
     AddShaderSet(L"Cone", "coneVS", "conePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly),
-        D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP, Resources.Shaders.Cone);
+        D3D11_PRIMITIVE_TOPOLOGY_LINELIST, Resources.Shaders.Cone);
 
     // Icons (layout 없음)
     AddShaderSet(L"Icon", "iconVS", "iconPS", layoutPosOnly, ARRAYSIZE(layoutPosOnly),
@@ -303,102 +303,8 @@ void FEditorRenderPass::CreateBuffers()
     Resources.Primitives.Sphere.NumVertices = ARRAYSIZE(SphereFrameVertices);
     Resources.Primitives.Sphere.VertexStride = sizeof(FVector);
     Resources.Primitives.Sphere.NumIndices = ARRAYSIZE(SphereFrameIndices);
-
-
-
-    ////////////////////////////////////
-    // Cone 버퍼 생성
-    // 0,0,0이 Apex
-    // z=1이고, xy에서 r=1인 원이 밑변
-    constexpr uint32 NumSegments = 32;
-    TArray<FVector> ConeVertices;
-    ConeVertices.Add({ 0.0f, 0.0f, 0.0f }); // Apex
-    for (int i = 0; i < NumSegments; i++)
-    {
-        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments;
-        float x = cos(angle);
-        float y = sin(angle);
-        ConeVertices.Add({ x, y, 1.0f }); // Bottom
-    }
-    TArray<uint32> ConeIndices;
-    constexpr uint32 vertexOffset0 = 1;
-    // apex -> 밑면으로 가는 line
-    for (int i = 0; i < NumSegments; i++)
-    {
-        ConeIndices.Add(0);
-        ConeIndices.Add(vertexOffset0 + i);
-    }
-    // 밑변
-    for (int i = 0; i < NumSegments; i++)
-    {
-        ConeIndices.Add(vertexOffset0 + i);
-        ConeIndices.Add(vertexOffset0 + (i + 1) % NumSegments);
-    }
-
-    // cone을 덮는 sphere
-    // xz plane
-    float deltaAngle = 2.0f * 3.1415926535897932f / (float)NumSegments;
-    float offsetAngle = deltaAngle * NumSegments / 8; // 45도 부터 시작
-    for (int i = 0; i < NumSegments / 4 + 1; i++)
-    {
-        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments + offsetAngle;
-        float x = cos(angle) * sqrt(2.f);
-        float z = sin(angle) * sqrt(2.f);
-        ConeVertices.Add({ x, 0, z });
-    }
-    constexpr uint32 vertexOffset1 = NumSegments + vertexOffset0;
-    for (int i = 0; i < NumSegments / 4; i++)
-    {
-        ConeIndices.Add(vertexOffset1 + i);
-        ConeIndices.Add(vertexOffset1 + (i + 1));
-    }
-    // yz plane
-    for (int i = 0; i < NumSegments / 4 + 1; i++)
-    {
-        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments + offsetAngle;
-        float y = cos(angle) * sqrt(2.f);
-        float z = sin(angle) * sqrt(2.f);
-        ConeVertices.Add({ 0, y, z });
-    }
-    constexpr uint32 vertexOffset2 = NumSegments / 4 + 1 + vertexOffset1;
-    for (int i = 0; i < NumSegments / 4; i++)
-    {
-        ConeIndices.Add(vertexOffset2 + i);
-        ConeIndices.Add(vertexOffset2 + (i + 1));
-    }
-
-    // 버텍스 버퍼 생성
-    bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
-    bufferDesc.ByteWidth = ConeVertices.Num() * sizeof(FVector);
-    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDesc.CPUAccessFlags = 0;
-
-    initData = {};
-    initData.pSysMem = ConeVertices.GetData();
-
-    hr = Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Cone.Vertex);
-    if (FAILED(hr))
-    {
-        return;
-    }
-
-    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bufferDesc.ByteWidth = ConeIndices.Num() * sizeof(FVector);
-
-    initData.pSysMem = ConeIndices.GetData();
-
-    hr = Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Cone.Index);
-    if (FAILED(hr))
-    {
-        return;
-    }
-
-    Resources.Primitives.Cone.NumVertices = ConeVertices.Num();
-    Resources.Primitives.Cone.VertexStride = sizeof(FVector);
-    Resources.Primitives.Cone.NumIndices = ConeIndices.Num();
-
 }
+
 void FEditorRenderPass::CreateConstantBuffers()
 {
     auto CreateCB = [this](UINT size, ID3D11Buffer** outBuffer)
@@ -518,11 +424,15 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
     // ID3D11DepthStencilState* DepthStateEnable = Graphics->DepthStencilState;
     // Graphics->DeviceContext->OMSetDepthStencilState(DepthStateEnable, 0);
 
-    // [NOTE] ----------- Light Culling 프레임 보호 위해 잠시 주석처리 ---------- //
-    //RenderPointlightInstanced();
-    //RenderSpotlightInstanced();
-    //RenderArrows();    // Directional Light Arrow : Depth Test Enabled
-    
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+
+    if (ShowFlag & EEngineShowFlags::SF_LightWireframe)
+    {
+        RenderPointlightInstanced(ShowFlag);
+        RenderSpotlightInstanced(ShowFlag);
+    }
+
+    RenderArrows();    // Directional Light Arrow : Depth Test Enabled
     //RenderIcons(World, ActiveViewport); // 기존 렌더패스에서 아이콘 렌더하고 있으므로 제거
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -575,7 +485,7 @@ void FEditorRenderPass::UdpateConstantbufferAABBInstanced(TArray<FConstantBuffer
     }
 }
 
-void FEditorRenderPass::RenderPointlightInstanced()
+void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
 {
     SetShaderAndPrepare(L"SphereVS", L"SpherePS", Resources.Shaders.Sphere);
     UINT offset = 0;
@@ -588,12 +498,27 @@ void FEditorRenderPass::RenderPointlightInstanced()
     {
         if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
-            FConstantBufferDebugSphere b;
-            b.Position = PointLightComp->GetWorldLocation();
-            b.Radius = PointLightComp->GetRadius();
-            BufferAll.Add(b);
+            if (ShowFlag & EEngineShowFlags::SF_LightWireframeSelectedOnly)
+            {
+                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
+                {
+                    if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(PointLightComp))
+                    {
+                        FConstantBufferDebugSphere b;
+                        b.Position = PointLightComp->GetWorldLocation();
+                        b.Radius = PointLightComp->GetRadius();
+                        BufferAll.Add(b);
+                    }
+                }
+            }
+            else
+            {
+                FConstantBufferDebugSphere b;
+                b.Position = PointLightComp->GetWorldLocation();
+                b.Radius = PointLightComp->GetRadius();
+                BufferAll.Add(b);
+            }
         }
-
     }
 
     PrepareConstantbufferPointlight();
@@ -649,27 +574,48 @@ void FEditorRenderPass::UdpateConstantbufferPointlightInstanced(TArray<FConstant
     }
 }
 
-void FEditorRenderPass::RenderSpotlightInstanced()
+void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
 {
     SetShaderAndPrepare(L"ConeVS", L"ConePS", Resources.Shaders.Cone);
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Cone.Vertex, &Resources.Primitives.Cone.VertexStride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Cone.Index, DXGI_FORMAT_R32_UINT, 0);
 
     // 위치랑 bounding box 크기 정보 가져오기
     TArray<FConstantBufferDebugCone> BufferAll;
     for (ULightComponentBase* LightComp : Resources.Components.Light)
     {
-        if (USpotLightComponent* SpotComp = Cast<USpotLightComponent>(LightComp))
+        if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
         {
-            FConstantBufferDebugCone b;
-            b.ApexPosiiton = SpotComp->GetWorldLocation();
-            b.InnerRadius = SpotComp->GetRadius()*  FMath::Tan(SpotComp->GetInnerRad() * 0.5);
-            b.OuterRadius = SpotComp->GetRadius() * FMath::Tan(SpotComp->GetOuterRad() * 0.5);
-            b.Height = SpotComp->GetRadius();
-            b.Direction = SpotComp->GetDirection();
-            BufferAll.Add(b);
-            BufferAll.Add(b);
+            if (ShowFlag & EEngineShowFlags::SF_LightWireframeSelectedOnly)
+            {
+                if (Cast<UEditorEngine>(GEngine)->GetSelectedActor())
+                {
+                    if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(SpotLightComp))
+                    {
+                        FConstantBufferDebugCone b;
+                        b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                        b.Radius = SpotLightComp->GetRadius();
+                        b.Direction = SpotLightComp->GetDirection();
+                        // Inner Cone
+                        b.Angle = SpotLightComp->GetInnerRad();
+                        BufferAll.Add(b);
+                        // Outer Cone
+                        b.Angle = SpotLightComp->GetOuterRad();
+                        BufferAll.Add(b);
+                    }
+                }
+            }
+            else
+            {
+                FConstantBufferDebugCone b;
+                b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                b.Radius = SpotLightComp->GetRadius();
+                b.Direction = SpotLightComp->GetDirection();
+                // Inner Cone
+                b.Angle = SpotLightComp->GetInnerRad();
+                BufferAll.Add(b);
+                // Outer Cone
+                b.Angle = SpotLightComp->GetOuterRad();
+                BufferAll.Add(b);
+            }
         }
     }
 
@@ -694,8 +640,8 @@ void FEditorRenderPass::RenderSpotlightInstanced()
         if (SubBuffer.Num() > 0)
         {
             UdpateConstantbufferSpotlightInstanced(SubBuffer);
-
-            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Cone.NumIndices, SubBuffer.Num(), 0, 0, 0);
+            // Only Draw Selected SpotLight's Cone = 2 | Cone: (24 * 2) * 2 + Sphere: (10 * 2) * 2 = 136
+            Graphics->DeviceContext->DrawInstanced(136, SubBuffer.Num(), 0, 0);
         }
     }
 }

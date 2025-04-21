@@ -4,161 +4,168 @@
 #include "World/World.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
-FLightGridGenerator::FLightGridGenerator()
-{
-}
 
 FLightGridGenerator::~FLightGridGenerator()
 {
-    for (TArray<AActor*>& shell : LightGrid)
+    for (TArray<AActor*>& Shell : LightGrid)
     {
-        for (AActor* actor : shell)
+        for (AActor* Actor : Shell)
         {
-            if (actor)
+            if (Actor)
             {
-                actor->Destroy();
+                Actor->Destroy();
             }
         }
-        shell.Empty();
+        Shell.Empty();
     }
 
     LightGrid.Empty();
 }
 
-void FLightGridGenerator::GenerateLight(UWorld* world)
+void FLightGridGenerator::GenerateLight(UWorld* World)
 {
-    int minR = currentHalfCountPerAxis;
-    int maxR = currentHalfCountPerAxis;
+    const int MinR = CurrentHalfCountPerAxis;
+    const int MaxR = CurrentHalfCountPerAxis;
 
-    int r = currentHalfCountPerAxis;
-    int outerCube = (2 * r + 1) * (2 * r + 1) * (2 * r + 1);
-    int innerCube = FMath::Max(0, (2 * r - 1) * (2 * r - 1) * (2 * r - 1));
-    int approxShellSize = outerCube - innerCube;
+    const int R = CurrentHalfCountPerAxis;
+    const int OuterCube = (2 * R + 1) * (2 * R + 1) * (2 * R + 1);
+    const int InnerCube = FMath::Max(0, (2 * R - 1) * (2 * R - 1) * (2 * R - 1));
+    const int ApproxShellSize = OuterCube - InnerCube;
 
-    TArray<AActor*> newShell;
-    newShell.Reserve(approxShellSize);
+    TArray<AActor*> NewShell;
+    NewShell.Reserve(ApproxShellSize);
 
 
-    for (int x = -maxR; x <= maxR; ++x)
+    for (int X = -MaxR; X <= MaxR; ++X)
     {
-        for (int y = -maxR; y <= maxR; ++y)
+        for (int Y = -MaxR; Y <= MaxR; ++Y)
         {
-            for (int z = -maxR; z <= maxR; ++z)
+            for (int Z = -MaxR; Z <= MaxR; ++Z)
             {
                 //if (x == 0 && y == 0 && z == 0) continue;
 
                 // 이전 쉘 내부는 제외
-                if (FMath::Abs(x) < minR && FMath::Abs(y) < minR && FMath::Abs(z) < minR)
-                    continue;
-
-                FVector pos = GetJitteredPosition(x, y, z, spacing, jitterAmount);
-
-                AActor* light = nullptr;
-                if ((shellLightCount % 2) == 0)
+                if (FMath::Abs(X) < MinR && FMath::Abs(Y) < MinR && FMath::Abs(Z) < MinR)
                 {
-                    light = world->SpawnActor<APointLight>();
-                    light->SetActorLabel(FString::Printf(TEXT("PointLight_%d"), shellLightCount));
-                    UPointLightComponent* comp = light->GetComponentByClass<UPointLightComponent>();
-                    //comp->SetLightColor(RandomColor());
+                    continue;
+                }
+
+                FVector Pos = GetJitteredPosition(X, Y, Z, Spacing, JitterAmount);
+
+                AActor* Light = nullptr;
+                if ((ShellLightCount % 2) == 0)
+                {
+                    Light = World->SpawnActor<APointLight>();
+                    Light->SetActorLabel(FString::Printf(TEXT("PointLight_%d"), ShellLightCount));
+                    UPointLightComponent* Comp = Light->GetComponentByClass<UPointLightComponent>();
+                    //Comp->SetLightColor(RandomColor());
                 }
                 else
                 {
-                    light = world->SpawnActor<ASpotLight>();
-                    light->SetActorLabel(FString::Printf(TEXT("SpotLight_%d"), shellLightCount));
-                    USpotLightComponent* comp = light->GetComponentByClass<USpotLightComponent>();
-                    //comp->SetLightColor(RandomColor());
+                    Light = World->SpawnActor<ASpotLight>();
+                    Light->SetActorLabel(FString::Printf(TEXT("SpotLight_%d"), ShellLightCount));
+                    USpotLightComponent* Comp = Light->GetComponentByClass<USpotLightComponent>();
+                    //Comp->SetLightColor(RandomColor());
                 }
 
-                if (light)
+                if (Light)
                 {
-                    light->SetActorLocation(pos);
-                    newShell.Add(light);
+                    Light->SetActorLocation(Pos);
+                    NewShell.Add(Light);
                 }
 
-                ++shellLightCount;
+                ++ShellLightCount;
             }
         }
     }
 
-    if (LightGrid.Num() <= currentHalfCountPerAxis)
+    if (LightGrid.Num() <= CurrentHalfCountPerAxis)
     {
-        LightGrid.SetNum(currentHalfCountPerAxis + 1);
+        LightGrid.SetNum(CurrentHalfCountPerAxis + 1);
     }
 
-    LightGrid[currentHalfCountPerAxis] = std::move(newShell);
-    ++currentHalfCountPerAxis;
+    LightGrid[CurrentHalfCountPerAxis] = std::move(NewShell);
+    ++CurrentHalfCountPerAxis;
 }
 
 
-void FLightGridGenerator::DeleteLight(UWorld* world)
+void FLightGridGenerator::DeleteLight(UWorld* World)
 {
-    if (currentHalfCountPerAxis <= 0 || LightGrid.Num() == 0)
+    if (CurrentHalfCountPerAxis <= 0 || LightGrid.Num() == 0)
+    {
         return;
+    }
 
-    int shellIndex = currentHalfCountPerAxis - 1;
+    const int ShellIndex = CurrentHalfCountPerAxis - 1;
 
     // 유효한 인덱스인지 확인
-    if (!LightGrid.IsValidIndex(shellIndex))
-        return;
-
-    TArray<AActor*>& shell = LightGrid[shellIndex];
-
-    for (AActor* light : shell)
+    if (!LightGrid.IsValidIndex(ShellIndex))
     {
-        if (light)
+        return;
+    }
+
+    TArray<AActor*>& Shell = LightGrid[ShellIndex];
+
+    for (AActor* Light : Shell)
+    {
+        if (Light)
         {
-            light->Destroy();
+            Light->Destroy();
         }
     }
 
     // TArray는 SetNum을 통해 capacity 보존 가능
-    shell.Empty();
+    Shell.Empty();
 
-    --currentHalfCountPerAxis;
+    --CurrentHalfCountPerAxis;
 }
 
-void FLightGridGenerator::Reset(UWorld* world)
+void FLightGridGenerator::Reset(UWorld* World)
 {
-    for (TArray<AActor*>& shell : LightGrid)
+    for (TArray<AActor*>& Shell : LightGrid)
     {
-        for (AActor* light : shell)
+        for (AActor* Light : Shell)
         {
-            if (light)
-                light->Destroy();
+            if (Light)
+            {
+                Light->Destroy();
+            }
         }
-        shell.Empty();
+        Shell.Empty();
     }
-    currentHalfCountPerAxis = startCountPerAxis;
+    CurrentHalfCountPerAxis = StartCountPerAxis;
 }
 
-FVector FLightGridGenerator::GetJitteredPosition(int x, int y, int z, float spacing, float jitterAmount)
+FVector FLightGridGenerator::GetJitteredPosition(const int X, const int Y, const int Z, const float Spacing, const float JitterAmount)
 {
-    auto LCG = [](int seed) -> float {
-        seed = (1103515245 * seed + 12345) & 0x7fffffff;
-        return (seed % 1000) / 1000.0f;
-        };
+    auto LCG = [](int Seed) -> float
+    {
+        Seed = (1103515245 * Seed + 12345) & 0x7fffffff;
+        return (Seed % 1000) / 1000.0f;
+    };
 
-    int seedBase = x * 73856093 ^ y * 19349663 ^ z * 83492791;
-    float dx = (LCG(seedBase + 1) - 0.5f) * 2.0f * jitterAmount;
-    float dy = (LCG(seedBase + 2) - 0.5f) * 2.0f * jitterAmount;
-    float dz = (LCG(seedBase + 3) - 0.5f) * 2.0f * jitterAmount;
+    const int SeedBase = X * 73856093 ^ Y * 19349663 ^ Z * 83492791;
+    const float dx = (LCG(SeedBase + 1) - 0.5f) * 2.0f * JitterAmount;
+    const float dy = (LCG(SeedBase + 2) - 0.5f) * 2.0f * JitterAmount;
+    const float dz = (LCG(SeedBase + 3) - 0.5f) * 2.0f * JitterAmount;
 
-    return FVector(x * spacing + dx, y * spacing + dy, z * spacing + dz);
+    return {X * Spacing + dx, Y * Spacing + dy, Z * Spacing + dz};
 }
 
-FLinearColor FLightGridGenerator::RandomColor()
+FLinearColor FLightGridGenerator::RandomColor() const
 {
-    auto HashFloat01 = [](int seed) -> float {
-        seed = (1103515245 * seed + 12345) & 0x7fffffff;
-        return (seed % 1000) / 1000.0f; // 0.0 ~ 0.999
-        };
+    auto HashFloat01 = [](int Seed) -> float
+    {
+        Seed = (1103515245 * Seed + 12345) & 0x7fffffff;
+        return (Seed % 1000) / 1000.0f; // 0.0 ~ 0.999
+    };
 
-    int colorSeed = shellLightCount * 1234567; // shellLightCount를 기반 시드로 사용
+    const int ColorSeed = ShellLightCount * 1234567; // shellLightCount를 기반 시드로 사용
 
-    float r = HashFloat01(colorSeed + 1);
-    float g = HashFloat01(colorSeed + 2);
-    float b = HashFloat01(colorSeed + 3);
+    const float R = HashFloat01(ColorSeed + 1);
+    const float G = HashFloat01(ColorSeed + 2);
+    const float B = HashFloat01(ColorSeed + 3);
 
-    return FLinearColor(r,g,b,1.0f);
+    return {R,G,B,1.0f};
 }
 

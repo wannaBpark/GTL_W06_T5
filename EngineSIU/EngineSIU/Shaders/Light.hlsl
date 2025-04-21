@@ -39,6 +39,7 @@ struct FPointLightInfo
     float Padding;
 };
 
+
 struct FSpotLightInfo
 {
     float4 LightColor;
@@ -288,3 +289,54 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     return FinalColor;
 }
+
+// 그림자 계산
+
+/* 
+float CalShadowFactor(float3 WorldPos, float ShadowBias)
+{
+    const float nearZ = 0.01; // 카메라 설정과 동일
+    float shadowFactor;
+    // 1. Project posWorld to light screen    
+    float4 LightScreen = mul(float4(WorldPos, 1.0), ShadowViewProj);
+    LightScreen.xyz /= LightScreen.w;
+    
+    // 2. 카메라(광원)에서 볼 때의 Texture 좌표 계산
+    float2 LightTexcoord = float2(LightScreen.x, -LightScreen.y);
+    LightTexcoord += 1.0;
+    LightTexcoord *= 0.5;
+    
+    // 3. 쉐도우맵에서 값 가져오기
+    float mapDepth = shadowMap.Sample(shadowPointSampler, LightTexcoord).r;
+    float actualDepth = LightScreen.z;
+    
+    // 4. ShadowMap의 depth 보다 실제 depth 가 크다면 그림자
+    if (mapDepth + bias < actualDepth)
+        shadowFactor = 0.0;
+    
+    
+    shadowMap.SampleCmpLevelZero(shadowCompareSampler, LightTexcoord.xy, LightScreen.z - 0.001).r;
+
+    uint width, height, numMips;
+    shadowMap.GetDimensions(0, width, height, numMips);
+    float dx = 5.0 / (float) width;
+    float percentLit = 0.0;
+    const float2 offsets[9] =
+    {
+        float2(-1, -1), float2(0, -1), float2(1, -1),
+        float2(-1, 0), float2(0, 0), float2(1, 0),
+        float2(-1, +1), float2(0, +1), float2(1, +1)
+    };
+    
+    [unroll]
+    for (int i = 0; i < 9; ++i)
+    {
+        percentLit += shadowMap.SampleCmpLevelZero(shadowCompareSampler,
+            LightTexcoord.xy + offsets[i] * dx, LightScreen.z - 0.001
+        ).r;
+
+    }
+    shadowFactor = percentLit / 9.0;
+
+    return shadowFactor;
+}*/

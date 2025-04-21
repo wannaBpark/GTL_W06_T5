@@ -28,8 +28,8 @@ public:
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState();
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
+    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 
 

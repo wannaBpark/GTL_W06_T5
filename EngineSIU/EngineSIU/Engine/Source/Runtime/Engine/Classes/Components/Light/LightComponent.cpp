@@ -5,6 +5,8 @@ ULightComponentBase::ULightComponentBase()
 {
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
+
+    ViewMatrices.SetNum(1);
     CreateShadowMap();
 }
 
@@ -54,6 +56,14 @@ int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
 {
     bool res = AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance);
     return res;
+}
+
+void ULightComponentBase::UpdateViewMatrix()
+{
+}
+
+void ULightComponentBase::UpdateProjectionMatrix()
+{
 }
 
 HRESULT ULightComponentBase::CreateShadowMap()
@@ -119,7 +129,7 @@ void ULightComponentBase::ReleaseShadowMap()
 
 void ULightComponentBase::ClearShadowMap(ID3D11DeviceContext* DeviceContext)
 {
-    for (auto ShadowMap : ShadowMaps)
+    for (const auto& ShadowMap : ShadowMaps)
     {
         DeviceContext->ClearDepthStencilView(ShadowMap.DSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
     }
