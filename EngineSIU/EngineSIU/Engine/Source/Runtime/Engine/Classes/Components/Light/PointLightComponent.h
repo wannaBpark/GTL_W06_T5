@@ -33,6 +33,9 @@ public:
 
 private:
     FPointLightInfo PointLightInfo;
+
+public:
+    TArray<FDepthStencilRHI> GetShadowMap() override;
 };
 
 

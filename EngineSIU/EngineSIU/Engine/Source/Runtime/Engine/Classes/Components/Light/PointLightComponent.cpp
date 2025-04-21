@@ -12,6 +12,13 @@ UPointLightComponent::UPointLightComponent()
     PointLightInfo.Intensity = 1000.f;
     PointLightInfo.Type = ELightType::POINT_LIGHT;
     PointLightInfo.Attenuation = 20.0f;
+
+    // CubeMap이므로 6개의 ShadowMap을 생성합니다.
+    constexpr int32 ShadowMapCreationCount = 6;  
+    for (int32 i = 0; i < ShadowMapCreationCount; ++i)  
+    {  
+       CreateShadowMap();  
+    }
 }
 
 UPointLightComponent::~UPointLightComponent()
@@ -127,4 +134,26 @@ int UPointLightComponent::GetType() const
 void UPointLightComponent::SetType(int InType)
 {
     PointLightInfo.Type = InType;
+}
+
+TArray<FDepthStencilRHI> UPointLightComponent::GetShadowMap()
+{
+    // ShadowMap의 크기가 바뀐 경우 새로 생성합니다.
+    if (bDirtyFlag)
+    {
+        if (HasShadowMap())
+        {
+            ReleaseShadowMap();
+        }
+
+        // CubeMap이므로 6개의 ShadowMap을 생성합니다.
+        constexpr int32 ShadowMapCreationCount = 6;
+        for (int32 i = 0; i < ShadowMapCreationCount; ++i)
+        {
+            CreateShadowMap();
+        }
+
+        bDirtyFlag = false;
+    }
+    return ShadowMaps;
 }

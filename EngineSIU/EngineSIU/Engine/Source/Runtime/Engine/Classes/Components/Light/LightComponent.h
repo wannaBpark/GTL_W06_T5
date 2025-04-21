@@ -1,4 +1,5 @@
 #pragma once
+#include "UnrealClient.h"
 #include "Components/SceneComponent.h"
 
 
@@ -22,4 +23,21 @@ protected:
 
 public:
     FBoundingBox GetBoundingBox() const {return AABB;}
+
+public:
+    HRESULT CreateShadowMap();
+    void ReleaseShadowMap();
+    void ClearShadowMap(ID3D11DeviceContext* DeviceContext);
+
+    bool HasShadowMap() const { return ShadowMaps.Num() != 0; }
+    virtual TArray<FDepthStencilRHI> GetShadowMap();
+    void SetShadowMapSize(const uint32 InWidth, const uint32 InHeight) { ShadowMapWidth = InWidth; ShadowMapHeight = InHeight; bDirtyFlag = true; }
+    uint32 GetShadowMapWidth() const { return ShadowMapWidth; }
+    uint32 GetShadowMapHeight() const { return ShadowMapHeight; }
+
+protected:
+    TArray<FDepthStencilRHI> ShadowMaps;
+    uint32 ShadowMapWidth = 2048;
+    uint32 ShadowMapHeight = 2048;
+    bool bDirtyFlag = false;
 };
