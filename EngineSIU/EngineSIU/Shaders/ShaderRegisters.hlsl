@@ -78,8 +78,8 @@ struct PS_INPUT_StaticMesh
 
 cbuffer Shadow : register(b11)
 {
-    row_major matrix ViewProj;
-    row_major matrix InvProj;
+    row_major matrix ShadowViewProj;
+    row_major matrix ShadowInvProj;
 };
 
 cbuffer ObjectBuffer : register(b12)

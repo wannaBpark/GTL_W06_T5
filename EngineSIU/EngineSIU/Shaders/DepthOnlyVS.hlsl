@@ -1,16 +1,9 @@
-// depthonlyvs
+// Depth Only Vertex Shader
 
-struct VS_INPUT_StaticMesh
-{
-    float3 Position : POSITION;
-    float4 Color : COLOR;
-    float3 Normal : NORMAL;
-    float3 Tangent : TANGENT;
-    float2 UV : TEXCOORD;
-    uint MaterialIndex : MATERIAL_INDEX;
-};
+#include "ShaderRegisters.hlsl"
 
-float4 mainVS( float4 pos : POSITION ) : SV_POSITION
+float4 mainVS(VS_INPUT_StaticMesh Input) : SV_POSITION
 {
+    float4 pos = mul(float4(Input.Position, 1.0f), ShadowViewProj);
 	return pos;
 }

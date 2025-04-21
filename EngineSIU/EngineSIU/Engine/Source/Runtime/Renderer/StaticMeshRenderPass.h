@@ -11,6 +11,7 @@ class UMaterial;
 class FEditorViewportClient;
 class UStaticMeshComponent;
 struct FStaticMaterial;
+class FShadowRenderPass;
 
 class FStaticMeshRenderPass : public IRenderPass
 {
@@ -48,6 +49,9 @@ public:
     void ChangeViewMode(EViewModeIndex ViewModeIndex);
     
 protected:
+    FShadowRenderPass* ShadowRenderPass;
+
+
     TArray<UStaticMeshComponent*> StaticMeshComponents;
 
     ID3D11VertexShader* VertexShader;
