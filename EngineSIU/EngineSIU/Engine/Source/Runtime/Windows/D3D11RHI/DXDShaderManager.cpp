@@ -11,6 +11,8 @@ FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
 {
     VertexShaders.Empty();
     PixelShaders.Empty();
+    ComputeShaders.Empty();
+    GeometryShaders.Empty();
 }
 
 FDXDShaderManager::~FDXDShaderManager()
@@ -39,6 +41,26 @@ void FDXDShaderManager::ReleaseAllShader()
         }
     }
     PixelShaders.Empty();
+
+    for (auto& [Key, Shader] : ComputeShaders)
+    {
+        if (Shader)
+        {
+            Shader->Release();
+            Shader = nullptr;
+        }
+    }
+    ComputeShaders.Empty();
+
+    for (auto& [Key, Shader] : GeometryShaders)
+    {
+        if (Shader)
+        {
+            Shader->Release();
+            Shader = nullptr;
+        }
+    }
+    GeometryShaders.Empty();
 
 }
 

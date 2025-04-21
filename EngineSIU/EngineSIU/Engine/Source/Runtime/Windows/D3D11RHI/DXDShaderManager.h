@@ -74,6 +74,7 @@ private:
 	TMap<std::wstring, ID3D11VertexShader*> VertexShaders;
 	TMap<std::wstring, ID3D11PixelShader*> PixelShaders;
     TMap<std::wstring, ID3D11ComputeShader*> ComputeShaders;
+    TMap<std::wstring, ID3D11GeometryShader*> GeometryShaders;
 
     TMap<std::wstring, std::filesystem::file_time_type> ShaderTimeStamps;
     TMap<std::wstring, TSet<std::wstring>> ShaderDependencyGraph;
