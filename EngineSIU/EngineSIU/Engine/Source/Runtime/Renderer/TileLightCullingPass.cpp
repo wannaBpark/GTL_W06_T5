@@ -26,6 +26,7 @@ FTileLightCullingPass::~FTileLightCullingPass()
 {
 }
 
+
 void FTileLightCullingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
     BufferManager = InBufferManager;

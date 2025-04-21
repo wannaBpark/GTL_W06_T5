@@ -20,6 +20,14 @@ public:
     virtual void UpdateViewMatrix();
     virtual void UpdateProjectionMatrix();
     
+    FMatrix GetViewMatrix(int Index = 0) const
+    {
+        return ViewMatrices[Index];
+    }
+    FMatrix GetProjectionMatrix() const
+    {
+        return ProjectionMatrix;
+    }
     
 protected:
 
