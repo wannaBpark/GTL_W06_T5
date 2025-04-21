@@ -3,9 +3,11 @@
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState NormalSampler : register(s1);
+SamplerComparisonState ShadowSampler : register(s2);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
+Texture2D ShadowMap : register(t2);
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -31,6 +33,23 @@ cbuffer TextureConstants : register(b4)
 }
 
 #include "Light.hlsl"
+
+
+float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
+{
+    float bias = 0.001f;
+    
+    float4 LightClipSpacePos = mul(input.WorldPosition, ShadowViewProj);
+    
+    float2 ShadowMapTexCoord = {
+        0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
+        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f
+    };
+    float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+    LightDistance -= bias;
+    
+    return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+}
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {
@@ -81,5 +100,9 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
+
+    // Shadow
+    FinalColor *= GetLightFromShadowMap(Input);
+
     return FinalColor;
 }

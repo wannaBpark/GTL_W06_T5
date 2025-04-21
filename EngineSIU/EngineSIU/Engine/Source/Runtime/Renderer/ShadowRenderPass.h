@@ -25,6 +25,7 @@ public:
     void CreateShader() const;
     void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
     void CreateSampler();
+    ID3D11SamplerState* GetSampler() const { return Sampler; }
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState();
     virtual void PrepareRenderArr() override;

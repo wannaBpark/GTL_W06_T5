@@ -195,6 +195,7 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
 
 
     // Rasterizer
@@ -359,9 +360,23 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
 
                     RenderAllStaticMeshes(Viewport);
                 }
-
             }
             ShadowRenderPass->ClearRenderArr();
+
+        }
+    }
+
+    for (const auto Light : TObjectRange<ULightComponentBase>())
+    {
+        if (Light->GetWorld() == GEngine->ActiveWorld)
+        {
+            if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+            {
+                TArray<FDepthStencilRHI> ShadowMap = DirectionalLight->GetShadowMap();
+                ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
+                Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
+                Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+            }
         }
     }
 

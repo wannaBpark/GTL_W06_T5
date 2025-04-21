@@ -21,6 +21,7 @@ void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
 
     // DepthOnly Vertex Shader
     CreateShader();
+    CreateSampler();
     UpdateViewport(ShadowMapWidth, ShadowMapHeight);
 }
 
@@ -57,10 +58,6 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
     Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, Light->GetShadowMap()[0].DSV);
-    for (const auto& iter : Light->GetShadowMap())
-    {
-        Graphics->DeviceContext->PSSetShaderResources(1, 1, &iter.SRV);
-    }
 }
 
 void FShadowRenderPass::ClearRenderArr()
