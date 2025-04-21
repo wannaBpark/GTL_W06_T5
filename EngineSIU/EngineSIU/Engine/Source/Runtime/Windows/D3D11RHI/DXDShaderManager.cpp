@@ -94,9 +94,13 @@ void FDXDShaderManager::UpdateShaderIfOutdated(const std::wstring Key, const std
                 : AddPixelShader(Key, FilePath, EntryPoint);
         }
         // Pixel Shader가 아니라면 Compute Shader로 간주
-        else
+        else if (ComputeShaders.Contains(Key))
         {
             AddComputeShader(Key, FilePath, EntryPoint);
+        }
+        else
+        {
+            
         }
         ShaderTimeStamps[Key] = currentTime;
     }
