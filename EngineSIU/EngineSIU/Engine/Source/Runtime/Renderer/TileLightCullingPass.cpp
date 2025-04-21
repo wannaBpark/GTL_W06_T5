@@ -506,8 +506,8 @@ void FTileLightCullingPass::ParseTileLightMaskData()
                 if (pointMask & (1u << bit))
                 {
                     // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
-                    uint32 globalLightIndex = bucket * 32 + bit;
                     // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
+                    uint32 globalLightIndex = bucket * 32 + bit;
                     if (globalLightIndex < TotalPointLightCount)
                     {
                         PointLightIndices.Add(globalLightIndex);
@@ -515,9 +515,7 @@ void FTileLightCullingPass::ParseTileLightMaskData()
                 }
                 if (spotMask & (1u << bit))
                 {
-                    // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
                     uint32 globalLightIndex = bucket * 32 + bit;
-                    // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
                     if (globalLightIndex < TotalSpotLightCount)
                     {
                         SpotLightIndices.Add(globalLightIndex);

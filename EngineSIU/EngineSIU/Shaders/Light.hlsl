@@ -39,6 +39,7 @@ struct FPointLightInfo
     float Padding;
 };
 
+
 struct FSpotLightInfo
 {
     float4 LightColor;

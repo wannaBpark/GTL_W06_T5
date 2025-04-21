@@ -27,6 +27,7 @@ public:
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState();
     virtual void PrepareRenderArr() override;
+    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase*& LightShadow);
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 

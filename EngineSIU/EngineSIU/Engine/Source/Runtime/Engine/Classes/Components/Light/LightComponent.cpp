@@ -119,7 +119,7 @@ void ULightComponentBase::ReleaseShadowMap()
 
 void ULightComponentBase::ClearShadowMap(ID3D11DeviceContext* DeviceContext)
 {
-    for (auto ShadowMap : ShadowMaps)
+    for (const auto& ShadowMap : ShadowMaps)
     {
         DeviceContext->ClearDepthStencilView(ShadowMap.DSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
     }

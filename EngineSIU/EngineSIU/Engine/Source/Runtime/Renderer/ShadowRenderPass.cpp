@@ -42,7 +42,7 @@ void FShadowRenderPass::PrepareRenderArr()
 {
 }
 
-void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase*& LightShadow)
 {
     //ShadowMapWidth = LightShadow->GetShadowWidth();
     //ShadowMapHeight = LightShadow->GetShadowHeight();
