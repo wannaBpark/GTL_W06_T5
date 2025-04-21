@@ -152,8 +152,8 @@ public:
     void CameraMoveUp(float InValue);
     void CameraRotateYaw(float InValue);
     void CameraRotatePitch(float InValue);
-    void PivotMoveRight(float InValue);
-    void PivotMoveUp(float InValue);
+    void PivotMoveRight(float InValue) const;
+    void PivotMoveUp(float InValue) const;
 
     FMatrix& GetViewMatrix() { return View; }
     FMatrix& GetProjectionMatrix() { return Projection; }
@@ -192,12 +192,12 @@ private: // Input
     TSet<EKeys::Type> PressedKeys;
 
 public:
-    void LoadConfig(const TMap<FString, FString>& config);
-    void SaveConfig(TMap<FString, FString>& config) const;
+    void LoadConfig(const TMap<FString, FString>& Config);
+    void SaveConfig(TMap<FString, FString>& Config) const;
 
 private:
-    TMap<FString, FString> ReadIniFile(const FString& filePath) const;
-    void WriteIniFile(const FString& filePath, const TMap<FString, FString>& config) const;
+    static TMap<FString, FString> ReadIniFile(const FString& FilePath);
+    static void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config);
 
 public:
     void SetCameraSpeedSetting(const int32& value) { CameraSpeedSetting = value; }
