@@ -44,12 +44,13 @@ private:
 
     TArray<ID3D11Texture2D*> OutputTextures = {};
     TArray<ID3D11ShaderResourceView*> OutputSRVs = {};
+    ID3D11ShaderResourceView* SliceSRVs[6] = { nullptr };
 
 public:
     TArray<FDepthStencilRHI> GetShadowMap() override;
     ID3D11RenderTargetView* DepthRTVArray;
-    ID3D11ShaderResourceView* GetSliceSRV(int SliceIndex);
-    ID3D11ShaderResourceView* CreateSliceSRV(DXGI_FORMAT format, UINT sliceIndex);
+    ID3D11ShaderResourceView* GetSliceSRV(int SliceIndex) const;
+    ID3D11ShaderResourceView* CreateSliceSRV(ID3D11Texture2D* texArray, DXGI_FORMAT format, UINT sliceIndex);
 };
 
 

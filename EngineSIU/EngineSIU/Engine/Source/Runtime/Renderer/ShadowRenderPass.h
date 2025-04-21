@@ -56,4 +56,6 @@ private:
 
     uint32 ShadowMapWidth = 2048;
     uint32 ShadowMapHeight = 2048;
+
+    FLOAT ClearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 };

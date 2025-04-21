@@ -7,12 +7,16 @@ ULightComponentBase::ULightComponentBase()
     AABB.min = { -1.f,-1.f,-0.1f };
 
     ViewMatrices.SetNum(1);
-    CreateShadowMap();
+    Initialize();    
 }
 
 ULightComponentBase::~ULightComponentBase()
 {
   
+}
+void ULightComponentBase::Initialize()
+{
+    CreateShadowMap();
 }
 
 UObject* ULightComponentBase::Duplicate(UObject* InOuter)

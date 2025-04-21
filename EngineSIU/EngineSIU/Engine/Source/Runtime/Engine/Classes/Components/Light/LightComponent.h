@@ -11,6 +11,7 @@ class ULightComponentBase : public USceneComponent
 public:
     ULightComponentBase();
     virtual ~ULightComponentBase() override;
+    void Initialize();
     virtual UObject* Duplicate(UObject* InOuter) override;
     
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;

@@ -74,6 +74,7 @@ void FShadowRenderPass::ClearRenderArr()
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
 
 }
 
@@ -135,8 +136,10 @@ void FShadowRenderPass::CreateSampler()
 
 void FShadowRenderPass::PrepareCubeMapRenderState(UPointLightComponent*& PointLight)
 {
+
     /*Graphics->DeviceContext->ClearDepthStencilView(nullptr,
         D3D11_CLEAR_DEPTH, 1.0f, 0);*/
+    Graphics->DeviceContext->ClearRenderTargetView(PointLight->DepthRTVArray, ClearColor);
     Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, nullptr);
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
 
