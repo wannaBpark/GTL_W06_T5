@@ -25,13 +25,11 @@
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
-
 #include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "ShadowRenderPass.h"
-
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -160,7 +158,7 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
 
     ShadowRenderPass = new FShadowRenderPass();
     ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-
+    
     CreateShader();
 }
 
@@ -198,6 +196,7 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
 
 
     // Rasterizer
@@ -335,17 +334,65 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
 void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    const EResourceType ResourceType = EResourceType::ERT_Scene;
-    FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
-    
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
-    
-    PrepareRenderState(Viewport);
+    if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
+    {
+        for (const auto iter : TObjectRange<ULightComponentBase>())
+        {
+            if (iter->GetWorld() == GEngine->ActiveWorld)
+            {
+                if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
+                {
+                    
+                }
+                else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
+                {
+                }
+                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
+                {  
+                    FShadowConstantBuffer ShadowData;
+                    FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
+                    FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
+                    ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
+                    ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
+                    ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
+                    ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
+                    ShadowData.DirectionalLightDirection = DirectionalLight->GetDirection();
+                    BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
-    RenderAllStaticMeshes(Viewport);
-    
+                    ShadowRenderPass->Render(Viewport, DirectionalLight);
+                    RenderAllStaticMeshes(Viewport);
+                }
+            }
+            ShadowRenderPass->ClearRenderArr(); 
+        }
+    }
+
+    for (const auto Light : TObjectRange<ULightComponentBase>())
+    {
+        if (Light->GetWorld() == GEngine->ActiveWorld)
+        {
+            if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+            {
+                TArray<FDepthStencilRHI> ShadowMap = DirectionalLight->GetShadowMap();
+                ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
+                Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
+                Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+
+                Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
+
+                const EResourceType ResourceType = EResourceType::ERT_Scene;
+                FViewportResource* ViewportResource = Viewport->GetViewportResource();
+                FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+                FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+
+                Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+
+                PrepareRenderState(Viewport);
+
+                RenderAllStaticMeshes(Viewport);
+            }
+        }
+    }
 
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);

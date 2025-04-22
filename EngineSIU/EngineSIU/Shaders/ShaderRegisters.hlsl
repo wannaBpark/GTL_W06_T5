@@ -80,8 +80,16 @@ cbuffer ShadowMapBuffer : register(b11)
 {
     row_major matrix ShadowViewProj;
     row_major matrix ShadowInvProj;
+
+    float ShadowMapWidth;
+    float ShadowMapHeight;
+    float2 ShadowPadding0;
+
+    float3 DirectionalLightDir;
+    float ShadowPadding1;
+
     float4 gCascadeSplits;
-    float ShadowPadding;
+
 };
 
 cbuffer ObjectBuffer : register(b12)

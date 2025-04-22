@@ -3,9 +3,11 @@
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState NormalSampler : register(s1);
+SamplerComparisonState ShadowSampler : register(s2);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
+Texture2D ShadowMap : register(t2);
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -31,6 +33,54 @@ cbuffer TextureConstants : register(b4)
 }
 
 #include "Light.hlsl"
+
+
+bool InRange(float val, float min, float max)
+{
+    return (min <= val && val <= max);
+}
+
+
+float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
+{
+    float NdotL = dot(normalize(input.WorldNormal), DirectionalLightDir);
+    float bias = 0.001f * (1 - NdotL) + 0.0001f;
+
+    // float bias = 0.001f;
+    
+    float4 LightClipSpacePos = mul(float4(input.WorldPosition, 1.0f), ShadowViewProj);
+    float2 ShadowMapTexCoord = {
+        0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
+        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f
+    };
+    float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+    LightDistance -= bias;
+
+    float Light = 0.f;
+    float OffsetX = 1.f / ShadowMapWidth;
+    float OffsetY = 1.f / ShadowMapHeight;
+    for(int i = -1; i <= 1; i++){
+        for(int j = -1; j <= 1; j++){
+            float2 SampleCoord =
+            {
+                ShadowMapTexCoord.x + OffsetX * i,
+                ShadowMapTexCoord.y + OffsetY * j
+            };
+            if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
+            {
+                Light += ShadowMap.SampleCmpLevelZero(ShadowSampler, SampleCoord, LightDistance).r;
+            }
+            else
+            {
+                Light += 1.f;
+            }
+        }
+    }
+    Light /= 9;
+    return Light;
+
+    // return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+}
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {
@@ -81,5 +131,9 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
+
+    // Shadow
+    FinalColor *= GetLightFromShadowMap(Input);
+
     return FinalColor;
 }
