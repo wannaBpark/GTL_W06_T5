@@ -15,11 +15,8 @@ UPointLightComponent::UPointLightComponent()
     PointLightInfo.Type = ELightType::POINT_LIGHT;
     PointLightInfo.Attenuation = 20.0f;
 
-    // CubeMap이므로 6개의 ShadowMap을 생성합니다.
-    constexpr int32 ShadowMapCreationCount = 6;  
-    for (int32 i = 0; i < ShadowMapCreationCount; ++i)  
-    {
-    }
+    // ShadowMap 생성 오버라이딩 함수는 생성자 시점에서 불릴 수 없기에 Initialize()로 호출
+    Initialize(); 
 }
 
 UPointLightComponent::~UPointLightComponent()
@@ -393,3 +390,74 @@ void UPointLightComponent::UpdateProjectionMatrix()
     );
 }
 
+
+TArray<FDepthStencilRHI>& UPointLightComponent::GetShadowMap()
+{
+    // ShadowMap의 크기가 바뀐 경우 새로 생성합니다.
+    if (bDirtyFlag)
+    {
+        if (HasShadowMap())
+        {
+            ReleaseShadowMap();
+        }
+
+        // CubeMap이므로 6개의 ShadowMap을 생성합니다. (함수 내부에서)
+        constexpr int32 ShadowMapCreationCount = 6;
+        CreateShadowMap();
+
+        bDirtyFlag = false;
+    }
+    return ShadowMaps;
+}
+
+ID3D11ShaderResourceView* UPointLightComponent::GetSliceSRV(int SliceIndex) const
+{
+    return SliceSRVs[SliceIndex];
+    // 1) 아까 만든 Texture2DArray 에서 해당 슬라이스만 OutputTextures[SliceIndex] 로 복사
+    UINT subresource = D3D11CalcSubresource(
+        /*MipSlice=*/0,
+        /*ArraySlice=*/SliceIndex,
+        /*NumMips=*/1
+    );
+    FEngineLoop::GraphicDevice.DeviceContext
+        ->CopySubresourceRegion(
+            OutputTextures[SliceIndex],  // dst 텍스처
+            /*DstSubresource=*/0,
+            /*DstX=*/0, /*DstY=*/0, /*DstZ=*/0,
+            ShadowMaps[1].Texture2D,     // src 텍스처
+            subresource,
+            /*pSrcBox=*/nullptr
+        );
+
+   //  2) 복사된 2D 텍스처에 대한 SRV 반환
+    return OutputSRVs[SliceIndex];
+
+}
+
+ID3D11ShaderResourceView* UPointLightComponent::CreateSliceSRV(
+    ID3D11Texture2D* texArray,
+    DXGI_FORMAT     format,
+    UINT            sliceIndex)
+{
+    D3D11_TEXTURE2D_DESC ddesc;
+    ShadowMaps[0].Texture2D->GetDesc(&ddesc);
+    UE_LOG(LogLevel::Error, TEXT("Cubemap.ArraySize=%u"), ddesc.ArraySize);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+    desc.Format = format;
+    desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;  // ← 여기!! CUBE면 DSV로생성, 2DArray면 RTV
+    desc.Texture2DArray.MostDetailedMip = 0;
+    desc.Texture2DArray.MipLevels = 1;
+    desc.Texture2DArray.FirstArraySlice = sliceIndex;
+    desc.Texture2DArray.ArraySize = 1;
+
+    ID3D11ShaderResourceView* srv = nullptr;
+    auto hr = FEngineLoop::GraphicDevice.Device
+        ->CreateShaderResourceView(texArray, &desc, &srv);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create slice SRV!"));
+        return nullptr;
+    }
+    return srv;
+}

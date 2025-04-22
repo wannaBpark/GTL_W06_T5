@@ -6,7 +6,6 @@
 #include "Define.h"
 #include "Components/Light/PointLightComponent.h"
 
-class FShadowManager;
 class FDXDShaderManager;
 class UWorld;
 class UMaterial;
@@ -23,8 +22,6 @@ public:
     virtual ~FStaticMeshRenderPass();
     
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
-    
-    void InitializeShadowManager(class FShadowManager* InShadowManager);
     
     virtual void PrepareRenderArr() override;
 
@@ -54,6 +51,7 @@ public:
     void ChangeViewMode(EViewModeIndex ViewModeIndex);
     
 protected:
+    FShadowRenderPass* ShadowRenderPass;
 
 
     TArray<UStaticMeshComponent*> StaticMeshComponents;
@@ -68,6 +66,4 @@ protected:
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
-    
-    FShadowManager* ShadowManager;
 };

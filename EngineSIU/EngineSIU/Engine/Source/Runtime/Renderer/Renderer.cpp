@@ -24,8 +24,6 @@
 #include "CompositingPass.h"
 #include "LightHeatMapRenderPass.h"
 #include "PostProcessCompositingPass.h"
-#include "ShadowManager.h"
-#include "ShadowRenderPass.h"
 #include "SlateRenderPass.h"
 #include "UnrealClient.h"
 #include "GameFrameWork/Actor.h"
@@ -41,8 +39,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     BufferManager = InBufferManager;
 
     ShaderManager = new FDXDShaderManager(Graphics->Device);
-    ShadowManager = new FShadowManager();
-    ShadowRenderPass = new FShadowRenderPass();
 
     CreateConstantBuffers();
     CreateCommonShader();
@@ -64,15 +60,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     PostProcessCompositingPass = new FPostProcessCompositingPass();
     SlateRenderPass = new FSlateRenderPass();
 
-    if (false == ShadowManager->Initialize(Graphics))
-    {
-        static_assert(true, "ShadowManager Initialize Failed");
-    }
-    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-    ShadowRenderPass->InitializeShadowManager(ShadowManager);
-    
     StaticMeshRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-    StaticMeshRenderPass->InitializeShadowManager(ShadowManager);
     WorldBillboardRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     EditorBillboardRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     GizmoRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
@@ -94,8 +82,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
 void FRenderer::Release()
 {
     delete ShaderManager;
-    delete ShadowManager;
-    delete ShadowRenderPass;
 
     delete StaticMeshRenderPass;
     delete WorldBillboardRenderPass;
@@ -213,7 +199,6 @@ void FRenderer::PrepareRender(FViewportResource* ViewportResource)
 void FRenderer::PrepareRenderPass()
 {
     StaticMeshRenderPass->PrepareRenderArr();
-    ShadowRenderPass->PrepareRenderArr();
     GizmoRenderPass->PrepareRenderArr();
     WorldBillboardRenderPass->PrepareRenderArr();
     EditorBillboardRenderPass->PrepareRenderArr();
@@ -227,7 +212,6 @@ void FRenderer::PrepareRenderPass()
 void FRenderer::ClearRenderArr()
 {
     StaticMeshRenderPass->ClearRenderArr();
-    ShadowRenderPass->ClearRenderArr();
     WorldBillboardRenderPass->ClearRenderArr();
     EditorBillboardRenderPass->ClearRenderArr();
     GizmoRenderPass->ClearRenderArr();
@@ -296,11 +280,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
         UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
                                 TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
         UpdateLightBufferPass->SetTileConstantBuffer(TileLightCullingPass->GetTileConstantBuffer());
-    }
-
-    if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
-    {
-        ShadowRenderPass->Render(Viewport);
     }
 
     RenderWorldScene(Viewport);
