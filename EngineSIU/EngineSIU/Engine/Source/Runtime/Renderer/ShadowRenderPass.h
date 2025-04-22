@@ -26,6 +26,7 @@ public:
     void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
     void CreateSampler();
     ID3D11SamplerState* GetSampler() const { return Sampler; }
+    ID3D11SamplerState* GetShadowPointSampler() const { return ShadowPointSampler; }
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState(ULightComponentBase* Light);
     virtual void PrepareRenderArr() override;
@@ -43,6 +44,7 @@ private:
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
     ID3D11SamplerState* Sampler;
+    ID3D11SamplerState* ShadowPointSampler;
 
     D3D11_VIEWPORT ShadowViewport;
 

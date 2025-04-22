@@ -315,13 +315,18 @@ struct FShadowConstantBuffer
     FMatrix ViewProj; // Light 광원 입장에서의 ViewProj
     FMatrix InvProj;  // Light 광원 입장에서의 InvProj
 
+    float LightNearZ;
+    float LightFrustumWidth;
     float ShadowMapWidth;
     float ShadowMapHeight;
-    float pad0;
-    float pad1;
 
     FVector DirectionalLightDirection;
-    float pad2;
+    float pad;
+
+    FVector4 gCascadeSplits;
+
+    float AreaLightRadius; // 반그림자 연산에 사용됨 (빛의 영역)
+    FVector pad2;
 };
 
 struct FObjectConstantBuffer

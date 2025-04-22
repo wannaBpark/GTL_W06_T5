@@ -67,6 +67,11 @@ FVector UDirectionalLightComponent::GetDirection()
     return WorldDown;  
 }
 
+float UDirectionalLightComponent::GetShadowNearPlane() const
+{
+    return ShadowNearPlane;
+}
+
 const FDirectionalLightInfo& UDirectionalLightComponent::GetDirectionalLightInfo() const
 {
     return DirectionalLightInfo;
@@ -137,4 +142,9 @@ void UDirectionalLightComponent::UpdateProjectionMatrix()
         ShadowNearPlane,
         ShadowFarPlane
     );
+}
+
+float UDirectionalLightComponent::GetShadowFrustumWidth() const
+{
+    return OrthoWidth;
 }

@@ -355,9 +355,13 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
                     FMatrix ProjectionMatrix = DirectionalLight->GetProjectionMatrix();
                     ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
                     ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
+                    ShadowData.LightNearZ = DirectionalLight->GetShadowNearPlane();
+                    ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
                     ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
                     ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
+                    ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
                     ShadowData.DirectionalLightDirection = DirectionalLight->GetDirection();
+                    /*ShadowData.AreaLightRadius = DirectionalLight->GetRadius();*/
                     BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
                     ShadowRenderPass->Render(Viewport, DirectionalLight);
@@ -375,9 +379,11 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
             if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
             {
                 TArray<FDepthStencilRHI> ShadowMap = DirectionalLight->GetShadowMap();
-                ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
+                ID3D11SamplerState* Samplers[2] = {
+                    ShadowRenderPass->GetSampler(), ShadowRenderPass->GetShadowPointSampler()
+                };
                 Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
-                Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+                Graphics->DeviceContext->PSSetSamplers(2, 2, Samplers);
 
                 Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 

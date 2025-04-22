@@ -116,4 +116,20 @@ void FShadowRenderPass::CreateSampler()
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Sampler!"));
     }
+
+    D3D11_SAMPLER_DESC PointSamplerDesc = {};
+    PointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    PointSamplerDesc.MinLOD = 0;
+    PointSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    PointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    PointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    PointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    PointSamplerDesc.BorderColor[0] = 1.0f;                     // 큰 Z값
+    PointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+    hr = Graphics->Device->CreateSamplerState(&SamplerDesc, &ShadowPointSampler);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Point Sampler!"));
+    }
 }

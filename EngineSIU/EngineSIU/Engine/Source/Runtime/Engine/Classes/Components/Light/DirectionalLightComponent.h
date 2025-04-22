@@ -15,6 +15,7 @@ public:
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     FVector GetDirection();
+    float GetShadowNearPlane() const;
 
     const FDirectionalLightInfo& GetDirectionalLightInfo() const;
     void SetDirectionalLightInfo(const FDirectionalLightInfo& InDirectionalLightInfo);
@@ -28,6 +29,7 @@ public:
     void UpdateViewMatrix(FVector TargetPosition);
     void UpdateViewMatrix() override;
     void UpdateProjectionMatrix() override;
+    float GetShadowFrustumWidth() const;
 
 private:
     FDirectionalLightInfo DirectionalLightInfo;
