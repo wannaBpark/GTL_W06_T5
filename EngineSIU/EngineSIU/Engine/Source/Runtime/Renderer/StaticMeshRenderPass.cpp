@@ -341,6 +341,16 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
             {
                 if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
                 {
+                    FPointLightShadowConstantBuffer ShadowData;
+                    ShadowData.Position = PointLight->GetWorldLocation();
+                    PointLight->UpdateViewMatrix();
+                    PointLight->UpdateProjectionMatrix();
+                    for (uint32 i = 0; i < 6; ++i)
+                    {
+                        ShadowData.ViewProj[i] = PointLight->GetViewMatrix(i) * PointLight->GetProjectionMatrix();
+                    }
+                    BufferManager->UpdateConstantBuffer(TEXT("FPointLightShadowConstantBuffer"), ShadowData);
+
                     ShadowRenderPass->RenderCubeMap(Viewport, PointLight);
                     RenderAllStaticMeshesForPointLight(Viewport, PointLight);
                 }
@@ -349,20 +359,19 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
                 }
                 else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
                 {  
-                    FShadowConstantBuffer ShadowData;
-                    DirectionalLight->UpdateViewMatrix(Viewport->GetCameraLocation());
-                    DirectionalLight->UpdateProjectionMatrix();
-                    FMatrix ViewMatrix = DirectionalLight->GetViewMatrix();
-                    FMatrix ProjectionMatrix = DirectionalLight->GetProjectionMatrix();
-                    ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
-                    ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
-                    ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
-                    ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
-                    ShadowData.DirectionalLightDirection = DirectionalLight->GetDirection();
-                    BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+                    //FShadowConstantBuffer ShadowData;
+                    //DirectionalLight->UpdateViewMatrix(Viewport->GetCameraLocation());
+                    //DirectionalLight->UpdateProjectionMatrix();
+                    //FMatrix ViewMatrix = DirectionalLight->GetViewMatrix();
+                    //FMatrix ProjectionMatrix = DirectionalLight->GetProjectionMatrix();
+                    //ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
+                    //ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
+                    //ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
+                    //ShadowData.DirectionalLightDirection = DirectionalLight->GetDirection();
+                    //BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
-                    ShadowRenderPass->Render(Viewport, DirectionalLight);
-                    RenderAllStaticMeshes(Viewport);
+                    //ShadowRenderPass->Render(Viewport, DirectionalLight);
+                    //RenderAllStaticMeshes(Viewport);
                 }
             }
             ShadowRenderPass->ClearRenderArr(); 
@@ -375,25 +384,33 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
         {
             if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
             {
-                TArray<FDepthStencilRHI> ShadowMap = DirectionalLight->GetShadowMap();
+                //TArray<FDepthStencilRHI> ShadowMap = DirectionalLight->GetShadowMap();
+                //ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
+                //Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
+                //Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+            }
+            else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
+            {
+                TArray<FDepthStencilRHI> ShadowMap = PointLight->GetShadowMap();
                 ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
-                Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
                 Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+                Graphics->DeviceContext->PSSetShaderResources(3, 1, &ShadowMap[1].SRV);
 
-                Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
-
-                const EResourceType ResourceType = EResourceType::ERT_Scene;
-                FViewportResource* ViewportResource = Viewport->GetViewportResource();
-                FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-                FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
-
-                Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
-
-                PrepareRenderState(Viewport);
-
-                RenderAllStaticMeshes(Viewport);
+              
             }
         }
+        Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
+
+        const EResourceType ResourceType = EResourceType::ERT_Scene;
+        FViewportResource* ViewportResource = Viewport->GetViewportResource();
+        FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+        FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+
+        Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+
+
+        PrepareRenderState(Viewport);
+        RenderAllStaticMeshes(Viewport);
     }
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);

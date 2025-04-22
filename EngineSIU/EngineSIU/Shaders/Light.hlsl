@@ -12,6 +12,7 @@
 #define AMBIENT_LIGHT       4
 
 #define MAX_LIGHT_PER_TILE 1024
+#define NUM_FACES 6 
 
 struct FAmbientLightInfo
 {
@@ -68,6 +69,13 @@ cbuffer Lighting : register(b0)
     int AmbientLightsCount;
 };
 
+cbuffer PointLightShadowConstants : register(b5)
+{
+    row_major matrix PointLightViewProj[NUM_FACES]; // 6 : NUM_FACES
+    float3 PointLightPos;
+    float pad0;
+}
+
 cbuffer TileLightCullSettings : register(b8)
 {
     uint2 ScreenSize; // 화면 해상도
@@ -96,6 +104,37 @@ StructuredBuffer<FSpotLightInfo>    gSpotLights     : register(t11);
 
 Buffer<uint>    PerTilePointLightIndexBuffer    : register(t12);
 Buffer<uint>    PerTileSpotLightIndexBuffer     : register(t13);
+
+int GetMajorFaceIndex(float3 Dir){
+    float3 absDir = abs(Dir);
+    if(absDir.x > absDir.y && absDir.x > absDir.z)
+    {
+        return Dir.x > 0.0f ? 0 : 1;
+    }
+    else if(absDir.y > absDir.z)
+    {
+        return Dir.y > 0.0f ? 2 : 3;
+    }
+    else
+    {
+        return Dir.z > 0.0f ? 4 : 5;
+    }
+}
+
+float PointShadowCalculation(float3 WorldPosition)
+{
+    // 1) 광원→조각 방향 (큐브맵 샘플링 좌표)
+    float3 Dir = normalize(WorldPosition - PointLightPos);
+    // 2) 해당 face의 뷰·프로젝션 적용
+    int face = GetMajorFaceIndex(Dir);
+    float4 posCS = mul(float4(WorldPosition, 1.0f), PointLightViewProj[face]);
+    // 3) 클립스페이스 깊이
+    float refDepth = posCS.z / posCS.w;
+    // 5) 하드웨어 비교 샘플
+    float3 SampleDir = normalize(WorldPosition - PointLightPos);
+    float shadow = PointShadowMap.SampleCmpLevelZero(ShadowSampler, float4(SampleDir, 1.0f), refDepth);
+    return shadow;
+}
 
 float CalculateAttenuation(float Distance, float AttenuationFactor, float Radius)
 {
@@ -160,7 +199,7 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
     float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * Material.SpecularColor)) * LightInfo.LightColor.rgb;
 #endif
     
-    return float4(Lit * Attenuation * LightInfo.Intensity, 1.0);
+    return float4(Lit * Attenuation * LightInfo.Intensity * PointShadowCalculation(WorldPosition), 1.0);
 }
 
 float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor)

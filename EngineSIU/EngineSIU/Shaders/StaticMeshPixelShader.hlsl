@@ -8,7 +8,7 @@ SamplerComparisonState ShadowSampler : register(s2);
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
 Texture2D ShadowMap : register(t2);
-TextureCube PointShadowMap : register(t3);
+TextureCube<float> PointShadowMap : register(t3);
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -40,19 +40,6 @@ bool InRange(float val, float min, float max)
 {
     return (min <= val && val <= max);
 }
-
-float GetPointLightShadow(PS_INPUT_StaticMesh input)
-{
-    float3 toLight = input.WorldPosition - LightPos;      // 라이트 방향 & 거리
-    float  dist   = length(toLight);
-    float  bias   = 0.001f;
-    // 비교 샘플: toLight(방향) 과 dist-bias(깊이) 비교
-    float shadow = PointShadowMap.SampleCmpLevelZero(ShadowSampler,
-                     normalize(toLight),
-                     dist - bias);
-    return shadow;
-}
-
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
 {
@@ -94,8 +81,6 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
     }
     Light /= 9;
     return Light;
-
-    return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
 }
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
@@ -149,7 +134,10 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     }
 
     // Shadow
-    FinalColor *= GetLightFromShadowMap(Input);
 
+    //FinalColor *= GetLightFromShadowMap(Input);
+
+    //return float4(GetPointLightShadow(Input) + 0.1f, 0.0f, 0.0f, 1.0f);
+    //return float4(1.0f, 0.0f, 0.0f, 1.0f);
     return FinalColor;
 }

@@ -148,6 +148,11 @@ void FShadowRenderPass::CreateSampler()
 
 void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
+    DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
+    DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+    StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+
     /*auto*& DSV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Scene)->DSV;*/
     auto sm = PointLight->GetShadowMap();
     auto*& DSV = sm[1].DSV;
@@ -157,18 +162,15 @@ void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorV
     Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, DSV);
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
 
-    DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
-    DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
-    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
-
     Graphics->DeviceContext->VSSetShader(DepthCubeMapVS, nullptr, 0);
     Graphics->DeviceContext->GSSetShader(DepthCubeMapGS, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(DepthOnlyPS, nullptr, 0);
     // VS, GS에 대한 상수버퍼 업데이트
     BufferManager->BindConstantBuffer(TEXT("FPointLightGSBuffer"), 0, EShaderStage::Geometry);
+    BufferManager->BindConstantBuffer(TEXT("FPointLightShadowConstantBuffer"), 5, EShaderStage::Pixel);
 
     UpdateViewport(ShadowMapWidth, ShadowMapHeight);
-    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
+    Graphics->DeviceContext->RSSetState(Graphics->RasterizerShadow);
     Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
 }
 
@@ -189,5 +191,4 @@ void FShadowRenderPass::RenderCubeMap(const std::shared_ptr<FEditorViewportClien
 {
     //UpdateCubeMapConstantBuffer(PointLight);
     PrepareCubeMapRenderState(Viewport, PointLight);
-
 }

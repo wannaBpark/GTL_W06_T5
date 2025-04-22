@@ -318,6 +318,13 @@ struct FPointLightGSBuffer
     FMatrix ViewProj[NUM_FACES]; // 6 : NUM_FACES
 };
 
+struct FPointLightShadowConstantBuffer 
+{
+    FMatrix ViewProj[NUM_FACES]; // 6 : NUM_FACES
+    FVector Position;
+    float pad0;
+};
+
 struct FShadowConstantBuffer
 {
     FMatrix ViewProj; // Light 광원 입장에서의 ViewProj
@@ -325,11 +332,11 @@ struct FShadowConstantBuffer
 
     float ShadowMapWidth;
     float ShadowMapHeight;
+    float ShadowType;
     float pad0;
-    float pad1;
 
     FVector DirectionalLightDirection;
-    float pad2;
+    float pad1;
 };
 
 struct FObjectConstantBuffer
