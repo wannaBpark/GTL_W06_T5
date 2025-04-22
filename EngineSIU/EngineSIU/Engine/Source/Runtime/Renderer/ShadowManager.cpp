@@ -3,15 +3,12 @@
 
 FShadowManager::FShadowManager()
 {
-    // 포인터 멤버들을 nullptr로 초기화 (헤더에서도 초기화했지만, 명시적으로)
     D3DDevice = nullptr;
     D3DContext = nullptr;
-    SpotShadowArrayTexture = nullptr;
-    SpotShadowArraySRV = nullptr;
-    DirectionalShadowTexture = nullptr;
-    DirectionalShadowSRV = nullptr;
     //ShadowSampler = nullptr;
     ShadowSamplerCmp = nullptr;
+    SpotShadowDepthRHI = nullptr;
+    DirectionalShadowCascadeDepthRHI = nullptr;
 }
 
 FShadowManager::~FShadowManager()
@@ -22,7 +19,7 @@ FShadowManager::~FShadowManager()
 
 // --- Public 멤버 함수 구현 ---
 
-bool FShadowManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* InContext,
+bool FShadowManager::Initialize(FGraphicsDevice* InGraphics,
                                uint32_t InMaxSpotShadows, uint32_t InSpotResolution,
                                uint32_t InNumCascades, uint32_t InDirResolution)
 {
@@ -32,14 +29,19 @@ bool FShadowManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* InC
         Release();
     }
 
-    D3DDevice = InDevice;
-    D3DContext = InContext;
+    D3DDevice = InGraphics->Device;
+    D3DContext = InGraphics->DeviceContext;
 
+    
+    SpotShadowDepthRHI = new FShadowDepthRHI();
+    
+    DirectionalShadowCascadeDepthRHI = new FShadowDepthRHI();
+    
     // 설정 값 저장
     MaxSpotLightShadows = InMaxSpotShadows;
-    SpotShadowMapResolution = InSpotResolution;
     NumCascades = InNumCascades;
-    DirectionalShadowMapResolution = InDirResolution;
+    SpotShadowDepthRHI->ShadowMapResolution = InSpotResolution;
+    DirectionalShadowCascadeDepthRHI->ShadowMapResolution = InDirResolution; 
 
     // 리소스 생성 시도
     if (!CreateSpotShadowResources())
@@ -86,7 +88,7 @@ void FShadowManager::Release()
 void FShadowManager::BeginSpotShadowPass(uint32_t sliceIndex)
 {
     // 유효성 검사
-    if (!D3DContext || sliceIndex >= (uint32_t)SpotShadowSliceDSVs.Num() || !SpotShadowSliceDSVs[sliceIndex])
+    if (!D3DContext || sliceIndex >= (uint32_t)SpotShadowDepthRHI->ShadowDSVs.Num() || !SpotShadowDepthRHI->ShadowDSVs[sliceIndex])
     {
         // UE_LOG(LogTemp, Warning, TEXT("BeginSpotShadowPass: Invalid slice index or DSV."));
         return;
@@ -94,12 +96,12 @@ void FShadowManager::BeginSpotShadowPass(uint32_t sliceIndex)
 
     // 렌더 타겟 설정 (DSV만 설정)
     ID3D11RenderTargetView* nullRTV = nullptr;
-    D3DContext->OMSetRenderTargets(1, &nullRTV, SpotShadowSliceDSVs[sliceIndex]);
+    D3DContext->OMSetRenderTargets(1, &nullRTV, SpotShadowDepthRHI->ShadowDSVs[sliceIndex]);
 
     // 뷰포트 설정
     D3D11_VIEWPORT vp = {};
-    vp.Width = (float)SpotShadowMapResolution;
-    vp.Height = (float)SpotShadowMapResolution;
+    vp.Width = (float)SpotShadowDepthRHI->ShadowMapResolution;
+    vp.Height = (float)SpotShadowDepthRHI->ShadowMapResolution;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = 0;
@@ -107,13 +109,14 @@ void FShadowManager::BeginSpotShadowPass(uint32_t sliceIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어
-    D3DContext->ClearDepthStencilView(SpotShadowSliceDSVs[sliceIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    D3DContext->ClearDepthStencilView(SpotShadowDepthRHI->ShadowDSVs[sliceIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
+
 
 void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
 {
     // 유효성 검사
-    if (!D3DContext || cascadeIndex >= (uint32_t)DirectionalShadowCascadeDSVs.Num() || !DirectionalShadowCascadeDSVs[cascadeIndex])
+    if (!D3DContext || cascadeIndex >= (uint32_t)DirectionalShadowCascadeDepthRHI->ShadowDSVs.Num() || !DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex])
     {
         // UE_LOG(LogTemp, Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
         return;
@@ -121,12 +124,12 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
 
     // 렌더 타겟 설정 (DSV만 설정)
     ID3D11RenderTargetView* nullRTV = nullptr;
-    D3DContext->OMSetRenderTargets(1, &nullRTV, DirectionalShadowCascadeDSVs[cascadeIndex]);
+    D3DContext->OMSetRenderTargets(1, &nullRTV, DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex]);
 
     // 뷰포트 설정
     D3D11_VIEWPORT vp = {};
-    vp.Width = (float)DirectionalShadowMapResolution;
-    vp.Height = (float)DirectionalShadowMapResolution;
+    vp.Width = (float)DirectionalShadowCascadeDepthRHI->ShadowMapResolution;
+    vp.Height = (float)DirectionalShadowCascadeDepthRHI->ShadowMapResolution;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = 0;
@@ -134,7 +137,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어
-    D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t directionalShadowSlot, uint32_t samplerCmpSlot)
@@ -151,13 +154,13 @@ void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t 
     // D3DContext->PSSetShaderResources(spotShadowSlot, 2, psSRVs); // 시작 슬롯과 개수 사용
 
     // 개별 바인딩 
-    if (SpotShadowArraySRV)
+    if (SpotShadowDepthRHI->ShadowSRV)
     {
-        D3DContext->PSSetShaderResources(spotShadowSlot, 1, &SpotShadowArraySRV);
+        D3DContext->PSSetShaderResources(spotShadowSlot, 1, &SpotShadowDepthRHI->ShadowSRV);
     }
-    if (DirectionalShadowSRV)
+    if (DirectionalShadowCascadeDepthRHI->ShadowSRV)
     {
-        D3DContext->PSSetShaderResources(directionalShadowSlot, 1, &DirectionalShadowSRV);
+        D3DContext->PSSetShaderResources(directionalShadowSlot, 1, &DirectionalShadowCascadeDepthRHI->ShadowSRV);
     }
 
 
@@ -179,15 +182,15 @@ void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t 
 bool FShadowManager::CreateSpotShadowResources()
 {
     // 유효성 검사
-    if (!D3DDevice || MaxSpotLightShadows == 0 || SpotShadowMapResolution == 0) return false;
+    if (!D3DDevice || MaxSpotLightShadows == 0 || SpotShadowDepthRHI->ShadowMapResolution == 0) return false;
 
     // 1. Texture2DArray 생성
     D3D11_TEXTURE2D_DESC texDesc = {};
-    texDesc.Width = SpotShadowMapResolution;
-    texDesc.Height = SpotShadowMapResolution;
+    texDesc.Width = SpotShadowDepthRHI->ShadowMapResolution;
+    texDesc.Height = SpotShadowDepthRHI->ShadowMapResolution;
     texDesc.MipLevels = 1;
     texDesc.ArraySize = MaxSpotLightShadows;
-    texDesc.Format = DXGI_FORMAT_D32_FLOAT; // 깊이 포맷
+    texDesc.Format = DXGI_FORMAT_R32_TYPELESS; // 깊이 포맷
     texDesc.SampleDesc.Count = 1;
     texDesc.SampleDesc.Quality = 0;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -195,7 +198,7 @@ bool FShadowManager::CreateSpotShadowResources()
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = 0;
 
-    HRESULT hr = D3DDevice->CreateTexture2D(&texDesc, nullptr, &SpotShadowArrayTexture);
+    HRESULT hr = D3DDevice->CreateTexture2D(&texDesc, nullptr, &SpotShadowDepthRHI->ShadowTexture);
     if (FAILED(hr))
     {
         // UE_LOG(LogTemp, Error, TEXT("CreateTexture2D failed for SpotShadowArrayTexture (HR=0x%X)"), hr);
@@ -211,7 +214,7 @@ bool FShadowManager::CreateSpotShadowResources()
     srvDesc.Texture2DArray.FirstArraySlice = 0;
     srvDesc.Texture2DArray.ArraySize = MaxSpotLightShadows;
 
-    hr = D3DDevice->CreateShaderResourceView(SpotShadowArrayTexture, &srvDesc, &SpotShadowArraySRV);
+    hr = D3DDevice->CreateShaderResourceView(SpotShadowDepthRHI->ShadowTexture, &srvDesc, &SpotShadowDepthRHI->ShadowSRV);
     if (FAILED(hr))
     {
         // UE_LOG(LogTemp, Error, TEXT("CreateShaderResourceView failed for SpotShadowArraySRV (HR=0x%X)"), hr);
@@ -219,19 +222,19 @@ bool FShadowManager::CreateSpotShadowResources()
         return false;
     }
 
-    // 3. 각 슬라이스용 DSV 생성
-    SpotShadowSliceDSVs.SetNum(MaxSpotLightShadows); // 배열 크기 예약
+    
+    SpotShadowDepthRHI->ShadowDSVs.SetNum(MaxSpotLightShadows);
     for (uint32_t i = 0; i < MaxSpotLightShadows; ++i)
     {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-        dsvDesc.Format = texDesc.Format; // 깊이 포맷
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT; // 깊이 포맷
         dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
         dsvDesc.Texture2DArray.MipSlice = 0;
         dsvDesc.Texture2DArray.FirstArraySlice = i;
         dsvDesc.Texture2DArray.ArraySize = 1;
         dsvDesc.Flags = 0;
 
-        hr = D3DDevice->CreateDepthStencilView(SpotShadowArrayTexture, &dsvDesc, &SpotShadowSliceDSVs[i]);
+        hr = D3DDevice->CreateDepthStencilView(SpotShadowDepthRHI->ShadowTexture, &dsvDesc, &SpotShadowDepthRHI->ShadowDSVs[i]);
         if (FAILED(hr))
         {
             // UE_LOG(LogTemp, Error, TEXT("CreateDepthStencilView failed for SpotShadowSliceDSV[%u] (HR=0x%X)"), i, hr);
@@ -240,54 +243,47 @@ bool FShadowManager::CreateSpotShadowResources()
         }
     }
 
+    SpotShadowDepthRHI->ShadowSRVs.SetNum(MaxSpotLightShadows);
+    for (uint32_t i = 0; i < NumCascades; ++i)
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        srvDesc.Texture2DArray.MostDetailedMip = 0;
+        srvDesc.Texture2DArray.MipLevels = 1;
+        srvDesc.Texture2DArray.FirstArraySlice = i;
+        srvDesc.Texture2DArray.ArraySize = 1;
+
+        hr = D3DDevice->CreateShaderResourceView(SpotShadowDepthRHI->ShadowTexture, &srvDesc, & SpotShadowDepthRHI->ShadowSRVs[i]);
+        if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
+    }
+
     return true;
 }
 
 void FShadowManager::ReleaseSpotShadowResources()
 {
-    // 생성된 DSV 해제
-    for (auto& dsv : SpotShadowSliceDSVs)
-    {
-        if (dsv)
-        {
-            dsv->Release();
-            dsv = nullptr; // 포인터 초기화
-        }
-    }
-    SpotShadowSliceDSVs.Empty(); // 배열 비우기
-
-    // SRV 해제
-    if (SpotShadowArraySRV)
-    {
-        SpotShadowArraySRV->Release();
-        SpotShadowArraySRV = nullptr;
-    }
-    // 텍스처 해제
-    if (SpotShadowArrayTexture)
-    {
-        SpotShadowArrayTexture->Release();
-        SpotShadowArrayTexture = nullptr;
-    }
+    if (SpotShadowDepthRHI) { SpotShadowDepthRHI->Release(); SpotShadowDepthRHI = nullptr; }
 }
 
 bool FShadowManager::CreateDirectionalShadowResources()
 {
     // 유효성 검사
-    if (!D3DDevice || NumCascades == 0 || DirectionalShadowMapResolution == 0) return false;
+    if (!D3DDevice || NumCascades == 0 || DirectionalShadowCascadeDepthRHI->ShadowMapResolution == 0) return false;
 
     // 1. Texture2DArray 생성 (CSM 용)
     D3D11_TEXTURE2D_DESC texDesc = {};
-    texDesc.Width = DirectionalShadowMapResolution;
-    texDesc.Height = DirectionalShadowMapResolution;
+    texDesc.Width = DirectionalShadowCascadeDepthRHI->ShadowMapResolution;
+    texDesc.Height = DirectionalShadowCascadeDepthRHI->ShadowMapResolution;
     texDesc.MipLevels = 1;
     texDesc.ArraySize = NumCascades; // 캐스케이드 개수만큼
-    texDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    texDesc.Format = DXGI_FORMAT_R32_TYPELESS;
     texDesc.SampleDesc.Count = 1;
     texDesc.SampleDesc.Quality = 0;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
     texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
-    HRESULT hr = D3DDevice->CreateTexture2D(&texDesc, nullptr, &DirectionalShadowTexture);
+    HRESULT hr = D3DDevice->CreateTexture2D(&texDesc, nullptr, &DirectionalShadowCascadeDepthRHI->ShadowTexture);
     if (FAILED(hr)) return false;
 
     // 2. 전체 배열용 SRV 생성
@@ -299,36 +295,46 @@ bool FShadowManager::CreateDirectionalShadowResources()
     srvDesc.Texture2DArray.FirstArraySlice = 0;
     srvDesc.Texture2DArray.ArraySize = NumCascades;
 
-    hr = D3DDevice->CreateShaderResourceView(DirectionalShadowTexture, &srvDesc, &DirectionalShadowSRV);
+    hr = D3DDevice->CreateShaderResourceView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &srvDesc, &DirectionalShadowCascadeDepthRHI->ShadowSRV);
     if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
 
     // 3. 각 캐스케이드용 DSV 생성
-    DirectionalShadowCascadeDSVs.SetNum(NumCascades);
+    DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(NumCascades);
     for (uint32_t i = 0; i < NumCascades; ++i)
     {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-        dsvDesc.Format = texDesc.Format;
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
         dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
         dsvDesc.Texture2DArray.MipSlice = 0;
         dsvDesc.Texture2DArray.FirstArraySlice = i;
         dsvDesc.Texture2DArray.ArraySize = 1;
 
-        hr = D3DDevice->CreateDepthStencilView(DirectionalShadowTexture, &dsvDesc, &DirectionalShadowCascadeDSVs[i]);
+        hr = D3DDevice->CreateDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &dsvDesc, &DirectionalShadowCascadeDepthRHI->ShadowDSVs[i]);
         if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
     }
+
+    DirectionalShadowCascadeDepthRHI->ShadowSRVs.SetNum(NumCascades);
+    for (uint32_t i = 0; i < NumCascades; ++i)
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        srvDesc.Texture2DArray.MostDetailedMip = 0;
+        srvDesc.Texture2DArray.MipLevels = 1;
+        srvDesc.Texture2DArray.FirstArraySlice = i;
+        srvDesc.Texture2DArray.ArraySize = 1;
+
+        hr = D3DDevice->CreateShaderResourceView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &srvDesc, & DirectionalShadowCascadeDepthRHI->ShadowSRVs[i]);
+        if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
+    }
+    
+    
     return true;
 }
 
 void FShadowManager::ReleaseDirectionalShadowResources()
 {
-    for (auto& dsv : DirectionalShadowCascadeDSVs)
-    {
-        if (dsv) { dsv->Release(); dsv = nullptr; }
-    }
-    DirectionalShadowCascadeDSVs.Empty();
-
-    if (DirectionalShadowSRV) { DirectionalShadowSRV->Release(); DirectionalShadowSRV = nullptr; }
-    if (DirectionalShadowTexture) { DirectionalShadowTexture->Release(); DirectionalShadowTexture = nullptr; }
+    DirectionalShadowCascadeDepthRHI->Release();
 }
 
 bool FShadowManager::CreateSamplers()

@@ -18,6 +18,11 @@ struct FDirectionalLightInfo
 
     FVector Direction;   // 정규화된 광선 방향 (월드 공간 기준)
     float   Intensity;   // 밝기
+
+    uint32 ShadowMapArrayIndex = 0 ;//캐스캐이드전 임시 배열
+    float Padding; // 필요시
+    float Padding2; // 필요시
+    float Padding3; // 필요시
 };
 
 struct FPointLightInfo
@@ -53,7 +58,7 @@ struct FSpotLightInfo
     
     bool CastShadows;
     float ShadowBias;
-    uint32 ShadowMapArrayIndex; // 필요시
+    uint32 ShadowMapArrayIndex;
     float Padding2; // 필요시
 };
 

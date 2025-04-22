@@ -312,16 +312,14 @@ struct FMaterialConstants
 
 struct FShadowConstantBuffer
 {
-    FMatrix ViewProj; // Light 광원 입장에서의 ViewProj
-    FMatrix InvProj;  // Light 광원 입장에서의 InvProj
+    FMatrix ShadowViewProj; // Light 광원 입장에서의 ViewProj
+    FMatrix ShadowInvProj;  // Light 광원 입장에서의 InvProj
 
     float ShadowMapWidth;
     float ShadowMapHeight;
     float pad0;
     float pad1;
 
-    FVector DirectionalLightDirection;
-    float pad2;
 };
 
 struct FObjectConstantBuffer

@@ -1,15 +1,57 @@
 #pragma once
 
+#define _TCHAR_DEFINED
 #include <d3d11.h>
 
 #include "RendererHelpers.h"
 #include "Container/Array.h"
 #include "Math/Matrix.h"     // FMatrix (UE 스타일)
 
+struct FShadowDepthRHI
+{
+    // --- 방향성 광원 섀도우 리소스 (CSM 기반) ---
+    ID3D11Texture2D* ShadowTexture = nullptr; //텍스쳐 맵
+    ID3D11ShaderResourceView* ShadowSRV = nullptr; //텍스쳐맵 srv
+    TArray<ID3D11DepthStencilView*> ShadowDSVs; // 디렉셔널인경우  cascade
+    TArray<ID3D11ShaderResourceView*> ShadowSRVs; // imgui용 각 텍스쳐의 srv
+    
+    uint32 ShadowMapResolution = 1024;
+
+    void Release()
+    {
+        if (ShadowTexture)
+        {
+            ShadowTexture->Release();
+            ShadowTexture = nullptr;
+        }
+        if (ShadowSRV)
+        {
+            ShadowSRV->Release();
+            ShadowSRV = nullptr;
+        }
+        for (auto& DSV : ShadowDSVs)
+        {
+            if (DSV)
+            {
+                DSV->Release();
+                DSV = nullptr;
+            }
+        }
+        for (auto& SRV : ShadowSRVs)
+        {
+            if (SRV)
+            {
+                SRV->Release();
+                SRV = nullptr;
+            }
+        }
+    }
+};
+
 class FShadowManager
 {
 public:
-
+    friend class FShadowRenderPass;
 
     // --- 생성자 및 소멸자 ---
     FShadowManager();
@@ -27,7 +69,7 @@ public:
      * @param InDirResolution 방향성 광원 섀도우 맵 해상도
      * @return 초기화 성공 여부
      */
-    bool Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* InContext,
+    bool Initialize(FGraphicsDevice* InGraphics,
                     uint32_t InMaxSpotShadows = 16, uint32_t InSpotResolution = 1024,
                     uint32_t InNumCascades = 1, uint32_t InDirResolution = 2048);
 
@@ -55,32 +97,23 @@ public:
     void BindResourcesForSampling(uint32_t spotShadowSlot = static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight),
         uint32_t directionalShadowSlot = static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight), uint32_t samplerCmpSlot = 10);
 
+    
+    FShadowDepthRHI* GetSpotShadowDepthRHI() const { return SpotShadowDepthRHI; }
+    FShadowDepthRHI* GetDirectionalShadowCascadeDepthRHI() const { return DirectionalShadowCascadeDepthRHI; }
 
+    
 private:
     
     // D3D 디바이스 및 컨텍스트 (외부에서 설정)
     ID3D11Device* D3DDevice = nullptr;
     ID3D11DeviceContext* D3DContext = nullptr;
 
-    // --- 스포트라이트 섀도우 리소스 ---
-    ID3D11Texture2D* SpotShadowArrayTexture = nullptr;
-    ID3D11ShaderResourceView* SpotShadowArraySRV = nullptr;
-    TArray<ID3D11DepthStencilView*> SpotShadowSliceDSVs;
-
+    FShadowDepthRHI* SpotShadowDepthRHI = nullptr; // 스포트라이트 섀도우 맵을 위한 Depth RHI
     uint32 MaxSpotLightShadows = 16;
-    uint32 SpotShadowMapResolution = 1024;
 
-    // --- 방향성 광원 섀도우 리소스 (CSM 기반) ---
-    ID3D11Texture2D* DirectionalShadowTexture = nullptr;
-    ID3D11ShaderResourceView* DirectionalShadowSRV = nullptr;
-    
-    
-    TArray<ID3D11DepthStencilView*> DirectionalShadowCascadeDSVs;
-
-    uint32 MaxDirectionalLightShadows = 1; 
+    FShadowDepthRHI* DirectionalShadowCascadeDepthRHI = nullptr; // 방향성 광원 섀도우 맵을 위한 Depth RHI
+    //uint32 MaxDirectionalLightShadows = 1; 
     uint32 NumCascades = 1;
-    uint32 DirectionalShadowMapResolution = 2048;
-    
     TArray<FMatrix> DirectionalLightViewProjMatrices; // 계산된 캐스케이드 ViewProj 행렬
 
     // --- 공통 샘플러 ---
