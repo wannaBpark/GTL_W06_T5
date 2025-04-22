@@ -79,6 +79,9 @@ public:
     ID3D11ShaderResourceView* GetPerTilePointLightIndexMaskBufferSRV() const { return PerTilePointLightIndexMaskBufferSRV; }
     ID3D11ShaderResourceView* GetPerTileSpotLightIndexMaskBufferSRV()  const { return PerTileSpotLightIndexMaskBufferSRV; }
 
+    TArray<uint32> GetCulledPointLightMaskData() const { return CulledPointLightMaskData; }
+    TArray<uint32> GetCulledSpotLightMaskData()  const { return CulledSpotLightMaskData; }
+
     ID3D11ShaderResourceView*& GetDebugHeatmapSRV() { return DebugHeatmapSRV; }
 
     ID3D11Buffer* GetTileConstantBuffer() const { return TileLightConstantBuffer; }
