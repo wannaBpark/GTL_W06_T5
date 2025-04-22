@@ -198,7 +198,7 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
 {
     float ShadowFactor = 1.0;
     float NdotL = dot(normalize(WorldNormal), LightInfo.Direction);
-    float bias = 0.001f * (1 - NdotL) + 0.0001f;
+    float bias = 0.001f /** (1 - NdotL) + 0.0001f*/;
 
     // 1. Project World Position to Light Screen Space
     float4 LightScreen = mul(float4(WorldPosition, 1.0f), ShadowViewProj);

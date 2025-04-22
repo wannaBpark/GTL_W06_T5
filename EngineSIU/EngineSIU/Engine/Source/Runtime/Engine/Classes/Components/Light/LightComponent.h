@@ -48,7 +48,7 @@ public:
     uint32 GetShadowMapHeight() const { return ShadowMapHeight; }
 
 protected:
-    uint32 ShadowMapWidth = 2048;
-    uint32 ShadowMapHeight = 2048;
+    uint32 ShadowMapWidth = 4096;
+    uint32 ShadowMapHeight = 4096;
     bool bDirtyFlag = false;
 };
