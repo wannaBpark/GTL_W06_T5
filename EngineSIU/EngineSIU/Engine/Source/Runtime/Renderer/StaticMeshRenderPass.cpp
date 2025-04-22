@@ -26,6 +26,13 @@
 
 #include "UnrealEd/EditorViewportClient.h"
 
+#include "Components/Light/LightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+#include "ShadowRenderPass.h"
+
+
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
     : VertexShader(nullptr)
@@ -150,6 +157,9 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
+
+    ShadowRenderPass = new FShadowRenderPass();
+    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
 
     CreateShader();
 }

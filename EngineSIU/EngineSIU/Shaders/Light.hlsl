@@ -54,6 +54,14 @@ struct FSpotLightInfo
     float InnerRad;
     float OuterRad;
     float Attenuation;
+    
+    // --- Shadow Info ---
+    row_major matrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
+    
+    bool CastShadows;
+    float ShadowBias;
+    uint ShadowMapArrayIndex; // 필요시
+    float Padding2; // 필요시
 };
 
 cbuffer Lighting : register(b0)
@@ -96,6 +104,48 @@ StructuredBuffer<LightPerTiles> gPointLightPerTiles : register(t20);
 
 StructuredBuffer<FSpotLightInfo> gSpotLights : register(t11);
 StructuredBuffer<LightPerTiles> gSpotLightPerTiles : register(t21);
+
+
+
+SamplerComparisonState ShadowSamplerCmp : register(s10);
+Texture2DArray SpotShadowMapArray : register(t50); 
+
+// 기본적인 그림자 계산 함수 (Directional/Spot 용)
+// 하드웨어 PCF (SamplerComparisonState 사용) 예시
+float CalculateSpotShadowFactor(float3 WorldPosition, FSpotLightInfo LightInfo, // 라이트 정보 전체 전달
+                                Texture2DArray ShadowMapArray,
+                                SamplerComparisonState ShadowSampler)
+{
+    if (!LightInfo.CastShadows)
+    {
+        return 1.0f; // 그림자 안 드리움
+    }
+
+    // 1 & 2. 라이트 클립 공간 좌표 계산
+    float4 PixelPosLightClip = mul(float4(WorldPosition, 1.0f), LightInfo.LightViewProj);
+
+    // 3. 섀도우 맵 UV 계산 [0, 1]
+    float2 ShadowMapUV = PixelPosLightClip.xy / PixelPosLightClip.w;
+    ShadowMapUV = ShadowMapUV * float2(0.5, -0.5) + 0.5; // Y 반전 필요시
+
+    // 4. 현재 깊이 계산
+    float CurrentDepth = PixelPosLightClip.z / PixelPosLightClip.w;
+
+    // UV 범위 체크 (라이트 범위 밖)
+    if (any(ShadowMapUV < 0.0f) || any(ShadowMapUV > 1.0f))
+    {
+        return 1.0f;
+    }
+
+    // 5 & 6. 배열의 특정 슬라이스 샘플링 및 비교
+    float ShadowFactor = ShadowMapArray.SampleCmpLevelZero(
+        ShadowSampler,
+        float3(ShadowMapUV, (float)LightInfo.ShadowMapArrayIndex), // UV와 배열 인덱스 사용
+        CurrentDepth - LightInfo.ShadowBias // 바이어스 적용
+    );
+
+    return ShadowFactor;
+}
 
 float CalculateAttenuation(float Distance, float AttenuationFactor, float Radius)
 {
@@ -180,6 +230,15 @@ float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
     float3 LightDir = normalize(ToLight);
     float SpotlightFactor = CalculateSpotEffect(LightDir, normalize(LightInfo.Direction), LightInfo.InnerRad, LightInfo.OuterRad, LightInfo.Attenuation);
     if (SpotlightFactor <= 0.0)
+    {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }
+
+    // --- 그림자 계산 
+    float Shadow = CalculateSpotShadowFactor(WorldPosition, LightInfo, SpotShadowMapArray, ShadowSamplerCmp);
+
+    // 그림자 계수가 0 이하면 더 이상 계산 불필요
+    if (Shadow <= 0.0)
     {
         return float4(0.0, 0.0, 0.0, 0.0);
     }

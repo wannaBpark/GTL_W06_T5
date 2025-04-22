@@ -47,6 +47,14 @@ struct FSpotLightInfo
     float   InnerRad; // cos(inner angle)
     float   OuterRad; // cos(outer angle)
     float   Attenuation;
+
+    // --- Shadow Info ---
+    FMatrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
+    
+    bool CastShadows;
+    float ShadowBias;
+    uint32 ShadowMapArrayIndex; // 필요시
+    float Padding2; // 필요시
 };
 
 struct FLightInfoBuffer
