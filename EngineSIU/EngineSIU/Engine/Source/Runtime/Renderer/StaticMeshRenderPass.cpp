@@ -6,6 +6,8 @@
 #include "World/World.h"
 
 #include "RendererHelpers.h"
+#include "ShadowManager.h"
+#include "ShadowRenderPass.h"
 #include "UnrealClient.h"
 #include "Math/JungleMath.h"
 
@@ -25,6 +27,10 @@
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
+#include "Components/Light/LightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -151,7 +157,17 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
 
+    // ShadowRenderPass = new FShadowRenderPass();
+    // ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    // ShadowRenderPass->InitializeShadowManager();
+    
     CreateShader();
+}
+
+void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
+{
+    
+    ShadowManager = InShadowManager;
 }
 
 void FStaticMeshRenderPass::PrepareRenderArr()
@@ -188,6 +204,16 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
+
+    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
+
+    const EResourceType ResourceType = EResourceType::ERT_Scene;
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
 
     // Rasterizer
@@ -325,19 +351,17 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
 void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    const EResourceType ResourceType = EResourceType::ERT_Scene;
-    FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
     
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
-    
+    ShadowManager->BindResourcesForSampling();
+
     PrepareRenderState(Viewport);
 
     RenderAllStaticMeshes(Viewport);
-    
+
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    Graphics->DeviceContext->PSSetShaderResources(51, 1, &nullSRV); // t51 슬롯을 NULL로 설정
 }
 
 void FStaticMeshRenderPass::ClearRenderArr()

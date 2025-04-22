@@ -89,6 +89,9 @@ public:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager = nullptr;
+    class FShadowManager* ShadowManager = nullptr;
+    
+    class FShadowRenderPass* ShadowRenderPass;
 
     FStaticMeshRenderPass* StaticMeshRenderPass = nullptr;
     FWorldBillboardRenderPass* WorldBillboardRenderPass = nullptr;

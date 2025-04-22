@@ -3,9 +3,11 @@
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState NormalSampler : register(s1);
+SamplerComparisonState ShadowSampler : register(s2);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
+Texture2D ShadowMap : register(t2);
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -31,6 +33,8 @@ cbuffer TextureConstants : register(b4)
 }
 
 #include "Light.hlsl"
+
+
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {
@@ -81,5 +85,9 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
+
+    // Shadow
+    //FinalColor *= GetLightFromShadowMap(Input);
+
     return FinalColor;
 }

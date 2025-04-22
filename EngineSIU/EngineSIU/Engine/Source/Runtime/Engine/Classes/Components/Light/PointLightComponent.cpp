@@ -17,8 +17,7 @@ UPointLightComponent::UPointLightComponent()
     // CubeMap이므로 6개의 ShadowMap을 생성합니다.
     constexpr int32 ShadowMapCreationCount = 6;  
     for (int32 i = 0; i < ShadowMapCreationCount; ++i)  
-    {  
-       CreateShadowMap();  
+    {
     }
 }
 
@@ -199,25 +198,3 @@ void UPointLightComponent::UpdateProjectionMatrix()
     );
 }
 
-
-TArray<FDepthStencilRHI> UPointLightComponent::GetShadowMap()
-{
-    // ShadowMap의 크기가 바뀐 경우 새로 생성합니다.
-    if (bDirtyFlag)
-    {
-        if (HasShadowMap())
-        {
-            ReleaseShadowMap();
-        }
-
-        // CubeMap이므로 6개의 ShadowMap을 생성합니다.
-        constexpr int32 ShadowMapCreationCount = 6;
-        for (int32 i = 0; i < ShadowMapCreationCount; ++i)
-        {
-            CreateShadowMap();
-        }
-
-        bDirtyFlag = false;
-    }
-    return ShadowMaps;
-}

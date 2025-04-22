@@ -18,10 +18,10 @@ class StatOverlay
 {
 public:
     // @todo Stat-FPS Default 설정 복구 (showFPS = false, showRender = false)
-    bool ShowFPS = true;
+    bool ShowFPS = false;
     bool ShowMemory = false;
     bool ShowLight = false;
-    bool ShowRender = true;
+    bool ShowRender = false;
 
     void ToggleStat(const std::string& Command);
     void Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) const;
