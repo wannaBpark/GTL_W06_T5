@@ -97,16 +97,14 @@ void UDirectionalLightComponent::SetLightColor(const FLinearColor& InColor)
     DirectionalLightInfo.LightColor = InColor;
 }
 
-void UDirectionalLightComponent::UpdateViewMatrix()
+void UDirectionalLightComponent::UpdateViewMatrix(FVector TargetPosition)
 {
     // 1. 라이트의 방향 벡터 가져오기 (월드 공간 기준)
-    const FRotator LightRotation = GetWorldRotation();
-    FVector LightDirection = LightRotation.RotateVector(FVector::ForwardVector);
-    LightDirection.Normalize();
+    FVector LightDirection = GetDirection();
 
     // 2. View Matrix의 'Forward' 방향 설정
     // View 공간의 +Z 축(Forward)이 월드 공간의 LightDirection과 일치하도록 설정
-    const FVector ViewForwardDirection = LightDirection; 
+    const FVector ViewForwardDirection = LightDirection;
 
     // 3. View Matrix의 'Up' 벡터 결정 
     FVector UpVector = FVector::UpVector;
@@ -119,13 +117,16 @@ void UDirectionalLightComponent::UpdateViewMatrix()
     // 4. View Matrix의 'Eye'와 'Target' 결정
     // Target을 원점으로, Eye를 Target에서 ViewForwardDirection의 반대 방향으로 설정
     // 즉, Eye에서 Target을 바라보는 방향이 ViewForwardDirection(LightDirection)이 되도록.
-    const FVector TargetPosition = FVector::ZeroVector;
     // Eye = Target - ViewForwardDirection
-    const FVector EyePosition = TargetPosition - ViewForwardDirection * 1.0f; // Eye는 LightDirection의 반대방향에 위치
+    const FVector EyePosition = TargetPosition - ViewForwardDirection * 500.0f; // Eye는 LightDirection의 반대방향에 위치
 
     // 5. View Matrix 생성
     // 이제 CreateViewMatrix 내부에서 zAxis = normalize(Target - Eye) = normalize(ViewForwardDirection) = LightDirection 이 됨
     ViewMatrices[0] = JungleMath::CreateViewMatrix(EyePosition, TargetPosition, UpVector);
+}
+
+void UDirectionalLightComponent::UpdateViewMatrix()
+{
 }
 
 void UDirectionalLightComponent::UpdateProjectionMatrix()

@@ -43,15 +43,16 @@ bool InRange(float val, float min, float max)
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
 {
-    float NdotL = dot(normalize(input.WorldNormal), DirectionalLightDir);
-    float bias = 0.001f * (1 - NdotL) + 0.0001f;
+    // float NdotL = dot(normalize(input.WorldNormal), DirectionalLightDir);
+    // float bias = 0.001f * (1 - NdotL) + 0.0001f;
 
-    // float bias = 0.001f;
-    
+    float bias = 0.001f;
+
     float4 LightClipSpacePos = mul(float4(input.WorldPosition, 1.0f), ShadowViewProj);
+
     float2 ShadowMapTexCoord = {
         0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
-        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f
+        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f 
     };
     float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
     LightDistance -= bias;
@@ -79,7 +80,7 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
     Light /= 9;
     return Light;
 
-    // return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+    return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
 }
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
@@ -135,5 +136,6 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     // Shadow
     FinalColor *= GetLightFromShadowMap(Input);
 
+    // return FinalColor;
     return FinalColor;
 }

@@ -32,12 +32,13 @@ void FShadowRenderPass::PrepareRenderState(ULightComponentBase* Light)
     // Shader Hot Reload 대응 
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
     DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
+
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
     Graphics->DeviceContext->VSSetShader(DepthOnlyVS, nullptr, 0);
 
     // Note : PS만 언바인드할 뿐, UpdateLightBuffer에서 바인딩된 SRV 슬롯들은 그대로 남아 있음
     Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
-    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
+    Graphics->DeviceContext->RSSetState(Graphics->RasterizerShadow);
 
     ShadowMapWidth = Light->GetShadowMapWidth();
     ShadowMapHeight = Light->GetShadowMapHeight();

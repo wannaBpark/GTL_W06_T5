@@ -349,8 +349,10 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
                 else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
                 {  
                     FShadowConstantBuffer ShadowData;
-                    FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
-                    FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
+                    DirectionalLight->UpdateViewMatrix(Viewport->GetCameraLocation());
+                    DirectionalLight->UpdateProjectionMatrix();
+                    FMatrix ViewMatrix = DirectionalLight->GetViewMatrix();
+                    FMatrix ProjectionMatrix = DirectionalLight->GetProjectionMatrix();
                     ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
                     ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
                     ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
