@@ -34,7 +34,6 @@ void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
 
     // DepthOnly Vertex Shader
     CreateShader();
-    CreateSampler();
 }
 
 void FShadowRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
@@ -232,43 +231,5 @@ void FShadowRenderPass::CreateShader() const
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyVS shader!"));
-    }
-}
-
-void FShadowRenderPass::CreateSampler()
-{
-    D3D11_SAMPLER_DESC SamplerDesc = {};
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    SamplerDesc.BorderColor[0] = 1.f;
-    SamplerDesc.BorderColor[1] = 1.f;
-    SamplerDesc.BorderColor[2] = 1.f;
-    SamplerDesc.BorderColor[3] = 1.f;
-    SamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-    SamplerDesc.MinLOD = 0.f;
-    SamplerDesc.MaxLOD = 0.f;
-    SamplerDesc.MipLODBias = 0.f;
-    HRESULT hr = Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
-    if (FAILED(hr))
-    {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create Sampler!"));
-    }
-
-    D3D11_SAMPLER_DESC PointSamplerDesc = {};
-    PointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    PointSamplerDesc.MinLOD = 0;
-    PointSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    PointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-    PointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-    PointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    PointSamplerDesc.BorderColor[0] = 1.0f;                     // 큰 Z값
-    PointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-
-    hr = Graphics->Device->CreateSamplerState(&SamplerDesc, &ShadowPointSampler);
-    if (FAILED(hr))
-    {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Point Sampler!"));
     }
 }

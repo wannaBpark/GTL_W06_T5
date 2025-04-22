@@ -2,12 +2,7 @@
 #ifndef SHADER_REGISTER_INCLUDE
 #define SHADER_REGISTER_INCLUDE
 
-// NdcDepthToViewDepth
-float N2V(float ndcDepth, matrix invProj)
-{
-    float4 pointView = mul(float4(0, 0, ndcDepth, 1), invProj);
-    return pointView.z / pointView.w;
-}
+
 
 float LinearToSRGB(float val)
 {

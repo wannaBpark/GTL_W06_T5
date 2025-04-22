@@ -118,6 +118,7 @@ private:
 
     // --- 공통 샘플러 ---
     ID3D11SamplerState* ShadowSamplerCmp = nullptr;
+    ID3D11SamplerState* ShadowPointSampler = nullptr;
     
     // --- Private 멤버 함수 (리소스 생성/해제 헬퍼) ---
 
