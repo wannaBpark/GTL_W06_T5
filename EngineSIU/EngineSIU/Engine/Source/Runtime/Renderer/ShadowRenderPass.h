@@ -31,25 +31,40 @@ public:
                                    UPointLightComponent*& PointLight);
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
     void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
-    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
-    void PrepareRenderState(ULightComponentBase* Light);
-    virtual void PrepareRenderArr() override;
-    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
-    virtual void ClearRenderArr() override;
 
     ID3D11SamplerState* GetSampler() const { return Sampler; }
+    ID3D11SamplerState* GetShadowPointSampler() const { return ShadowPointSampler; }
+    void PrepareRenderState(ULightComponentBase* Light);
+    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager);
+    void InitializeShadowManager(class FShadowManager* InShadowManager);
+    void PrepareRenderState();
+    virtual void PrepareRenderArr() override;
+    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
+    virtual void ClearRenderArr() override;
+    
+    void RenderPrimitive(OBJ::FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int getselected_sub_mesh_index);
+    virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void BindResourcesForSampling();
+
+    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
 
 
 private:
+
+    
+    TArray<class UStaticMeshComponent*> StaticMeshComponents;
+    
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
+    FShadowManager* ShadowManager;
 
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
     ID3D11PixelShader* DepthOnlyPS;
     ID3D11SamplerState* Sampler;
+    ID3D11SamplerState* ShadowPointSampler;
 
     ID3D11VertexShader* DepthCubeMapVS;
     ID3D11GeometryShader* DepthCubeMapGS;

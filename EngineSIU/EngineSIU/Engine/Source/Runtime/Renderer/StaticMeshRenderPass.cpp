@@ -6,6 +6,8 @@
 #include "World/World.h"
 
 #include "RendererHelpers.h"
+#include "ShadowManager.h"
+#include "ShadowRenderPass.h"
 #include "UnrealClient.h"
 #include "Math/JungleMath.h"
 
@@ -29,7 +31,6 @@
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
-#include "ShadowRenderPass.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -156,9 +157,17 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
 
+    // ShadowRenderPass = new FShadowRenderPass();
+    // ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    // ShadowRenderPass->InitializeShadowManager();
+    
     CreateShader();
-    ShadowRenderPass = new FShadowRenderPass();
-    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+}
+
+void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
+{
+    
+    ShadowManager = InShadowManager;
 }
 
 void FStaticMeshRenderPass::PrepareRenderArr()
@@ -196,6 +205,15 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
+
+    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
+
+    const EResourceType ResourceType = EResourceType::ERT_Scene;
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
 
     // Rasterizer
@@ -333,70 +351,17 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
 void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
-    {
-        for (const auto iter : TObjectRange<ULightComponentBase>())
-        {
-            if (iter->GetWorld() == GEngine->ActiveWorld)
-            {
-                if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
-                {
-                    ShadowRenderPass->RenderCubeMap(Viewport, PointLight);
-                    RenderAllStaticMeshesForPointLight(Viewport, PointLight);
-                }
-                else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
-                {
-                }
-                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
-                {  
-                    FShadowConstantBuffer ShadowData;
-                    DirectionalLight->UpdateViewMatrix(Viewport->GetCameraLocation());
-                    DirectionalLight->UpdateProjectionMatrix();
-                    FMatrix ViewMatrix = DirectionalLight->GetViewMatrix();
-                    FMatrix ProjectionMatrix = DirectionalLight->GetProjectionMatrix();
-                    ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
-                    ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
-                    ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
-                    ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
-                    ShadowData.DirectionalLightDirection = DirectionalLight->GetDirection();
-                    BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+    
+    ShadowManager->BindResourcesForSampling();
 
-                    ShadowRenderPass->Render(Viewport, DirectionalLight);
-                    RenderAllStaticMeshes(Viewport);
-                }
-            }
-            ShadowRenderPass->ClearRenderArr(); 
-        }
-    }
+    PrepareRenderState(Viewport);
 
-    for (const auto Light : TObjectRange<ULightComponentBase>())
-    {
-        if (Light->GetWorld() == GEngine->ActiveWorld)
-        {
-            if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
-            {
-                TArray<FDepthStencilRHI> ShadowMap = DirectionalLight->GetShadowMap();
-                ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
-                Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
-                Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+    RenderAllStaticMeshes(Viewport);
 
-                Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
-
-                const EResourceType ResourceType = EResourceType::ERT_Scene;
-                FViewportResource* ViewportResource = Viewport->GetViewportResource();
-                FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-                FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
-
-                Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
-
-                PrepareRenderState(Viewport);
-
-                RenderAllStaticMeshes(Viewport);
-            }
-        }
-    }
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    Graphics->DeviceContext->PSSetShaderResources(51, 1, &nullSRV); // t51 슬롯을 NULL로 설정
 }
 
 void FStaticMeshRenderPass::ClearRenderArr()

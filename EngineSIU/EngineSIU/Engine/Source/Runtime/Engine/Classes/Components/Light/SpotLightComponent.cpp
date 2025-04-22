@@ -18,7 +18,6 @@ USpotLightComponent::USpotLightComponent()
     SpotLightInfo.InnerRad = 0.2618;
     SpotLightInfo.OuterRad = 0.5236;
     SpotLightInfo.Attenuation = 20.0f;
-    Super::CreateShadowMap();
 }
 
 USpotLightComponent::~USpotLightComponent()

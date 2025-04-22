@@ -15,6 +15,7 @@ public:
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     FVector GetDirection();
+    float GetShadowNearPlane() const;
 
     const FDirectionalLightInfo& GetDirectionalLightInfo() const;
     void SetDirectionalLightInfo(const FDirectionalLightInfo& InDirectionalLightInfo);
@@ -28,6 +29,7 @@ public:
     void UpdateViewMatrix(FVector TargetPosition);
     void UpdateViewMatrix() override;
     void UpdateProjectionMatrix() override;
+    float GetShadowFrustumWidth() const;
 
 private:
     FDirectionalLightInfo DirectionalLightInfo;
@@ -40,7 +42,7 @@ private:
     float OrthoHeight = 100.0f;
 
     // 섀도우 계산을 위한 라이트 시점의 Near Plane (음수 가능)
-    float ShadowNearPlane = 1.0f;
+    float ShadowNearPlane = 1.0F;
 
     // 섀도우 계산을 위한 라이트 시점의 Far Plane
     float ShadowFarPlane = 1000.0f;
