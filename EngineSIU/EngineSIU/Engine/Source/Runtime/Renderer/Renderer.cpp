@@ -274,12 +274,8 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     {
         TileLightCullingPass->Render(Viewport);
         LightHeatMapRenderPass->SetDebugHeatmapSRV(TileLightCullingPass->GetDebugHeatmapSRV());
-        UpdateLightBufferPass->SetPointLightData(TileLightCullingPass->GetPointLights(),
-                                                TileLightCullingPass->GetPointLightPerTiles()
-        );
-        UpdateLightBufferPass->SetSpotLightData(TileLightCullingPass->GetSpotLights(),
-            TileLightCullingPass->GetSpotLightPerTiles()
-        );
+        UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
+                                TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
         UpdateLightBufferPass->SetTileConstantBuffer(TileLightCullingPass->GetTileConstantBuffer());
     }
 
