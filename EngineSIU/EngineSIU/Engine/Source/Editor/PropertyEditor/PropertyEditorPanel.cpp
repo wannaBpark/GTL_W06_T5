@@ -21,7 +21,6 @@
 #include "Components/ProjectileMovementComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
-#include "Renderer/ShadowManager.h"
 #include "UObject/UObjectIterator.h"
 
 void PropertyEditorPanel::Render()
@@ -185,18 +184,16 @@ void PropertyEditorPanel::Render()
 
                 ImGui::Text("ShadowMap");
                 // CubeMap이므로 6개의 ShadowMap을 그립니다.
-                // X Pos, Neg
-                // ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[0].SRV), ImVec2(100, 100));
-                // ImGui::SameLine();
-                // ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
-                // // Y Pos, Neg
-                // ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
-                // ImGui::SameLine();
-                // ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[3].SRV), ImVec2(100, 100));
-                // // Z Pos, Neg
-                // ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[4].SRV), ImVec2(100, 100));
-                // ImGui::SameLine();
-                // ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[5].SRV), ImVec2(100, 100));
+                for (int i = 0; i < 6; ++i)
+                {
+                    auto s = static_cast<void*>(PointlightComponent->GetSliceSRV(i));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
+
+                    if (i % 2 == 0)
+                    {
+                        ImGui::SameLine();
+                    }
+                }
 
                 ImGui::TreePop();
             }
@@ -251,7 +248,7 @@ void PropertyEditorPanel::Render()
                 }
 
                 ImGui::Text("ShadowMap");
-                //ImGui::Image(reinterpret_cast<ImTextureID>(SpotLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
+                ImGui::Image(reinterpret_cast<ImTextureID>(SpotLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
 
                 ImGui::TreePop();
             }
@@ -282,7 +279,7 @@ void PropertyEditorPanel::Render()
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
 
                 ImGui::Text("ShadowMap");
-                ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager-> GetDirectionalShadowCascadeDepthRHI()->ShadowSRVs[0]), ImVec2(200, 200));
+                ImGui::Image(reinterpret_cast<ImTextureID>(DirectionalLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
 
                 ImGui::TreePop();
             }

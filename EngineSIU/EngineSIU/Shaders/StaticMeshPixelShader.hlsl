@@ -9,6 +9,7 @@ SamplerState ShadowPointSampler : register(s3);
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
 Texture2D ShadowMap : register(t2);
+TextureCube PointShadowMap : register(t3);
 
 #define NEAR_PLANE 1
 #define LIGHT_RADIUS_WORLD 1000
@@ -101,6 +102,18 @@ float PCSS(float2 uv, float zReceiverNDC, Texture2D ShadowMap, matrix ShadowInvP
     }
 }
 
+float GetPointLightShadow(PS_INPUT_StaticMesh input)
+{
+    float3 toLight = input.WorldPosition - LightPos;      // 라이트 방향 & 거리
+    float  dist   = length(toLight);
+    float  bias   = 0.001f;
+    // 비교 샘플: toLight(방향) 과 dist-bias(깊이) 비교
+    float shadow = PointShadowMap.SampleCmpLevelZero(ShadowSampler,
+                     normalize(toLight),
+                     dist - bias);
+    return shadow;
+}
+
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
 {
@@ -133,8 +146,10 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
     float Light = 0.f;
     float OffsetX = 1.f / ShadowMapWidth;
     float OffsetY = 1.f / ShadowMapHeight;
-    for(int i = -1; i <= 1; i++){
-        for(int j = -1; j <= 1; j++){
+    for(int i = -1; i <= 1; i++)
+    {
+        for(int j = -1; j <= 1; j++)
+        {
             float2 SampleCoord =
             {
                 ShadowMapTexCoord.x + OffsetX * i,

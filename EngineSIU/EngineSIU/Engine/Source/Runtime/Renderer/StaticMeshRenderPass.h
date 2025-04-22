@@ -4,6 +4,7 @@
 #include "Container/Set.h"
 
 #include "Define.h"
+#include "Components/Light/PointLightComponent.h"
 
 class FShadowManager;
 class FDXDShaderManager;
@@ -30,6 +31,7 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
+    void RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
 
     virtual void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
