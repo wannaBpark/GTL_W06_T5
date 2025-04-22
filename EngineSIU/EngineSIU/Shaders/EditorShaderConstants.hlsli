@@ -48,10 +48,15 @@ cbuffer ConstantBufferDebugIcon : register(b11)
     float IconScale;
 }
 
+struct ArrowData
+{
+    float3 Position;
+    float  Scale;
+    float3 Direction;
+    float  ScaleZ;
+};
+
 cbuffer ConstantBufferDebugArrow : register(b11)
 {
-    float3 ArrowPosition;
-    float ArrowScaleXYZ;
-    float3 ArrowDirection;
-    float ArrowScaleZ;
+    ArrowData DataArrow[100];
 }

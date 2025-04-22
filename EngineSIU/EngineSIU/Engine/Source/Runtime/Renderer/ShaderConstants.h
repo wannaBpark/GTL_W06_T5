@@ -164,7 +164,7 @@ struct alignas(16) FConstantBufferCamera
 /////////////////////////////////////////////////////////////////////////
 
 /// <summary>
-/// Debug용 AABB 상수버퍼 : b13
+/// Debug용 AABB 상수버퍼 : b11
 /// </summary>
 struct FConstantBufferDebugAABB
 {
@@ -176,7 +176,7 @@ struct FConstantBufferDebugAABB
 };
 
 /// <summary>
-/// Debug용 sphere 상수버퍼 : b13
+/// Debug용 Sphere 상수버퍼 : b11
 /// </summary>
 struct FConstantBufferDebugSphere
 {
@@ -185,7 +185,7 @@ struct FConstantBufferDebugSphere
 };
 
 /// <summary>
-/// Debug용 cone 상수버퍼 : b13
+/// Debug용 Cone 상수버퍼 : b11
 /// </summary>
 struct FConstantBufferDebugCone
 {
@@ -197,7 +197,7 @@ struct FConstantBufferDebugCone
 };
 
 /// <summary>
-/// Debug용 grid 상수버퍼 : b13
+/// Debug용 Grid 상수버퍼 : b11
 /// </summary>
 struct FConstantBufferDebugGrid
 {
@@ -205,7 +205,7 @@ struct FConstantBufferDebugGrid
 };
 
 /// <summary>
-/// Debug용 grid 상수버퍼 : b13
+/// Debug용 Icon 상수버퍼 : b11
 /// </summary>
 struct FConstantBufferDebugIcon
 {
@@ -214,14 +214,14 @@ struct FConstantBufferDebugIcon
 };
 
 /// <summary>
-/// Debug용 arrow 상수버퍼 : b13
+/// Debug용 Arrow 상수버퍼 : b11
 /// </summary>
 struct FConstantBufferDebugArrow
 {
     FVector Position;
-    float ArrowScaleXYZ;
+    float   ScaleXYZ;
     
     FVector Direction;
-    float ArrowScaleZ;
+    float   ScaleZ;
 };
 
