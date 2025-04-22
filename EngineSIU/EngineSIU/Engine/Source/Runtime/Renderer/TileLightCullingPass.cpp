@@ -104,9 +104,9 @@ void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient
     }
 
     // 2. UAV 바인딩
-    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &PerTilePointLightIndexMaskBufferUAV, nullptr);         // register(u0)
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &DebugHeatmapUAV, nullptr); // register(u3)
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(6, 1, &PerTileSpotLightIndexMaskBufferUAV, nullptr); // register(u3)
+    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &PerTilePointLightIndexMaskBufferUAV, nullptr);    // register(u0)
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(1, 1, &PerTileSpotLightIndexMaskBufferUAV, nullptr);     // register(u1)
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &DebugHeatmapUAV, nullptr);                        // register(u3)
 
     // 3. 셰이더 바인딩
     Graphics->DeviceContext->CSSetShader(ComputeShader, nullptr, 0);
@@ -115,17 +115,14 @@ void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->Dispatch(GroupSizeX, GroupSizeY, 1);
 
     // 5-1. UAV 바인딩 해제 (다른 렌더패스에서 사용하기 위함)
-    ID3D11UnorderedAccessView* NullUav = nullptr;
-    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &NullUav, nullptr);
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &NullUav, nullptr);
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(6, 1, &NullUav, nullptr);
-
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(1, 1, &NullUav, nullptr);
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(2, 1, &NullUav, nullptr);
+    ID3D11UnorderedAccessView* NullUAV = nullptr;
+    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &NullUAV, nullptr);
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(1, 1, &NullUAV, nullptr);
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &NullUAV, nullptr);
 
     // 5-2. SRV 해제
-    ID3D11ShaderResourceView* NullSrVs[2] = { nullptr, nullptr };
-    Graphics->DeviceContext->CSSetShaderResources(0, 2, NullSrVs);
+    ID3D11ShaderResourceView* NullSRVs[2] = { nullptr, nullptr };
+    Graphics->DeviceContext->CSSetShaderResources(0, 2, NullSRVs);
 
     // 5-3. 상수버퍼 해제
     ID3D11Buffer* NullBuffer[1] = { nullptr };

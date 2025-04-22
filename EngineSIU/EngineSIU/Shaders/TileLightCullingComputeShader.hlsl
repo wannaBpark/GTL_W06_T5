@@ -5,13 +5,14 @@
 
 #include "ComputeDefine.hlsl"
 
-StructuredBuffer<FPointLightGPU> PointLightBuffer : register(t0);
-StructuredBuffer<FSpotLightGPU> SpotLightBuffer : register(t2);
-Texture2D<float> gDepthTexture : register(t1);
+StructuredBuffer<FPointLightGPU>    PointLightBuffer    : register(t0);
+StructuredBuffer<FSpotLightGPU>     SpotLightBuffer     : register(t2);
 
-RWStructuredBuffer<uint> TileLightMask : register(u0);
-RWTexture2D<float4> DebugHeatmap : register(u3);
-RWStructuredBuffer<uint> TileSpotLightMask : register(u6);
+Texture2D<float>                    gDepthTexture       : register(t1);
+
+RWStructuredBuffer<uint>    PerTilePointLightIndexMaskOut   : register(u0);
+RWStructuredBuffer<uint>    PerTileSpotLightIndexMaskOut    : register(u1);
+RWTexture2D<float4>         DebugHeatmap                    : register(u3);
 
 groupshared uint tileDepthMask;
 groupshared uint groupMinZ;
@@ -154,12 +155,12 @@ void mainCS(uint3 groupID : SV_GroupID, uint3 dispatchID : SV_DispatchThreadID, 
     for (uint i = threadFlatIndex; i < NumPointLights; i += totalThreads)
     {
         float3 lightVSPos = mul(float4(PointLightBuffer[i].Position, 1), View).xyz;
-        CullLight(i, lightVSPos, PointLightBuffer[i].Radius, frustum, minZ, maxZ, flatTileIndex, TileLightMask);
+        CullLight(i, lightVSPos, PointLightBuffer[i].Radius, frustum, minZ, maxZ, flatTileIndex, PerTilePointLightIndexMaskOut);
     }
     for (uint j = threadFlatIndex; j < NumSpotLights; j += totalThreads)
     {
         float3 lightVSPos = mul(float4(SpotLightBuffer[j].Position, 1), View).xyz;
-        CullLight(j, lightVSPos, SpotLightBuffer[j].Radius, frustum, minZ, maxZ, flatTileIndex, TileSpotLightMask);
+        CullLight(j, lightVSPos, SpotLightBuffer[j].Radius, frustum, minZ, maxZ, flatTileIndex, PerTileSpotLightIndexMaskOut);
     }
 
     GroupMemoryBarrierWithGroupSync();
