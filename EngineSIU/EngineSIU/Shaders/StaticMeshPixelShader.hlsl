@@ -11,7 +11,7 @@ Texture2D NormalTexture : register(t1);
 Texture2D ShadowMap : register(t2);
 
 #define NEAR_PLANE 1
-#define LIGHT_RADIUS_WORLD 20000
+#define LIGHT_RADIUS_WORLD 1000
 cbuffer MaterialConstants : register(b1)
 {
     FMaterial Material;
@@ -38,10 +38,7 @@ cbuffer TextureConstants : register(b4)
 #include "Light.hlsl"
 
 
-bool InRange(float val, float min, float max)
-{
-    return (min <= val && val <= max);
-}
+
 
 
 float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, Texture2D shadowMap)

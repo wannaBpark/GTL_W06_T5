@@ -72,10 +72,6 @@ void FShadowRenderPass::PrepareRenderArr()
     }
 }
 
-void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-
-}
 
 void FShadowRenderPass::Render(ULightComponentBase* Light)
 {
@@ -87,6 +83,9 @@ void FShadowRenderPass::Render(ULightComponentBase* Light)
         FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
         ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
         ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
+        ShadowData.LightNearZ = DirectionalLight->GetShadowNearPlane();
+        ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
+        /*ShadowData.AreaLightRadius = DirectionalLight->GetRadius();*/
                     
                     
         // FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
