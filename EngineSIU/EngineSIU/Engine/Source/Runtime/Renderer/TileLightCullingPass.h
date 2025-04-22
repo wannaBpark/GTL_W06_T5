@@ -68,7 +68,8 @@ public:
     void ResizeViewBuffers(uint32 InWidth, uint32 InHeight);
 
     // UAV 결과를 파싱하여 타일별 영향을 주는 전역 조명 인덱스로 바꾸는 함수
-    bool CopyPerTileLightIndexMaskBufferToCPU(TArray<uint32>& OutData, ID3D11Buffer*& PerTileLightIndexMaskBuffer) const;
+    bool CopyLightIndexMaskBufferToCPU(TArray<uint32>& OutData, ID3D11Buffer*& LightIndexMaskBuffer) const;
+    void ParseCulledLightMaskData();
 
     TArray<UPointLightComponent*> GetPointLights() { return PointLights; }
     TArray<USpotLightComponent*>  GetSpotLights()  { return SpotLights; }
@@ -107,6 +108,15 @@ private:
     ID3D11Buffer*               PerTileSpotLightIndexMaskBuffer;        // 각 타일별 SpotLight 마스크 ID
     ID3D11UnorderedAccessView*  PerTileSpotLightIndexMaskBufferUAV;     // 각 타일별 SpotLight 마스크 ID UAV
     ID3D11ShaderResourceView*   PerTileSpotLightIndexMaskBufferSRV;     // 각 타일별 SpotLight 마스크 ID SRV
+
+    ID3D11Buffer*               CulledPointLightIndexMaskBuffer;        // Culling 된 PointLight 마스크 ID 버퍼
+    ID3D11UnorderedAccessView*  CulledPointLightIndexMaskBufferUAV;     // Culling 된 PointLight 마스크 ID 버퍼 UAV
+
+    ID3D11Buffer*               CulledSpotLightIndexMaskBuffer;         // Culling 된 SpotLight 마스크 ID 버퍼
+    ID3D11UnorderedAccessView*  CulledSpotLightIndexMaskBufferUAV;      // Culling 된 SpotLight 마스크 ID 버퍼 UAV
+
+    TArray<uint32> CulledPointLightMaskData;
+    TArray<uint32> CulledSpotLightMaskData;
 
     ID3D11Texture2D*            DebugHeatmapTexture;    // 디버그용 히트맵 텍스처
     ID3D11UnorderedAccessView*  DebugHeatmapUAV;        // 디버그용 히트맵 UAV
