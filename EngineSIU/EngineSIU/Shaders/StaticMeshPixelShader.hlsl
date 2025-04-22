@@ -48,13 +48,16 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
 
     float bias = 0.001f;
 
-    float4 LightClipSpacePos = mul(float4(input.WorldPosition, 1.0f), ShadowViewProj);
+    // 1. Project World Position to Light Screen Space
+    float4 LightScreen = mul(float4(input.WorldPosition, 1.0f), ShadowViewProj);
+    LightScreen.xyz /= LightScreen.w; // Perspective Divide -> [-1, 1] 범위로 변환
 
-    float2 ShadowMapTexCoord = {
-        0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
-        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f 
-    };
-    float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+    // 2. 광원 입장의 Texture 좌표계로 변환
+    float2 ShadowMapTexCoord = { LightScreen.x, -LightScreen.y }; // NDC 좌표계와 UV 좌표계는 Y축 방향이 반대
+    ShadowMapTexCoord += 1.0;
+    ShadowMapTexCoord *= 0.5;
+
+    float LightDistance = LightScreen.z;
     LightDistance -= bias;
 
     float Light = 0.f;
@@ -116,11 +119,13 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     // Lighting
     if (IsLit)
     {
+        // Shadow
+        float ShadowFactor = GetLightFromShadowMap(Input);
 #ifdef LIGHTING_MODEL_GOURAUD
         FinalColor = float4(Input.Color.rgb * DiffuseColor, 1.0);
 #else
         float3 LitColor = Lighting(Input.WorldPosition, WorldNormal, Input.WorldViewPosition, DiffuseColor, FlatTileIndex).rgb;
-        FinalColor = float4(LitColor, 1);
+        FinalColor = float4(LitColor, 1) * ShadowFactor;
 #endif
     }
     else
@@ -133,9 +138,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
 
-    // Shadow
-    FinalColor *= GetLightFromShadowMap(Input);
-
+    
     // return FinalColor;
     return FinalColor;
 }
