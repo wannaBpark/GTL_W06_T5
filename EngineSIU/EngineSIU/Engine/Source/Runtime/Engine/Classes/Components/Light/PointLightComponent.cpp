@@ -49,7 +49,7 @@ void UPointLightComponent::Initialize()
     for (UINT i = 0; i < NUM_FACES; ++i)
     {
         SliceSRVs[i] = CreateSliceSRV(
-            ShadowMaps[1].Texture2D,
+            ShadowMaps[0].Texture2D, // 1번 DSV 해당 SRV, 0번 RTV 해당 SRV
             DXGI_FORMAT_R32_FLOAT,
             i
         );

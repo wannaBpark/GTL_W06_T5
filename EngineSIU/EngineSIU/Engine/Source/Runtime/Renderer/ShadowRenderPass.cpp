@@ -154,7 +154,7 @@ void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorV
     Graphics->DeviceContext->ClearDepthStencilView(DSV,
         D3D11_CLEAR_DEPTH, 1.0f, 0);
     Graphics->DeviceContext->ClearRenderTargetView(PointLight->DepthRTVArray, ClearColor);
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DSV);
+    Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, DSV);
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
 
     DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");

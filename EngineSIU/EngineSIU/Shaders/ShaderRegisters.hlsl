@@ -88,6 +88,9 @@ cbuffer ShadowMapBuffer : register(b11)
     float3 DirectionalLightDir;
     float ShadowPadding1;
 
+    float3 LightPos;
+    float ShadowPadding2;
+
     float4 gCascadeSplits;
 
 };
