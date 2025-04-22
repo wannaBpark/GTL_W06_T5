@@ -43,18 +43,6 @@ bool InRange(float val, float min, float max)
     return (min <= val && val <= max);
 }
 
-float GetLightFrustumWidth()
-{
-    // Vector4 eye(0.0f, 0.0f, 0.0f, 1.0f);
-    // Vector4 xLeft(-1.0f, -1.0f, 0.0f, 1.0f);
-    // Vector4 xRight(1.0f, 1.0f, 0.0f, 1.0f);
-    // eye = Vector4::Transform(eye, lightProjRow);
-    // xLeft = Vector4::Transform(xLeft, lightProjRow.Invert());
-    // xRight = Vector4::Transform(xRight, lightProjRow.Invert());
-    // xLeft /= xLeft.w;
-    // xRight /= xRight.w;
-    // return xRight.x - xLeft.x;
-}
 
 float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, Texture2D shadowMap)
 {
@@ -204,13 +192,11 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     // Lighting
     if (IsLit)
     {
-        // Shadow
-        float ShadowFactor = GetLightFromShadowMap(Input);
 #ifdef LIGHTING_MODEL_GOURAUD
         FinalColor = float4(Input.Color.rgb * DiffuseColor, 1.0);
 #else
         float3 LitColor = Lighting(Input.WorldPosition, WorldNormal, Input.WorldViewPosition, DiffuseColor, FlatTileIndex).rgb;
-        FinalColor = float4(LitColor, 1) * ShadowFactor; 
+        FinalColor = float4(LitColor, 1);
 #endif
     }
     else
@@ -223,7 +209,8 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
 
-    
-    // return FinalColor;
+    // Shadow
+    //FinalColor *= GetLightFromShadowMap(Input);
+
     return FinalColor;
 }

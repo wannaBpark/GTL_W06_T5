@@ -21,25 +21,36 @@ class FShadowRenderPass : public IRenderPass
 {
 public:
     FShadowRenderPass();
-    virtual ~FShadowRenderPass();
+    virtual ~FShadowRenderPass() override;
     void CreateShader() const;
-    void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
     void CreateSampler();
     ID3D11SamplerState* GetSampler() const { return Sampler; }
     ID3D11SamplerState* GetShadowPointSampler() const { return ShadowPointSampler; }
-    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState(ULightComponentBase* Light);
+    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager);
+    void InitializeShadowManager(class FShadowManager* InShadowManager);
+    void PrepareRenderState();
     virtual void PrepareRenderArr() override;
-    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light);
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    void Render(ULightComponentBase* Light);
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
     virtual void ClearRenderArr() override;
 
+    void RenderPrimitive(OBJ::FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int getselected_sub_mesh_index);
+    virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void BindResourcesForSampling();
+
+    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
 
 
 private:
+
+    
+    TArray<class UStaticMeshComponent*> StaticMeshComponents;
+    
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
+    FShadowManager* ShadowManager;
 
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;

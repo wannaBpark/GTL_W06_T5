@@ -71,11 +71,14 @@ void FUpdateLightBufferPass::PrepareRenderArr()
 void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     UpdateLightBuffer();
-    Graphics->DeviceContext->PSSetShaderResources(10, 1, &PointLightSRV);
-    Graphics->DeviceContext->PSSetShaderResources(20, 1, &PointLightPerTilesSRV);
-    Graphics->DeviceContext->PSSetShaderResources(11, 1, &SpotLightSRV);
-    Graphics->DeviceContext->PSSetShaderResources(21, 1, &SpotLightPerTilesSRV);
     Graphics->DeviceContext->PSSetConstantBuffers(8, 1, &TileConstantBuffer);
+
+    // 전역 조명 리스트
+    Graphics->DeviceContext->PSSetShaderResources(10, 1, &PointLightSRV);
+    Graphics->DeviceContext->PSSetShaderResources(11, 1, &SpotLightSRV);
+    // 타일별 조명 인덱스 리스트
+    Graphics->DeviceContext->PSSetShaderResources(12, 1, &PointLightIndexBufferSRV);
+    Graphics->DeviceContext->PSSetShaderResources(13, 1, &SpotLightIndexBufferSRV);
 }
 
 void FUpdateLightBufferPass::ClearRenderArr()
@@ -201,6 +204,18 @@ void FUpdateLightBufferPass::SetSpotLightData(const TArray<USpotLightComponent*>
 
     UpdateSpotLightBuffer();
     UpdateSpotLightPerTilesBuffer();
+}
+
+void FUpdateLightBufferPass::SetLightData(const TArray<UPointLightComponent*>& InPointLights, const TArray<USpotLightComponent*>& InSpotLights,
+    ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView* InSpotLightIndexBufferSRV)
+{
+    PointLights = InPointLights;
+    SpotLights = InSpotLights;
+    PointLightIndexBufferSRV = InPointLightIndexBufferSRV;
+    SpotLightIndexBufferSRV = InSpotLightIndexBufferSRV;
+
+    UpdatePointLightBuffer();
+    UpdateSpotLightBuffer();
 }
 
 void FUpdateLightBufferPass::SetTileConstantBuffer(ID3D11Buffer* InTileConstantBuffer)
