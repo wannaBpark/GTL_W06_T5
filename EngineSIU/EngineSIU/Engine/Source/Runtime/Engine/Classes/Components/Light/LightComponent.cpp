@@ -7,12 +7,16 @@ ULightComponentBase::ULightComponentBase()
     AABB.min = { -1.f,-1.f,-0.1f };
 
     ViewMatrices.SetNum(1);
-    CreateShadowMap();
+    Initialize();    
 }
 
 ULightComponentBase::~ULightComponentBase()
 {
   
+}
+void ULightComponentBase::Initialize()
+{
+    CreateShadowMap();
 }
 
 UObject* ULightComponentBase::Duplicate(UObject* InOuter)
@@ -135,7 +139,7 @@ void ULightComponentBase::ClearShadowMap(ID3D11DeviceContext* DeviceContext)
     }
 }
 
-TArray<FDepthStencilRHI> ULightComponentBase::GetShadowMap()
+TArray<FDepthStencilRHI>& ULightComponentBase::GetShadowMap()
 {
     // ShadowMap의 크기가 바뀐 경우 새로 생성합니다.
     if (bDirtyFlag)

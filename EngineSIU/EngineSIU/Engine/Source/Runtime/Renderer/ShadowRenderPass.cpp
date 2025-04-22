@@ -7,6 +7,7 @@
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "UObject/Casts.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 FShadowRenderPass::FShadowRenderPass()
 {
@@ -33,7 +34,8 @@ void FShadowRenderPass::PrepareRenderState(ULightComponentBase* Light)
     // Shader Hot Reload 대응 
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
     DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
-
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+    
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
     Graphics->DeviceContext->VSSetShader(DepthOnlyVS, nullptr, 0);
 
@@ -75,9 +77,12 @@ void FShadowRenderPass::ClearRenderArr()
     Graphics->DeviceContext->RSSetViewports(0, nullptr);
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
+
 }
 
-void FShadowRenderPass::CreateShader() const
+void FShadowRenderPass::CreateShader()
 {
     HRESULT hr = ShaderManager->AddVertexShader(L"DepthOnlyVS", L"Shaders/DepthOnlyVS.hlsl", "mainVS");
     if (FAILED(hr))
@@ -95,6 +100,16 @@ void FShadowRenderPass::CreateShader() const
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapGS shader!"));
     }
+
+    hr = ShaderManager->AddPixelShader(L"DepthOnlyPS", L"Shaders/PointLightCubemapGS.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
+    }
+
+    StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
 }
 
 void FShadowRenderPass::UpdateViewport(const uint32& InWidth, const uint32& InHeight)
@@ -131,18 +146,24 @@ void FShadowRenderPass::CreateSampler()
     }
 }
 
-void FShadowRenderPass::PrepareCubeMapRenderState(UPointLightComponent*& PointLight)
+void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
-    Graphics->DeviceContext->ClearDepthStencilView(PointLight->GetShadowMap()[0].DSV,
+    /*auto*& DSV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Scene)->DSV;*/
+    auto sm = PointLight->GetShadowMap();
+    auto*& DSV = sm[1].DSV;
+    Graphics->DeviceContext->ClearDepthStencilView(DSV,
         D3D11_CLEAR_DEPTH, 1.0f, 0);
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, PointLight->GetShadowMap()[0].DSV);
+    Graphics->DeviceContext->ClearRenderTargetView(PointLight->DepthRTVArray, ClearColor);
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DSV);
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
 
     DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
     DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+
     Graphics->DeviceContext->VSSetShader(DepthCubeMapVS, nullptr, 0);
     Graphics->DeviceContext->GSSetShader(DepthCubeMapGS, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(DepthOnlyPS, nullptr, 0);
     // VS, GS에 대한 상수버퍼 업데이트
     BufferManager->BindConstantBuffer(TEXT("FPointLightGSBuffer"), 0, EShaderStage::Geometry);
 
@@ -164,9 +185,9 @@ void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& Point
     BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
 }
 
-void FShadowRenderPass::RenderCubeMap(UPointLightComponent*& PointLight)
+void FShadowRenderPass::RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
     //UpdateCubeMapConstantBuffer(PointLight);
-    PrepareCubeMapRenderState(PointLight);
+    PrepareCubeMapRenderState(Viewport, PointLight);
 
 }

@@ -25,6 +25,7 @@ cbuffer DepthCubeMapConstants : register(b0)
 VS_OUTPUT_CubeMap mainVS(VS_INPUT_StaticMesh Input)
 {
     VS_OUTPUT_CubeMap output;
+    //output.position = mul(float4(Input.Position, 1.0f), World);
     output.position = float4(Input.Position, 1.0f);
     return output;
 }

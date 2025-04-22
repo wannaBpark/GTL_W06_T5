@@ -156,9 +156,9 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
 
+    CreateShader();
     ShadowRenderPass = new FShadowRenderPass();
     ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-    CreateShader();
 }
 
 void FStaticMeshRenderPass::PrepareRenderArr()
@@ -341,7 +341,7 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
             {
                 if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
                 {
-                    ShadowRenderPass->RenderCubeMap(PointLight);
+                    ShadowRenderPass->RenderCubeMap(Viewport, PointLight);
                     RenderAllStaticMeshesForPointLight(Viewport, PointLight);
                 }
                 else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
