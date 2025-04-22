@@ -13,6 +13,9 @@
 
 #define MAX_LIGHT_PER_TILE 1024
 
+#define NEAR_PLANE 1
+#define LIGHT_RADIUS_WORLD 15000
+
 struct FAmbientLightInfo
 {
     float4 AmbientColor;
@@ -108,6 +111,8 @@ Buffer<uint>    PerTileSpotLightIndexBuffer     : register(t13);
 
 
 SamplerComparisonState ShadowSamplerCmp : register(s10);
+SamplerState ShadowPointSampler : register(s11);
+
 Texture2DArray SpotShadowMapArray : register(t50);
 Texture2DArray DirectionShadowMapArray : register(t51);
 
@@ -116,86 +121,123 @@ bool InRange(float val, float min, float max)
     return (min <= val && val <= max);
 }
 
-// float GetLightFromShadowMap(PS_INPUT_StaticMesh input)
-// {
-//     float NdotL = dot(normalize(input.WorldNormal), DirectionalLightDirection);
-//     float bias = 0.001f * (1 - NdotL) + 0.0001f;
-//
-//     // float bias = 0.001f;
-//     
-//     float4 LightClipSpacePos = mul(float4(input.WorldPosition, 1.0f), ShadowViewProj);
-//     float2 ShadowMapTexCoord = {
-//         0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
-//         0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f
-//     };
-//     float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-//     LightDistance -= bias;
-//
-//     float Light = 0.f;
-//     float OffsetX = 1.f / ShadowMapWidth;
-//     float OffsetY = 1.f / ShadowMapHeight;
-//     for(int i = -1; i <= 1; i++){
-//         for(int j = -1; j <= 1; j++){
-//             float2 SampleCoord =
-//             {
-//                 ShadowMapTexCoord.x + OffsetX * i,
-//                 ShadowMapTexCoord.y + OffsetY * j
-//             };
-//             if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
-//             {
-//                 Light += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(SampleCoord, 0), LightDistance).r;
-//             }
-//             else
-//             {
-//                 Light += 1.f;
-//             }
-//         }
-//     }
-//     Light /= 9;
-//     return Light;
-//
-//     // return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
-// }
+// NdcDepthToViewDepth
+float N2V(float ndcDepth, matrix invProj)
+{
+    float4 pointView = mul(float4(0, 0, ndcDepth, 1), invProj);
+    return pointView.z / pointView.w;
+}
+
+
+float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV)
+{
+    float sum = 0.0f;
+    [unroll]
+    for (int i = 0; i < 64; ++i)
+    {
+        // TODO (offset, 0)에 배열(slice) 인덱스 넣기
+        float2 offset = diskSamples64[i] * filterRadiusUV;
+        sum += DirectionShadowMapArray.SampleCmpLevelZero(
+            ShadowSamplerCmp, float3(uv + offset, 0), zReceiverNdc);
+    }
+    return sum / 64;
+}
+
+void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv,
+                 float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld)
+{
+    float LightRadiusUV = LightRadiusWorld / LightFrustumWidth; // TO FIX!
+    float searchRadius = LightRadiusUV * (zReceiverView - NEAR_PLANE) / zReceiverView; // TO FIX! NearPlane
+    float blockerSum = 0;
+    numBlockers = 0;
+
+    for (int i = 0; i < 64; ++i)
+    {
+        // TODO : slice index 받아야 함 (searchRadius , 배열 인덱스)
+        float ShadowMapDepth = DirectionShadowMapArray.SampleLevel(ShadowPointSampler, float3(uv + diskSamples64[i] * searchRadius, 0), 0).r;
+        ShadowMapDepth = N2V(ShadowMapDepth, InvProj);
+        if (ShadowMapDepth < zReceiverView)
+        {
+            blockerSum += ShadowMapDepth;
+            numBlockers += 1;
+        }
+    }
+    avgBlockerDepthView = (numBlockers > 0) ? (blockerSum / numBlockers) : 0.0f;
+}
+
+float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld)
+{
+    float lightRadiusUV = LightRadiusWorld / LightFrustumWidth; // TO FIX!
+    float zReceiverView = N2V(zReceiverNDC, ShadowInvProj);
+
+    // 1. Blocker Search
+    float avgBlockerDepthView = 0;
+    float numBlockers = 0;
+    FindBlocker(avgBlockerDepthView, numBlockers, uv, zReceiverView, DirectionShadowMapArray, ShadowInvProj, LightRadiusWorld);
+
+    if (numBlockers < 1)
+    {
+        // There are no Occluders so early out(this saves filtering)
+        return 1.0f;
+    }
+    else
+    {
+        // 2. Penumbra Size
+        float penumbraRatio = (zReceiverView - avgBlockerDepthView) / avgBlockerDepthView;
+        float filterRadiusUV = penumbraRatio * lightRadiusUV * NEAR_PLANE / zReceiverView; // TO FIX!!!!
+
+        // 3. Filtering
+        return PCF_Filter(uv, zReceiverNDC, filterRadiusUV);
+    }
+}
+
+
 float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal, FDirectionalLightInfo LightInfo, // 라이트 정보 전체 전달
-                                Texture2DArray ShadowMapArray,
+                                Texture2DArray DirectionShadowMapArray,
                                 SamplerComparisonState ShadowSampler)
 {
+    float ShadowFactor = 1.0;
     float NdotL = dot(normalize(WorldNormal), LightInfo.Direction);
     float bias = 0.001f * (1 - NdotL) + 0.0001f;
 
-    // float bias = 0.001f;
-    
-    float4 LightClipSpacePos = mul(float4(WorldPosition, 1.0f), ShadowViewProj);
-    float2 ShadowMapTexCoord = {
-        0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
-        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f
-    };
-    float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+    // 1. Project World Position to Light Screen Space
+    float4 LightScreen = mul(float4(WorldPosition, 1.0f), ShadowViewProj);
+    LightScreen.xyz /= LightScreen.w; // Perspective Divide -> [-1, 1] 범위로 변환
+
+    // 2. 광원 입장의 Texture 좌표계로 변환
+    float2 ShadowMapTexCoord = { LightScreen.x, -LightScreen.y }; // NDC 좌표계와 UV 좌표계는 Y축 방향이 반대
+    ShadowMapTexCoord += 1.0;
+    ShadowMapTexCoord *= 0.5;
+
+    float LightDistance = LightScreen.z;
     LightDistance -= bias;
 
-    float Light = 0.f;
-    float OffsetX = 1.f / ShadowMapWidth;
-    float OffsetY = 1.f / ShadowMapHeight;
-    for(int i = -1; i <= 1; i++){
-        for(int j = -1; j <= 1; j++){
-            float2 SampleCoord =
-            {
-                ShadowMapTexCoord.x + OffsetX * i,
-                ShadowMapTexCoord.y + OffsetY * j
-            };
-            if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
-            {
-                // TODO: Cascade용으로 배열 인덱스 넣기
-                Light += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(SampleCoord, 0), LightDistance).r;
-            }
-            else
-            {
-                Light += 1.f;
-            }
-        }
-    }
-    Light /= 9;
-    return Light;
+    ShadowFactor = PCSS(ShadowMapTexCoord, LightDistance, DirectionShadowMapArray, ShadowInvProj, LIGHT_RADIUS_WORLD);
+    return ShadowFactor;
+
+    //float Light = 0.f;
+    //float OffsetX = 1.f / ShadowMapWidth;
+    //float OffsetY = 1.f / ShadowMapHeight;
+    //for(int i = -1; i <= 1; i++){
+    //    for(int j = -1; j <= 1; j++){
+    //        float2 SampleCoord =
+    //        {
+    //            ShadowMapTexCoord.x + OffsetX * i,
+    //            ShadowMapTexCoord.y + OffsetY * j
+    //        };
+    //        if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
+    //        {
+    //            // TODO: Cascade용으로 배열 인덱스 넣기
+    //            Light += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(SampleCoord, 0), LightDistance).r;
+    //        }
+    //        else
+    //        {
+    //            Light += 1.f;
+    //        }
+    //    }
+    //}
+    //Light /= 9;
+    //return Light;
 }
 
 
@@ -355,8 +397,9 @@ float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
 
     
     //FinalColor *= GetLightFromShadowMap(Input);
-    float Shadow =  CalculateDirectionalShadowFactor(WorldPosition, WorldNormal, LightInfo, DirectionShadowMapArray, ShadowSamplerCmp);
-    
+    float Shadow = CalculateDirectionalShadowFactor(WorldPosition, WorldNormal, LightInfo, DirectionShadowMapArray, ShadowSamplerCmp);
+    //float Shadow = GetLightFromShadowMap(WorldPosition);
+
     // 그림자 계수가 0 이하면 더 이상 계산 불필요
     if (Shadow <= 0.0)
     {
@@ -457,53 +500,61 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     return FinalColor;
 }
 
-// 그림자 계산
 
-/* 
-float CalShadowFactor(float3 WorldPos, float ShadowBias)
+
+float GetLightFromShadowMap(float3 WorldPosition)
 {
-    const float nearZ = 0.01; // 카메라 설정과 동일
-    float shadowFactor;
-    // 1. Project posWorld to light screen    
-    float4 LightScreen = mul(float4(WorldPos, 1.0), ShadowViewProj);
-    LightScreen.xyz /= LightScreen.w;
-    
-    // 2. 카메라(광원)에서 볼 때의 Texture 좌표 계산
-    float2 LightTexcoord = float2(LightScreen.x, -LightScreen.y);
-    LightTexcoord += 1.0;
-    LightTexcoord *= 0.5;
-    
-    // 3. 쉐도우맵에서 값 가져오기
-    float mapDepth = shadowMap.Sample(shadowPointSampler, LightTexcoord).r;
-    float actualDepth = LightScreen.z;
-    
-    // 4. ShadowMap의 depth 보다 실제 depth 가 크다면 그림자
-    if (mapDepth + bias < actualDepth)
-        shadowFactor = 0.0;
-    
-    
-    shadowMap.SampleCmpLevelZero(shadowCompareSampler, LightTexcoord.xy, LightScreen.z - 0.001).r;
+    //return 0.0f;
+    // float NdotL = dot(normalize(input.WorldNormal), DirectionalLightDir);
+    // float bias = 0.001f * (1 - NdotL) + 0.0001f;
+    float ShadowFactor = 1.0;
+    float bias = 0.001f;
 
+    // 1. Project World Position to Light Screen Space
+    float4 LightScreen = mul(float4(WorldPosition, 1.0f), ShadowViewProj);
+    LightScreen.xyz /= LightScreen.w; // Perspective Divide -> [-1, 1] 범위로 변환
+
+    // 2. 광원 입장의 Texture 좌표계로 변환
+    float2 ShadowMapTexCoord = { LightScreen.x, -LightScreen.y }; // NDC 좌표계와 UV 좌표계는 Y축 방향이 반대
+    ShadowMapTexCoord += 1.0;
+    ShadowMapTexCoord *= 0.5;
+
+    float LightDistance = LightScreen.z;
+    LightDistance -= bias;
+
+    /*
     uint width, height, numMips;
-    shadowMap.GetDimensions(0, width, height, numMips);
+    ShadowMap.GetDimensions(0, width, height, numMips);
+    // Texel Size 계산
     float dx = 5.0 / (float) width;
-    float percentLit = 0.0;
-    const float2 offsets[9] =
-    {
-        float2(-1, -1), float2(0, -1), float2(1, -1),
-        float2(-1, 0), float2(0, 0), float2(1, 0),
-        float2(-1, +1), float2(0, +1), float2(1, +1)
-    };
+
+    // ShadowFactor = PCSS(ShadowMapTexCoord, LightDistance, ShadowMap, ShadowInvProj, LIGHT_RADIUS_WORLD);
+    return ShadowFactor;
     
-    [unroll]
-    for (int i = 0; i < 9; ++i)
+    float Light = 0.f;
+    float OffsetX = 1.f / ShadowMapWidth;
+    float OffsetY = 1.f / ShadowMapHeight;
+    for (int i = -1; i <= 1; i++)
     {
-        percentLit += shadowMap.SampleCmpLevelZero(shadowCompareSampler,
-            LightTexcoord.xy + offsets[i] * dx, LightScreen.z - 0.001
-        ).r;
-
+        for (int j = -1; j <= 1; j++)
+        {
+            float2 SampleCoord =
+            {
+                ShadowMapTexCoord.x + OffsetX * i,
+                ShadowMapTexCoord.y + OffsetY * j
+            };
+            if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
+            {
+                Light += ShadowMap.SampleCmpLevelZero(ShadowSampler, SampleCoord, LightDistance).r;
+            }
+            else
+            {
+                Light += 1.f;
+            }
+        }
     }
-    shadowFactor = percentLit / 9.0;
+    Light /= 9;
+    return Light;
 
-    return shadowFactor;
-}*/
+    return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;*/
+}

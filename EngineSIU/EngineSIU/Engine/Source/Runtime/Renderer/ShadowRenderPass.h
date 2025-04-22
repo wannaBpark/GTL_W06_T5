@@ -23,8 +23,7 @@ public:
     FShadowRenderPass();
     virtual ~FShadowRenderPass() override;
     void CreateShader() const;
-    void CreateSampler();
-    ID3D11SamplerState* GetSampler() const { return Sampler; }
+    void PrepareRenderState(ULightComponentBase* Light);
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager);
     void InitializeShadowManager(class FShadowManager* InShadowManager);
     void PrepareRenderState();
@@ -52,5 +51,9 @@ private:
 
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
-    ID3D11SamplerState* Sampler;
+
+    D3D11_VIEWPORT ShadowViewport;
+
+    uint32 ShadowMapWidth = 2048;
+    uint32 ShadowMapHeight = 2048;
 };

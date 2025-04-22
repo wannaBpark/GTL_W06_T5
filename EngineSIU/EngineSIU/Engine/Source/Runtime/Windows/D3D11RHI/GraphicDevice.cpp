@@ -129,6 +129,13 @@ void FGraphicsDevice::CreateRasterizerState()
     RasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
     RasterizerDesc.CullMode = D3D11_CULL_BACK;
     Device->CreateRasterizerState(&RasterizerDesc, &RasterizerWireframeBack);
+
+    RasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    RasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    RasterizerDesc.DepthBias = D3D11_DEFAULT_DEPTH_BIAS;
+    RasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
+    RasterizerDesc.SlopeScaledDepthBias = 1.0f;
+    Device->CreateRasterizerState(&RasterizerDesc, &RasterizerShadow);
 }
 
 void FGraphicsDevice::ReleaseDeviceAndSwapChain()

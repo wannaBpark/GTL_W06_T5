@@ -3,11 +3,13 @@
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState NormalSampler : register(s1);
-SamplerComparisonState ShadowSampler : register(s2);
+//SamplerComparisonState ShadowSampler : register(s2);
+//SamplerState ShadowPointSampler : register(s3);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
 Texture2D ShadowMap : register(t2);
+
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -33,6 +35,10 @@ cbuffer TextureConstants : register(b4)
 }
 
 #include "Light.hlsl"
+
+
+
+
 
 
 

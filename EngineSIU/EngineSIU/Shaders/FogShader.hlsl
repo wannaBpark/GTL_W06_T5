@@ -14,7 +14,7 @@ cbuffer FogConstant : register(b0)
     
     float FogDensity;
     float FogDistanceWeight;
-    float2 padding;
+    float2 fogpadding;
 };
 
 struct PS_INPUT

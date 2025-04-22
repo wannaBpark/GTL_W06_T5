@@ -39,7 +39,7 @@
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
                         "RelativeLocation": "X=-3.027 Y=0.000 Z=7.427",
-                        "RelativeRotation": "Pitch=55.722 Yaw=0.235 Roll=10.433",
+                        "RelativeRotation": "Pitch=62.768 Yaw=22.345 Roll=-0.001",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
@@ -64,8 +64,8 @@
                         "ComponentName": "StaticMeshComponent_0",
                         "ComponentOwner": "ACube_158",
                         "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=1.523",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=2.460",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=100.000 Y=100.000 Z=1.000",
                         "StaticMeshPath": "Contents/Cube/cube-tex.obj",
                         "bAutoActive": "true",
@@ -91,10 +91,37 @@
                         "ComponentName": "StaticMeshComponent_0",
                         "ComponentOwner": "ACube_160",
                         "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=1.608 Y=-3.186 Z=3.870",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-13.751",
+                        "RelativeLocation": "X=5.592 Y=-3.186 Z=3.870",
+                        "RelativeRotation": "Pitch=0.000 Yaw=-0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
+                    }
+                }
+            ],
+            "RootComponentID": "StaticMeshComponent_0"
+        },
+        {
+            "ActorClass": "ACube",
+            "ActorID": "ACube_110",
+            "ActorLabel": "OBJ_CUBE_110",
+            "Components": [
+                {
+                    "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "StaticMeshComponent_0",
+                    "Properties": {
+                        "AABB_max": "X=1.000 Y=1.000 Z=1.000",
+                        "AABB_min": "X=-1.000 Y=-1.000 Z=-1.000",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "StaticMeshComponent_0",
+                        "ComponentOwner": "ACube_110",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=5.302",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "StaticMeshPath": "Contents/helloBlender.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""

@@ -173,6 +173,10 @@ void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t 
     {
         D3DContext->PSSetSamplers(samplerCmpSlot, 1, &ShadowSamplerCmp);
     }
+    if (ShadowPointSampler)
+    {
+        D3DContext->PSSetSamplers(samplerCmpSlot + 1, 1, &ShadowPointSampler);
+    }
     // 필요시 다른 샘플러도 바인딩
 }
 
@@ -360,6 +364,23 @@ bool FShadowManager::CreateSamplers()
     HRESULT hr = D3DDevice->CreateSamplerState(&sampDescCmp, &ShadowSamplerCmp);
     if (FAILED(hr)) return false;
 
+    D3D11_SAMPLER_DESC PointSamplerDesc = {};
+    PointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    PointSamplerDesc.MinLOD = 0;
+    PointSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    PointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    PointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    PointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    PointSamplerDesc.BorderColor[0] = 1.0f;                     // 큰 Z값
+    PointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+    hr = D3DDevice->CreateSamplerState(&PointSamplerDesc, &ShadowPointSampler);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Point Sampler!"));
+    }
+
+
     // 필요시 VSM/ESM 등을 위한 일반 샘플러(ShadowSampler) 생성
 
     return true;
@@ -368,5 +389,6 @@ bool FShadowManager::CreateSamplers()
 void FShadowManager::ReleaseSamplers()
 {
     if (ShadowSamplerCmp) { ShadowSamplerCmp->Release(); ShadowSamplerCmp = nullptr; }
+    if (ShadowPointSampler) { ShadowPointSampler->Release(); ShadowPointSampler = nullptr; }
     //if (ShadowSampler) { ShadowSampler->Release(); ShadowSampler = nullptr; }
 }

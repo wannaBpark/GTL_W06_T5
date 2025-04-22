@@ -78,6 +78,11 @@ FVector UDirectionalLightComponent::GetDirection()
     return DirectionToLight;
 }
 
+float UDirectionalLightComponent::GetShadowNearPlane() const
+{
+    return ShadowNearPlane;
+}
+
 const FDirectionalLightInfo& UDirectionalLightComponent::GetDirectionalLightInfo() const
 {
     return DirectionalLightInfo;
@@ -130,12 +135,14 @@ void UDirectionalLightComponent::UpdateViewMatrix()
     // 즉, Eye에서 Target을 바라보는 방향이 ViewForwardDirection(LightDirection)이 되도록.
     const FVector TargetPosition = FVector::ZeroVector;
     // Eye = Target - ViewForwardDirection
-    const FVector EyePosition = TargetPosition - ViewForwardDirection * 40.0f; // Eye는 LightDirection의 반대방향에 위치
+    const FVector EyePosition = TargetPosition - ViewForwardDirection * 500.0f; // Eye는 LightDirection의 반대방향에 위치
 
     // 5. View Matrix 생성
     // 이제 CreateViewMatrix 내부에서 zAxis = normalize(Target - Eye) = normalize(ViewForwardDirection) = LightDirection 이 됨
     ViewMatrices[0] = JungleMath::CreateViewMatrix(EyePosition, TargetPosition, UpVector);
 }
+
+
 
 void UDirectionalLightComponent::UpdateProjectionMatrix()
 {
@@ -145,4 +152,9 @@ void UDirectionalLightComponent::UpdateProjectionMatrix()
         ShadowNearPlane,
         ShadowFarPlane
     );
+}
+
+float UDirectionalLightComponent::GetShadowFrustumWidth() const
+{
+    return OrthoWidth;
 }
