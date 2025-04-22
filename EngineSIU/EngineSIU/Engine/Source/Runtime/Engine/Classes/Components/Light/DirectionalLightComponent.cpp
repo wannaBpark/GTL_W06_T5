@@ -12,7 +12,7 @@ UDirectionalLightComponent::UDirectionalLightComponent()
     DirectionalLightInfo.Intensity = 10.0f;
 
     DirectionalLightInfo.LightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    CreateShadowMap();
+    Super::CreateShadowMap();
 }
 
 UDirectionalLightComponent::~UDirectionalLightComponent()

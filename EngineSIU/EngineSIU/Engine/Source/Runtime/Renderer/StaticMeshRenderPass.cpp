@@ -341,7 +341,8 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
             {
                 if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
                 {
-                    
+                    ShadowRenderPass->RenderCubeMap(PointLight);
+                    RenderAllStaticMeshesForPointLight(Viewport, PointLight);
                 }
                 else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
                 {
@@ -403,3 +404,22 @@ void FStaticMeshRenderPass::ClearRenderArr()
     StaticMeshComponents.Empty();
 }
 
+
+void FStaticMeshRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+{
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh()) { continue; }
+
+        OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr) { continue; }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+
+        ShadowRenderPass->UpdateCubeMapConstantBuffer(PointLight, WorldMatrix);
+
+        RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+    }
+}

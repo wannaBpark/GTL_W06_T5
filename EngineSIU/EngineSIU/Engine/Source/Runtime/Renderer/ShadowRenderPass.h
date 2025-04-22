@@ -6,6 +6,8 @@
 #include "UnrealClient.h" // Depth Stencil View
 #include <d3d11.h>
 
+#include "Components/Light/PointLightComponent.h"
+
 
 // ShadowMap을 생성하기 위한 Render Pass입니다.
 // Depth 값만을 추출하는 Vertex Shader Only 패스
@@ -25,7 +27,9 @@ public:
     void CreateShader() const;
     void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
     void CreateSampler();
-    ID3D11SamplerState* GetSampler() const { return Sampler; }
+    void PrepareCubeMapRenderState(UPointLightComponent*& PointLight);
+    void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
+    void RenderCubeMap(UPointLightComponent*& PointLight);
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState(ULightComponentBase* Light);
     virtual void PrepareRenderArr() override;
@@ -33,6 +37,7 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 
+    ID3D11SamplerState* GetSampler() const { return Sampler; }
 
 
 private:
@@ -43,6 +48,9 @@ private:
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
     ID3D11SamplerState* Sampler;
+
+    ID3D11VertexShader* DepthCubeMapVS;
+    ID3D11GeometryShader* DepthCubeMapGS;
 
     D3D11_VIEWPORT ShadowViewport;
 

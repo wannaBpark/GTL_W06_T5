@@ -2,6 +2,7 @@
 #include "UnrealClient.h"
 #include "Components/SceneComponent.h"
 
+#define NUM_FACES 6
 
 class ULightComponentBase : public USceneComponent
 {
@@ -32,6 +33,7 @@ public:
     
 protected:
 
+    // PointLight: 6개의 ViewMatrix를 가집니다
     TArray<FMatrix>		ViewMatrices;
     FMatrix		ProjectionMatrix;
     
@@ -41,7 +43,7 @@ public:
     FBoundingBox GetBoundingBox() const {return AABB;}
 
 public:
-    HRESULT CreateShadowMap();
+    virtual HRESULT CreateShadowMap();
     void ReleaseShadowMap();
     void ClearShadowMap(ID3D11DeviceContext* DeviceContext);
 

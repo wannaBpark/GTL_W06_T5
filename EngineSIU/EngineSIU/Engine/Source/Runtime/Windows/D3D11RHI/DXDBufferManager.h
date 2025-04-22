@@ -14,7 +14,9 @@
 enum class EShaderStage
 {
     Vertex,
-    Pixel
+    Pixel,
+    Compute,
+    Geometry,
 };
 struct QuadVertex
 {

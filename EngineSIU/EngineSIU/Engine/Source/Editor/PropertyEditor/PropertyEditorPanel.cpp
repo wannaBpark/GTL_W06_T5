@@ -184,18 +184,29 @@ void PropertyEditorPanel::Render()
 
                 ImGui::Text("ShadowMap");
                 // CubeMap이므로 6개의 ShadowMap을 그립니다.
+                for (int i = 0; i < 6; ++i)
+                {
+                    auto s = static_cast<void*>(PointlightComponent->GetSliceSRV(i));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
+
+                    if (i % 2 == 0)
+                    {
+                        ImGui::SameLine();
+                    }
+                }
+                auto s = PointlightComponent->GetSliceSRV(0);
                 // X Pos, Neg
-                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[0].SRV), ImVec2(100, 100));
+                ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
                 ImGui::SameLine();
-                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
-                // Y Pos, Neg
-                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
-                ImGui::SameLine();
-                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[3].SRV), ImVec2(100, 100));
-                // Z Pos, Neg
-                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[4].SRV), ImVec2(100, 100));
-                ImGui::SameLine();
-                ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[5].SRV), ImVec2(100, 100));
+                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
+                //// Y Pos, Neg
+                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
+                //ImGui::SameLine();
+                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[3].SRV), ImVec2(100, 100));
+                //// Z Pos, Neg
+                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[4].SRV), ImVec2(100, 100));
+                //ImGui::SameLine();
+                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[5].SRV), ImVec2(100, 100));
 
                 ImGui::TreePop();
             }
