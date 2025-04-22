@@ -194,15 +194,6 @@ void PropertyEditorPanel::Render()
                         ImGui::SameLine();
                     }
                 }
-                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[1].SRV), ImVec2(100, 100));
-                //// Y Pos, Neg
-                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[2].SRV), ImVec2(100, 100));
-                //ImGui::SameLine();
-                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[3].SRV), ImVec2(100, 100));
-                //// Z Pos, Neg
-                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[4].SRV), ImVec2(100, 100));
-                //ImGui::SameLine();
-                //ImGui::Image(reinterpret_cast<ImTextureID>(PointlightComponent->GetShadowMap()[5].SRV), ImVec2(100, 100));
 
                 ImGui::TreePop();
             }
