@@ -224,7 +224,7 @@ void USpotLightComponent::UpdateProjectionMatrix()
 
     const float OuterCosine = SpotLightInfo.OuterRad;
     // 각도(radian) = acos(cos(angle)) * 2. 스포트라이트 FOV는 전체 원뿔 각도임.
-    const float FieldOfViewRadians = FMath::Acos(OuterCosine) * 2.0f;
+    const float FieldOfViewRadians = OuterCosine;
 
     // Near Clip Plane 값 설정 (매우 작은 값 사용)
     const float NearClipPlane = NEAR_PLANE; // 또는 직접 상수 값 사용 (예: 0.01f)

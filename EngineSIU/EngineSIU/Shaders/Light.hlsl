@@ -105,8 +105,8 @@ struct LightPerTiles
 StructuredBuffer<FPointLightInfo>   gPointLights    : register(t10);
 StructuredBuffer<FSpotLightInfo>    gSpotLights     : register(t11);
 
-Buffer<uint>    PerTilePointLightIndexBuffer    : register(t12);
-Buffer<uint>    PerTileSpotLightIndexBuffer     : register(t13);
+StructuredBuffer<uint>    PerTilePointLightIndexBuffer    : register(t12);
+StructuredBuffer<uint>    PerTileSpotLightIndexBuffer     : register(t13);
 
 
 

@@ -83,6 +83,8 @@ cbuffer FShadowConstantBuffer : register(b11)
     row_major matrix ShadowViewProj;
     row_major matrix ShadowInvProj;
 
+
+    //
     float LightNearZ;
     float LightFrustumWidth;
     float ShadowMapWidth;

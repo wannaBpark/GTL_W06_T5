@@ -74,6 +74,23 @@ void FShadowRenderPass::PrepareRenderArr()
 
 void FShadowRenderPass::Render(ULightComponentBase* Light)
 {
+
+    if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+    {
+        FShadowConstantBuffer ShadowData;
+        FMatrix LightViewMatrix = SpotLight->GetViewMatrix();
+        FMatrix LightProjectionMatrix = SpotLight->GetProjectionMatrix();
+        ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
+        ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
+        //ShadowData.LightNearZ = SpotLight->GetShadowNearPlane();
+        //ShadowData.LightFrustumWidth = SpotLight->GetShadowFrustumWidth();
+                    
+        ShadowData.ShadowMapWidth = SpotLight->GetShadowMapWidth();
+        ShadowData.ShadowMapHeight = SpotLight->GetShadowMapHeight();
+        BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+
+        ShadowManager->BeginSpotShadowPass(0);
+    }
     if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
     {
 
@@ -105,30 +122,31 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 {
 
     PrepareRenderState();
-    for (const auto iter : TObjectRange<ULightComponentBase>())
+    for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
        {
-           if (iter->GetWorld() == GEngine->ActiveWorld)
-           {
-               if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
-               {
-                   
-               }
-               else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
-               {
-               }
-               else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
-               {  
-                   Render(DirectionalLight);
-                   RenderAllStaticMeshes(Viewport);
-               }
-           }
+            Render(DirectionalLight);
+            RenderAllStaticMeshes(Viewport);
+           
+            Graphics->DeviceContext->RSSetViewports(0, nullptr);
+            Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+       }
+
+    for (const auto & PonintLight : PointLights)
+    {
+        Render(PonintLight);
+        RenderAllStaticMeshes(Viewport);
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
         Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-       }
-
-    Graphics->DeviceContext->RSSetViewports(0, nullptr);
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    }
+    for (const auto & SpotLight : SpotLights)
+    {
+        Render(SpotLight);
+        RenderAllStaticMeshes(Viewport);
+           
+        Graphics->DeviceContext->RSSetViewports(0, nullptr);
+        Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    }
 }
 
 
@@ -137,8 +155,14 @@ void FShadowRenderPass::ClearRenderArr()
     StaticMeshComponents.Empty();
 }
 
+void FShadowRenderPass::SetLightData(const TArray<class UPointLightComponent*>& InPointLights, const TArray<class USpotLightComponent*>& InSpotLights)
+{
+    PointLights = InPointLights;
+    SpotLights = InSpotLights;
+}
+
 void FShadowRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData, const TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials,
-    int SelectedSubMeshIndex)
+                                        int SelectedSubMeshIndex)
 {
     UINT Stride = sizeof(FStaticMeshVertex);
     UINT Offset = 0;

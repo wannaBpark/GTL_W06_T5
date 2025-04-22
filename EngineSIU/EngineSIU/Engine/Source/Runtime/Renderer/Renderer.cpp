@@ -297,6 +297,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
     if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
     {
+        ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
         ShadowRenderPass->Render(Viewport);
     }
 
