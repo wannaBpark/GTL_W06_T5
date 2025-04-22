@@ -353,6 +353,9 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
                     FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
                     ShadowData.ViewProj = ViewMatrix * ProjectionMatrix;
                     ShadowData.InvProj = FMatrix::Inverse(ProjectionMatrix);
+                    ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
+                    ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
+                    ShadowData.DirectionalLightDirection = DirectionalLight->GetDirection();
                     BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
                     ShadowRenderPass->Render(Viewport, DirectionalLight);
@@ -373,23 +376,22 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
                 ID3D11SamplerState* Sampler = ShadowRenderPass->GetSampler();
                 Graphics->DeviceContext->PSSetShaderResources(2, 1, &ShadowMap[0].SRV);
                 Graphics->DeviceContext->PSSetSamplers(2, 1, &Sampler);
+
+                Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
+
+                const EResourceType ResourceType = EResourceType::ERT_Scene;
+                FViewportResource* ViewportResource = Viewport->GetViewportResource();
+                FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+                FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+
+                Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+
+                PrepareRenderState(Viewport);
+
+                RenderAllStaticMeshes(Viewport);
             }
         }
     }
-
-    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
-
-    const EResourceType ResourceType = EResourceType::ERT_Scene;
-    FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
-    
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
-    
-    PrepareRenderState(Viewport);
-
-    RenderAllStaticMeshes(Viewport);
-    
 
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
