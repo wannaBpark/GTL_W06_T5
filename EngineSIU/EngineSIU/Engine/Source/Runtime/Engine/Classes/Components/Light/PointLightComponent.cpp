@@ -38,7 +38,7 @@ void UPointLightComponent::Initialize()
         TEXT("CreateSliceSRV 입장1: ArraySize=%u, MipLevels=%u"),
         dbg.ArraySize, dbg.MipLevels
     );
-    //InitShadowDebugView();
+    InitShadowDebugView();
 
     
     UE_LOG(LogLevel::Error,
@@ -49,7 +49,7 @@ void UPointLightComponent::Initialize()
     for (UINT i = 0; i < NUM_FACES; ++i)
     {
         SliceSRVs[i] = CreateSliceSRV(
-            ShadowMaps[0].Texture2D,
+            ShadowMaps[1].Texture2D,
             DXGI_FORMAT_R32_FLOAT,
             i
         );
@@ -424,13 +424,14 @@ ID3D11ShaderResourceView* UPointLightComponent::GetSliceSRV(int SliceIndex) cons
             OutputTextures[SliceIndex],  // dst 텍스처
             /*DstSubresource=*/0,
             /*DstX=*/0, /*DstY=*/0, /*DstZ=*/0,
-            ShadowMaps[0].Texture2D,     // src 텍스처
+            ShadowMaps[1].Texture2D,     // src 텍스처
             subresource,
             /*pSrcBox=*/nullptr
         );
 
-    // 2) 복사된 2D 텍스처에 대한 SRV 반환
+   //  2) 복사된 2D 텍스처에 대한 SRV 반환
     return OutputSRVs[SliceIndex];
+
 }
 
 ID3D11ShaderResourceView* UPointLightComponent::CreateSliceSRV(
@@ -444,7 +445,7 @@ ID3D11ShaderResourceView* UPointLightComponent::CreateSliceSRV(
 
     D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
     desc.Format = format;
-    desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;  // ← 여기!!
+    desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;  // ← 여기!! CUBE면 DSV로생성, 2DArray면 RTV
     desc.Texture2DArray.MostDetailedMip = 0;
     desc.Texture2DArray.MipLevels = 1;
     desc.Texture2DArray.FirstArraySlice = sliceIndex;
