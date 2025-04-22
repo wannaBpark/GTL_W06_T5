@@ -244,7 +244,7 @@ bool FShadowManager::CreateSpotShadowResources()
     }
 
     SpotShadowDepthRHI->ShadowSRVs.SetNum(MaxSpotLightShadows);
-    for (uint32_t i = 0; i < NumCascades; ++i)
+    for (uint32_t i = 0; i < MaxSpotLightShadows; ++i)
     {
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = DXGI_FORMAT_R32_FLOAT;

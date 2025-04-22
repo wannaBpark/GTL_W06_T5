@@ -34,6 +34,8 @@ public:
     void Render(ULightComponentBase* Light);
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
     virtual void ClearRenderArr() override;
+    void SetLightData(const TArray<class UPointLightComponent*>& InPointLights, const TArray<class USpotLightComponent*>& InSpotLights);
+
 
     void RenderPrimitive(OBJ::FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int getselected_sub_mesh_index);
     virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
@@ -46,6 +48,8 @@ private:
 
     
     TArray<class UStaticMeshComponent*> StaticMeshComponents;
+    TArray<UPointLightComponent*> PointLights;
+    TArray<USpotLightComponent*> SpotLights;
     
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;

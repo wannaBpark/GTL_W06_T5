@@ -251,9 +251,8 @@ void PropertyEditorPanel::Render()
                 }
 
                 ImGui::Text("ShadowMap");
-                //ImGui::Image(reinterpret_cast<ImTextureID>(SpotLightComponent->GetShadowMap()[0].SRV), ImVec2(200, 200));
-
-                ImGui::TreePop();
+                ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager->GetSpotShadowDepthRHI()->ShadowSRVs[0]), ImVec2(200, 200));
+                
             }
 
             ImGui::PopStyleColor();
