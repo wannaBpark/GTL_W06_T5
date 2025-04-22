@@ -61,62 +61,70 @@ public:
     void CreateViews();
     void CreateBuffers(uint32 InWidth, uint32 InHeight);
     void Release();
-    void Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void ClearUAVs();
-    void UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void ClearUAVs() const;
+    void UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void ResizeViewBuffers(uint32 InWidth, uint32 InHeight);
 
     // UAV 결과를 파싱하여 타일별 영향을 주는 전역 조명 인덱스로 바꾸는 함수
-    bool CopyTileLightMaskToCPU(TArray<uint32>& OutData, ID3D11Buffer*& TileUAVBuffer);
-    void ParseTileLightMaskData();
-    void PrintLightTilesMapping();
+    bool CopyLightIndexMaskBufferToCPU(TArray<uint32>& OutData, ID3D11Buffer*& LightIndexMaskBuffer) const;
+    void ParseCulledLightMaskData();
+
+    TArray<UPointLightComponent*> GetPointLights() { return PointLights; }
+    TArray<USpotLightComponent*>  GetSpotLights()  { return SpotLights; }
 
     void SetDepthSRV(ID3D11ShaderResourceView* InDepthSRV) { DepthSRV = InDepthSRV; }
-    ID3D11ShaderResourceView*& GetDebugHeatmapSRV() { return DebugHeatmapSRV; }
-    ID3D11ShaderResourceView* GetLightStructuredBufferSRV() { return PointLightSRV; }
-    ID3D11Buffer* GetTileConstantBuffer() { return TileLightConstantBuffer; }
-    TArray<UPointLightComponent*> GetPointLights() { return PointLights; }
-    TArray<TArray<uint32>> GetPointLightPerTiles() { return PointLightPerTiles;  }
-    TArray<USpotLightComponent*> GetSpotLights() { return SpotLights; }
-    TArray<TArray<uint32>> GetSpotLightPerTiles() { return SpotLightPerTiles; }
 
-    uint32 GetTotalTileCount() { return TILE_COUNT; }
+    ID3D11ShaderResourceView* GetPerTilePointLightIndexMaskBufferSRV() const { return PerTilePointLightIndexMaskBufferSRV; }
+    ID3D11ShaderResourceView* GetPerTileSpotLightIndexMaskBufferSRV()  const { return PerTileSpotLightIndexMaskBufferSRV; }
+
+    TArray<uint32> GetCulledPointLightMaskData() const { return CulledPointLightMaskData; }
+    TArray<uint32> GetCulledSpotLightMaskData()  const { return CulledSpotLightMaskData; }
+
+    ID3D11ShaderResourceView*& GetDebugHeatmapSRV() { return DebugHeatmapSRV; }
+
+    ID3D11Buffer* GetTileConstantBuffer() const { return TileLightConstantBuffer; }
 
 private:
-    TArray<UPointLightComponent*> PointLights;
-    TArray<USpotLightComponent*> SpotLights;
-
-    TArray<uint32> PointLightMaskData;          // 타일별 조명 마스크 데이터 (n번째 타일에 대한 전역 조명 인덱스 목록 벡터)
-    TArray<TArray<uint32>> PointLightPerTiles;
-
-    TArray<uint32> SpotLightMaskData;          // 타일별 조명 마스크 데이터 (n번째 타일에 대한 전역 조명 인덱스 목록 벡터)
-    TArray<TArray<uint32>> SpotLightPerTiles;
-
-    FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
+    FDXDBufferManager* BufferManager;
 
-    ID3D11ComputeShader* ComputeShader;         // 컴퓨트 셰이더
+    ID3D11ComputeShader* ComputeShader;
 
-    ID3D11Buffer* TileUAVBuffer;                // PointLight
-    ID3D11UnorderedAccessView* TileUAV;         // 각 타일별 PoinLight 마스크 ID UAV
+    TArray<UPointLightComponent*> PointLights;
+    TArray<USpotLightComponent*>  SpotLights;
 
-    ID3D11Buffer* TileSpotUAVBuffer;            // SpotLight
-    ID3D11UnorderedAccessView* TileSpotUAV;     // 각 타일별 SpotLight 마스크 ID UAV
+    ID3D11Buffer*               PointLightBuffer;       // PointLight GPU 버퍼    
+    ID3D11ShaderResourceView*   PointLightBufferSRV;    // PointLight 버퍼 SRV (StructruredBuffer)
 
-    ID3D11Texture2D* DebugHeatmapTexture;       // 디버그용 히트맵 텍스처
-    ID3D11UnorderedAccessView* DebugHeatmapUAV; // 디버그용 히트맵 UAV
-    ID3D11ShaderResourceView* DebugHeatmapSRV;  // 디버그용 히트맵 SRV
+    ID3D11Buffer*               SpotLightBuffer;        // SpotLight GPU 버퍼    
+    ID3D11ShaderResourceView*   SpotLightBufferSRV;     // SpotLight 버퍼 SRV (StructruredBuffer)
 
-    ID3D11Buffer* PointLightBuffer;             // PointLight GPU 버퍼    
-    ID3D11ShaderResourceView* PointLightSRV;    // PointLight 버퍼 SRV (StructruredBuffer)
+    ID3D11ShaderResourceView*   DepthSRV;               // 깊이 버퍼 SRV
 
-    ID3D11Buffer* SpotLightBuffer;              // SpotLight GPU 버퍼    
-    ID3D11ShaderResourceView* SpotLightSRV;     // SpotLight 버퍼 SRV (StructruredBuffer)
-    
-    ID3D11ShaderResourceView* DepthSRV;         // 깊이 버퍼 SRV
-    
+    ID3D11Buffer*               PerTilePointLightIndexMaskBuffer;       // 각 타일별 PointLight 마스크 ID
+    ID3D11UnorderedAccessView*  PerTilePointLightIndexMaskBufferUAV;    // 각 타일별 PointLight 마스크 ID UAV
+    ID3D11ShaderResourceView*   PerTilePointLightIndexMaskBufferSRV;    // 각 타일별 PointLight 마스크 ID SRV
+
+    ID3D11Buffer*               PerTileSpotLightIndexMaskBuffer;        // 각 타일별 SpotLight 마스크 ID
+    ID3D11UnorderedAccessView*  PerTileSpotLightIndexMaskBufferUAV;     // 각 타일별 SpotLight 마스크 ID UAV
+    ID3D11ShaderResourceView*   PerTileSpotLightIndexMaskBufferSRV;     // 각 타일별 SpotLight 마스크 ID SRV
+
+    ID3D11Buffer*               CulledPointLightIndexMaskBuffer;        // Culling 된 PointLight 마스크 ID 버퍼
+    ID3D11UnorderedAccessView*  CulledPointLightIndexMaskBufferUAV;     // Culling 된 PointLight 마스크 ID 버퍼 UAV
+
+    ID3D11Buffer*               CulledSpotLightIndexMaskBuffer;         // Culling 된 SpotLight 마스크 ID 버퍼
+    ID3D11UnorderedAccessView*  CulledSpotLightIndexMaskBufferUAV;      // Culling 된 SpotLight 마스크 ID 버퍼 UAV
+
+    TArray<uint32> CulledPointLightMaskData;
+    TArray<uint32> CulledSpotLightMaskData;
+
+    ID3D11Texture2D*            DebugHeatmapTexture;    // 디버그용 히트맵 텍스처
+    ID3D11UnorderedAccessView*  DebugHeatmapUAV;        // 디버그용 히트맵 UAV
+    ID3D11ShaderResourceView*   DebugHeatmapSRV;        // 디버그용 히트맵 SRV
+
     ID3D11Buffer* TileLightConstantBuffer;
 
     const uint32 TILE_SIZE = 16;
