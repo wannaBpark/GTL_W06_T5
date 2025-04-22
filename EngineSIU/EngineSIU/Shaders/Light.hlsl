@@ -11,7 +11,7 @@
 #define DIRECTIONAL_LIGHT   3
 #define AMBIENT_LIGHT       4
 
-#define MAX_LIGHT_PER_TILE 256
+#define MAX_LIGHT_PER_TILE 1024
 
 struct FAmbientLightInfo
 {
@@ -38,7 +38,6 @@ struct FPointLightInfo
     float Attenuation;
     float Padding;
 };
-
 
 struct FSpotLightInfo
 {
@@ -99,11 +98,12 @@ struct LightPerTiles
     uint Indices[MAX_LIGHT_PER_TILE];
     uint Padding[3];
 };
-StructuredBuffer<FPointLightInfo> gPointLights : register(t10);
-StructuredBuffer<LightPerTiles> gPointLightPerTiles : register(t20);
 
-StructuredBuffer<FSpotLightInfo> gSpotLights : register(t11);
-StructuredBuffer<LightPerTiles> gSpotLightPerTiles : register(t21);
+StructuredBuffer<FPointLightInfo>   gPointLights    : register(t10);
+StructuredBuffer<FSpotLightInfo>    gSpotLights     : register(t11);
+
+Buffer<uint>    PerTilePointLightIndexBuffer    : register(t12);
+Buffer<uint>    PerTileSpotLightIndexBuffer     : register(t13);
 
 
 
@@ -376,25 +376,33 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 {
     float4 FinalColor = float4(0.0, 0.0, 0.0, 0.0);
 
-    // 현재 타일의 조명 정보 읽기
-    LightPerTiles TileLights = gPointLightPerTiles[TileIndex];
-    // 조명 기여 누적 (예시: 단순히 조명 색상을 더함)
-    for (uint i = 0; i < TileLights.NumLights; ++i)
+    int BucketsPerTile = MAX_LIGHT_PER_TILE / 32;
+    int StartIndex = TileIndex * BucketsPerTile;
+    for (int Bucket = 0; Bucket < BucketsPerTile; ++Bucket)
     {
-        // tileLights.Indices[i] 는 전역 조명 인덱스
-        uint gPointLightIndex = TileLights.Indices[i];
-        //FPointLightInfo light = gPointLights[gPointLightIndex];
-        FinalColor += PointLight(gPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
-    }
-
-    TileLights = gSpotLightPerTiles[TileIndex];
-    // 조명 기여 누적 (예시: 단순히 조명 색상을 더함)
-    for (uint i = 0; i < TileLights.NumLights; ++i)
-    {
-        // tileLights.Indices[i] 는 전역 조명 인덱스
-        uint gSpotLightIndex = TileLights.Indices[i];
-        //FPointLightInfo light = gPointLights[gPointLightIndex];
-        FinalColor += SpotLight(gSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+        int PointMask = PerTilePointLightIndexBuffer[StartIndex + Bucket];
+        int SpotMask = PerTileSpotLightIndexBuffer[StartIndex + Bucket];
+        for (int bit = 0; bit < 32; ++bit)
+        {
+            if (PointMask & (1u << bit))
+            {
+                // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
+                // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
+                int GlobalPointLightIndex = Bucket * 32 + bit;
+                if (GlobalPointLightIndex < MAX_LIGHT_PER_TILE)
+                {
+                    FinalColor += PointLight(GlobalPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+                }
+            }
+            if (SpotMask & (1u << bit))
+            {
+                int GlobalSpotLightIndex = Bucket * 32 + bit;
+                if (GlobalSpotLightIndex < MAX_LIGHT_PER_TILE)
+                {
+                    FinalColor += SpotLight(GlobalSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
+                }
+            }
+        }
     }
     
     // [unroll(MAX_SPOT_LIGHT)]
