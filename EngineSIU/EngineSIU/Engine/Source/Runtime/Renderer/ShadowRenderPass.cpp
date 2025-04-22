@@ -5,6 +5,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 FShadowRenderPass::FShadowRenderPass()
 {
@@ -138,13 +139,15 @@ void FShadowRenderPass::CreateSampler()
     }
 }
 
-void FShadowRenderPass::PrepareCubeMapRenderState(UPointLightComponent*& PointLight)
+void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
-
-    /*Graphics->DeviceContext->ClearDepthStencilView(nullptr,
-        D3D11_CLEAR_DEPTH, 1.0f, 0);*/
+    /*auto*& DSV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Scene)->DSV;*/
+    auto sm = PointLight->GetShadowMap();
+    auto*& DSV = sm[1].DSV;
+    Graphics->DeviceContext->ClearDepthStencilView(DSV,
+        D3D11_CLEAR_DEPTH, 1.0f, 0);
     Graphics->DeviceContext->ClearRenderTargetView(PointLight->DepthRTVArray, ClearColor);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, nullptr);
+    Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, DSV);
     Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
 
     DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
@@ -175,9 +178,9 @@ void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& Point
     BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
 }
 
-void FShadowRenderPass::RenderCubeMap(UPointLightComponent*& PointLight)
+void FShadowRenderPass::RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
     //UpdateCubeMapConstantBuffer(PointLight);
-    PrepareCubeMapRenderState(PointLight);
+    PrepareCubeMapRenderState(Viewport, PointLight);
 
 }

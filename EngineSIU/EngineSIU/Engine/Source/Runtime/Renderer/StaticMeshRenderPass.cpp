@@ -340,7 +340,7 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
             {
                 if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
                 {
-                    ShadowRenderPass->RenderCubeMap(PointLight);
+                    ShadowRenderPass->RenderCubeMap(Viewport, PointLight);
                     RenderAllStaticMeshesForPointLight(Viewport, PointLight);
                 }
                 else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))

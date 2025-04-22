@@ -27,9 +27,10 @@ public:
     void CreateShader();
     void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
     void CreateSampler();
-    void PrepareCubeMapRenderState(UPointLightComponent*& PointLight);
+    void PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport,
+                                   UPointLightComponent*& PointLight);
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
-    void RenderCubeMap(UPointLightComponent*& PointLight);
+    void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     void PrepareRenderState();
     virtual void PrepareRenderArr() override;

@@ -75,7 +75,7 @@ HRESULT UPointLightComponent::CreateShadowMap()
     CubeMapTextureDesc.Height = ShadowMapHeight;
     CubeMapTextureDesc.MipLevels = 1;
     CubeMapTextureDesc.ArraySize = NUM_FACES;
-    //CubeMapTextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    CubeMapTextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
     CubeMapTextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
     CubeMapTextureDesc.SampleDesc.Count = 1;
     CubeMapTextureDesc.SampleDesc.Quality = 0;
@@ -118,6 +118,49 @@ HRESULT UPointLightComponent::CreateShadowMap()
 
     ShadowMaps.Add(NewResource);
 
+    FDepthStencilRHI DSVResource;
+    // 1) 텍스처 생성 (Typeless)
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = ShadowMapWidth;
+    desc.Height = ShadowMapHeight;
+    desc.MipLevels = 1;
+    desc.ArraySize = NUM_FACES;
+    desc.Format = DXGI_FORMAT_R32_TYPELESS;                    // <-- Typeless
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE; // DSV + SRV
+    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&desc, nullptr, &DSVResource.Texture2D);
+    if (FAILED(hr) || !DSVResource.Texture2D) {
+        UE_LOG(LogLevel::Error, TEXT("CreateTexture2D(Depth) failed: 0x%08X"), hr);
+        return hr;
+    }
+
+    // 2) DepthStencilView 생성
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;                    // <-- DSV 에 맞는 포맷
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+    dsvDesc.Texture2DArray.MipSlice = 0;
+    dsvDesc.Texture2DArray.FirstArraySlice = 0;
+    dsvDesc.Texture2DArray.ArraySize = NUM_FACES;
+    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(DSVResource.Texture2D, &dsvDesc, &DSVResource.DSV);
+    if (FAILED(hr) || !DSVResource.DSV) {
+        UE_LOG(LogLevel::Error, TEXT("CreateDepthStencilView failed: 0x%08X"), hr);
+        return hr;
+    }
+
+    // 3) ShaderResourceView 생성 (나중에 샘플링용)
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;                    // <-- SRV 에 맞는 포맷
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip = 0;
+    srvDesc.TextureCube.MipLevels = 1;
+    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(DSVResource.Texture2D, &srvDesc, &DSVResource.SRV);
+    if (FAILED(hr) || !DSVResource.SRV) {
+        UE_LOG(LogLevel::Error, TEXT("CreateShaderResourceView failed: 0x%08X"), hr);
+        return hr;
+    }
+
     D3D11_TEXTURE2D_DESC actual;
     NewResource.Texture2D->GetDesc(&actual);
     UE_LOG(LogLevel::Error,
@@ -126,7 +169,9 @@ HRESULT UPointLightComponent::CreateShadowMap()
         actual.MipLevels,
         actual.Format,
         actual.MiscFlags
+    
     );
+    ShadowMaps.Add(DSVResource);
     return hr;
 }
 
@@ -346,7 +391,7 @@ void UPointLightComponent::UpdateProjectionMatrix()
 }
 
 
-TArray<FDepthStencilRHI> UPointLightComponent::GetShadowMap()
+TArray<FDepthStencilRHI>& UPointLightComponent::GetShadowMap()
 {
     // ShadowMap의 크기가 바뀐 경우 새로 생성합니다.
     if (bDirtyFlag)

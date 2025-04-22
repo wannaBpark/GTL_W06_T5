@@ -49,7 +49,7 @@ public:
     void ClearShadowMap(ID3D11DeviceContext* DeviceContext);
 
     bool HasShadowMap() const { return ShadowMaps.Num() != 0; }
-    virtual TArray<FDepthStencilRHI> GetShadowMap();
+    virtual TArray<FDepthStencilRHI>& GetShadowMap();
     void SetShadowMapSize(const uint32 InWidth, const uint32 InHeight);
     uint32 GetShadowMapWidth() const { return ShadowMapWidth; }
     uint32 GetShadowMapHeight() const { return ShadowMapHeight; }
