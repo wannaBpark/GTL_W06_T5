@@ -73,12 +73,14 @@ void FShadowRenderPass::PrepareRenderArr()
 }
 
 
-void FShadowRenderPass::Render(ULightComponentBase* Light)
+void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport, ULightComponentBase* Light)
 {
     if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
     {
 
         FShadowConstantBuffer ShadowData;
+        DirectionalLight->UpdateViewMatrix(Viewport->GetCameraLocation());
+        DirectionalLight->UpdateProjectionMatrix();
         FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
         FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
         ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
@@ -119,7 +121,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
                }
                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
                {  
-                   Render(DirectionalLight);
+                   Render(Viewport, DirectionalLight);
                    RenderAllStaticMeshes(Viewport);
                }
            }
