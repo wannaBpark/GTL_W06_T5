@@ -339,6 +339,18 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
 
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+/*
+    // @todo 리소스 언바인딩 필요한가?
+    // SRV 해제
+    ID3D11ShaderResourceView* NullSRVs[14] = { nullptr };
+    Graphics->DeviceContext->PSSetShaderResources(0, 14, NullSRVs);
+
+    // 상수버퍼 해제
+    ID3D11Buffer* NullPSBuffer[9] = { nullptr };
+    Graphics->DeviceContext->PSSetConstantBuffers(0, 9, NullPSBuffer);
+    ID3D11Buffer* NullVSBuffer[2] = { nullptr };
+    Graphics->DeviceContext->VSSetConstantBuffers(0, 2, NullVSBuffer);
+*/
 }
 
 void FStaticMeshRenderPass::ClearRenderArr()

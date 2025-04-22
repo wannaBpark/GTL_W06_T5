@@ -3,21 +3,19 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 
-//#include "World/World.h"
 #include "UnrealClient.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "UObject/Casts.h"
 #include "Engine/EditorEngine.h"
 #include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
-#include "LevelEditor/SLevelEditor.h"
 #include "UObject/UObjectIterator.h"
 
-#include "UnrealEd/EditorViewportClient.h"
+#define SAFE_RELEASE(p) if (p) { (p)->Release(); (p) = nullptr; }
 
-#define SAFE_RELEASE(p) if (p) { p->Release(); p = nullptr; }
-
-#define _PRINTDEBUG FALSE
+#define PRINTDEBUG FALSE
 
 FTileLightCullingPass::FTileLightCullingPass()
 {
@@ -27,7 +25,7 @@ FTileLightCullingPass::~FTileLightCullingPass()
 {
 }
 
-void FTileLightCullingPass::ResizeTiles(UINT InWidth, UINT InHeight)
+void FTileLightCullingPass::ResizeTiles(const UINT InWidth, const UINT InHeight)
 {
     TILE_COUNT_X = (InWidth + TILE_SIZE - 1) / TILE_SIZE;
     TILE_COUNT_Y = (InHeight + TILE_SIZE - 1) / TILE_SIZE;
@@ -68,10 +66,9 @@ void FTileLightCullingPass::PrepareRenderArr()
             iter->UpdateProjectionMatrix();
         }
     }
+
     CreatePointLightBufferGPU();
     CreateSpotLightBufferGPU();
-    //ClearUAVs();
-    
 }
 
 void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -82,60 +79,58 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     ComputeShader = ShaderManager->GetComputeShaderByKey(L"TileLightCullingComputeShader");
     UpdateTileLightConstantBuffer(Viewport);
     Dispatch(Viewport);
-
-    ParseTileLightMaskData(); 
 }
 
-void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     // 한 스레드 그룹(groupSizeX, groupSizeY)은 16x16픽셀 영역처리
-    const UINT groupSizeX = (Viewport->GetD3DViewport().Width  + TILE_SIZE - 1)/ TILE_SIZE;
-const UINT groupSizeY = (Viewport->GetD3DViewport().Height + TILE_SIZE - 1) / TILE_SIZE;
+    const UINT GroupSizeX = (Viewport->GetD3DViewport().Width  + TILE_SIZE - 1) / TILE_SIZE;
+    const UINT GroupSizeY = (Viewport->GetD3DViewport().Height + TILE_SIZE - 1) / TILE_SIZE;
 
     Graphics->DeviceContext->CSSetConstantBuffers(0, 1, &TileLightConstantBuffer);
 
     // 1. SRV (전역 Light 정보) 바인딩
-    if (PointLightSRV)
+    if (PointLightBufferSRV)
     {
-        Graphics->DeviceContext->CSSetShaderResources(0, 1, &PointLightSRV);                  // register(t0)
+        Graphics->DeviceContext->CSSetShaderResources(0, 1, &PointLightBufferSRV);                  // register(t0)
     }
-    if (SpotLightSRV)
+    if (SpotLightBufferSRV)
     {
-        Graphics->DeviceContext->CSSetShaderResources(2, 1, &SpotLightSRV);                  // register(t0)
+        Graphics->DeviceContext->CSSetShaderResources(2, 1, &SpotLightBufferSRV);                  // register(t0)
     }
-    
     if (DepthSRV)
     {
         Graphics->DeviceContext->CSSetShaderResources(1, 1, &DepthSRV);                  // register(t1)
     }
 
     // 2. UAV 바인딩
-    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &TileUAV, nullptr);         // register(u0)
+    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &PerTilePointLightIndexMaskBufferUAV, nullptr);         // register(u0)
 	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &DebugHeatmapUAV, nullptr); // register(u3)
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(6, 1, &TileSpotUAV, nullptr); // register(u3)
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(6, 1, &PerTileSpotLightIndexMaskBufferUAV, nullptr); // register(u3)
 
     // 3. 셰이더 바인딩
     Graphics->DeviceContext->CSSetShader(ComputeShader, nullptr, 0);
 
     // 4. 디스패치
-    Graphics->DeviceContext->Dispatch(groupSizeX, groupSizeY, 1);
+    Graphics->DeviceContext->Dispatch(GroupSizeX, GroupSizeY, 1);
 
     // 5-1. UAV 바인딩 해제 (다른 렌더패스에서 사용하기 위함)
-    ID3D11UnorderedAccessView* nullUAV = nullptr;
-    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &nullUAV, nullptr);
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &nullUAV, nullptr);
-	Graphics->DeviceContext->CSSetUnorderedAccessViews(6, 1, &nullUAV, nullptr);
+    ID3D11UnorderedAccessView* NullUav = nullptr;
+    Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &NullUav, nullptr);
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(3, 1, &NullUav, nullptr);
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(6, 1, &NullUav, nullptr);
+
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(1, 1, &NullUav, nullptr);
+	Graphics->DeviceContext->CSSetUnorderedAccessViews(2, 1, &NullUav, nullptr);
 
     // 5-2. SRV 해제
-    ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };
-    Graphics->DeviceContext->CSSetShaderResources(0, 2, nullSRVs);
+    ID3D11ShaderResourceView* NullSrVs[2] = { nullptr, nullptr };
+    Graphics->DeviceContext->CSSetShaderResources(0, 2, NullSrVs);
 
     // 5-3. 상수버퍼 해제
-    ID3D11Buffer* nullBuffer[1] = { nullptr };
-    Graphics->DeviceContext->CSSetConstantBuffers(0, 1, nullBuffer);
+    ID3D11Buffer* NullBuffer[1] = { nullptr };
+    Graphics->DeviceContext->CSSetConstantBuffers(0, 1, NullBuffer);
 }
-
-
 
 void FTileLightCullingPass::ClearRenderArr()
 {
@@ -160,9 +155,11 @@ void FTileLightCullingPass::CreateShader()
 void FTileLightCullingPass::CreatePointLightBufferGPU()
 {
     if (PointLights.Num() == 0)
+    {
         return;
+    }
 
-    TArray<FPointLightGPU> lights;
+    TArray<FPointLightGPU> Lights;
 
     for (UPointLightComponent* LightComp : PointLights)
     {
@@ -174,36 +171,36 @@ void FTileLightCullingPass::CreatePointLightBufferGPU()
             .Direction = LightComp->GetUpVector(),
             .Padding = 0.0f
         };
-        lights.Add(LightData);
+        Lights.Add(LightData);
     }
 
-    D3D11_BUFFER_DESC desc = {};
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.ByteWidth = sizeof(FPointLightGPU) * lights.Num();
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.StructureByteStride = sizeof(FPointLightGPU);
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    Desc.ByteWidth = sizeof(FPointLightGPU) * Lights.Num();
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.StructureByteStride = sizeof(FPointLightGPU);
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = lights.GetData();
+    D3D11_SUBRESOURCE_DATA InitData = {};
+    InitData.pSysMem = Lights.GetData();
 
-    SAFE_RELEASE(PointLightBuffer);
-    SAFE_RELEASE(PointLightSRV);
+    SAFE_RELEASE(PointLightBuffer)
+    SAFE_RELEASE(PointLightBufferSRV)
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&desc, &initData, &PointLightBuffer);
+    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, &InitData, &PointLightBuffer);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Light Structured Buffer!"));
         return;
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = lights.Num();
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = Lights.Num();
 
-    hr = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &srvDesc, &PointLightSRV);
+    hr = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &SrvDesc, &PointLightBufferSRV);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Light Buffer SRV!"));
@@ -215,7 +212,7 @@ void FTileLightCullingPass::CreateSpotLightBufferGPU()
     if (SpotLights.Num() == 0)
         return;
 
-    TArray<FSpotLightGPU> lights;
+    TArray<FSpotLightGPU> Lights;
 
     for (USpotLightComponent* LightComp : SpotLights)
     {
@@ -227,42 +224,41 @@ void FTileLightCullingPass::CreateSpotLightBufferGPU()
             .Direction = LightComp->GetDirection(),
             .Angle = LightComp->GetOuterDegree(),
         };
-        lights.Add(LightData);
+        Lights.Add(LightData);
     }
 
-    D3D11_BUFFER_DESC desc = {};
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.ByteWidth = sizeof(FSpotLightGPU) * lights.Num();
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.StructureByteStride = sizeof(FSpotLightGPU);
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    Desc.ByteWidth = sizeof(FSpotLightGPU) * Lights.Num();
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.StructureByteStride = sizeof(FSpotLightGPU);
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = lights.GetData();
+    D3D11_SUBRESOURCE_DATA InitData = {};
+    InitData.pSysMem = Lights.GetData();
 
-    SAFE_RELEASE(SpotLightBuffer);
-    SAFE_RELEASE(SpotLightSRV);
+    SAFE_RELEASE(SpotLightBuffer)
+    SAFE_RELEASE(SpotLightBufferSRV)
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&desc, &initData, &SpotLightBuffer);
+    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, &InitData, &SpotLightBuffer);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Light Structured Buffer!"));
         return;
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = lights.Num();
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = Lights.Num();
 
-    hr = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &srvDesc, &SpotLightSRV);
+    hr = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &SrvDesc, &SpotLightBufferSRV);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Light Buffer SRV!"));
     }
 }
-
 
 void FTileLightCullingPass::CreateViews()
 {
@@ -274,358 +270,228 @@ void FTileLightCullingPass::CreateViews()
     tileBufferDesc.StructureByteStride = sizeof(uint32);
     tileBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&tileBufferDesc, nullptr, &TileUAVBuffer);
-
-    if (FAILED(hr))
-    {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create Tile UAV Buffer!"));
-    }
-
     D3D11_UNORDERED_ACCESS_VIEW_DESC tileUAVDesc = {};
     tileUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
     tileUAVDesc.Format = DXGI_FORMAT_UNKNOWN;
     tileUAVDesc.Buffer.FirstElement = 0;
     tileUAVDesc.Buffer.NumElements = TILE_COUNT * SHADER_ENTITY_TILE_BUCKET_COUNT;
 
-    hr = Graphics->Device->CreateUnorderedAccessView(TileUAVBuffer, &tileUAVDesc, &TileUAV);
+    D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+    SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SRVDesc.Buffer.FirstElement = 0;
+    SRVDesc.Buffer.NumElements = TILE_COUNT * SHADER_ENTITY_TILE_BUCKET_COUNT;
+
+    // PointLight Buffer
+    HRESULT hr = Graphics->Device->CreateBuffer(&tileBufferDesc, nullptr, &PerTilePointLightIndexMaskBuffer);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Tile UAV Buffer!"));
+    }
+
+    hr = Graphics->Device->CreateUnorderedAccessView(PerTilePointLightIndexMaskBuffer, &tileUAVDesc, &PerTilePointLightIndexMaskBufferUAV);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Tile UAV!"));
     }
 
-	hr = Graphics->Device->CreateBuffer(&tileBufferDesc, nullptr, &TileSpotUAVBuffer);
+    hr = Graphics->Device->CreateShaderResourceView(PerTilePointLightIndexMaskBuffer, &SRVDesc, &PerTilePointLightIndexMaskBufferSRV);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Tile SRV!"));
+    }
 
+    // SpotLight Buffer
+	hr = Graphics->Device->CreateBuffer(&tileBufferDesc, nullptr, &PerTileSpotLightIndexMaskBuffer);
 	if (FAILED(hr))
 	{
 		UE_LOG(LogLevel::Error, TEXT("Failed to create Tile SpotLight UAV Buffer!"));
 	}
 
-	hr = Graphics->Device->CreateUnorderedAccessView(TileSpotUAVBuffer, &tileUAVDesc, &TileSpotUAV);
+	hr = Graphics->Device->CreateUnorderedAccessView(PerTileSpotLightIndexMaskBuffer, &tileUAVDesc, &PerTileSpotLightIndexMaskBufferUAV);
 	if (FAILED(hr))
 	{
 		UE_LOG(LogLevel::Error, TEXT("Failed to create Tile Spot UAV!"));
 	}
+
+    hr = Graphics->Device->CreateShaderResourceView(PerTileSpotLightIndexMaskBuffer, &SRVDesc, &PerTileSpotLightIndexMaskBufferSRV);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Tile Spot SRV!"));
+    }
 }
 
 void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
 {
     // 3. Debug heatmap 텍스처 + UAV (디버깅용)
-    D3D11_TEXTURE2D_DESC heatMapDesc = {};
-    heatMapDesc.Width = InWidth;
-    heatMapDesc.Height = InHeight;
-    heatMapDesc.MipLevels = 1;
-    heatMapDesc.ArraySize = 1;
-    heatMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // R32G32B32A32_FLOAT
-    heatMapDesc.SampleDesc.Count = 1;
-    heatMapDesc.Usage = D3D11_USAGE_DEFAULT;
-    heatMapDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+    D3D11_TEXTURE2D_DESC HeatMapDesc = {};
+    HeatMapDesc.Width = InWidth;
+    HeatMapDesc.Height = InHeight;
+    HeatMapDesc.MipLevels = 1;
+    HeatMapDesc.ArraySize = 1;
+    HeatMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // R32G32B32A32_FLOAT
+    HeatMapDesc.SampleDesc.Count = 1;
+    HeatMapDesc.Usage = D3D11_USAGE_DEFAULT;
+    HeatMapDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 
-    HRESULT hr = Graphics->Device->CreateTexture2D(&heatMapDesc, nullptr, &DebugHeatmapTexture);
-
+    HRESULT hr = Graphics->Device->CreateTexture2D(&HeatMapDesc, nullptr, &DebugHeatmapTexture);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Heatmap Texture!"));
     }
 
-    D3D11_UNORDERED_ACCESS_VIEW_DESC debugUAVDesc = {};
-    debugUAVDesc.Format = heatMapDesc.Format;
-    debugUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-    hr = Graphics->Device->CreateUnorderedAccessView(DebugHeatmapTexture, &debugUAVDesc, &DebugHeatmapUAV);
+    D3D11_UNORDERED_ACCESS_VIEW_DESC DebugUAVDesc = {};
+    DebugUAVDesc.Format = HeatMapDesc.Format;
+    DebugUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 
+    hr = Graphics->Device->CreateUnorderedAccessView(DebugHeatmapTexture, &DebugUAVDesc, &DebugHeatmapUAV);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Heatmap UAV!"));
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = heatMapDesc.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
+    D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+    SRVDesc.Format = HeatMapDesc.Format;
+    SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    SRVDesc.Texture2D.MostDetailedMip = 0;
+    SRVDesc.Texture2D.MipLevels = 1;
 
-    Graphics->Device->CreateShaderResourceView(DebugHeatmapTexture, &srvDesc, &DebugHeatmapSRV);
+    hr = Graphics->Device->CreateShaderResourceView(DebugHeatmapTexture, &SRVDesc, &DebugHeatmapSRV);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Heatmap SRV!"));
+    }
 
     //// 4. TileLight Culling 설정용 ConstantBuffer (2.5D 켜기/끄기 등)
-    D3D11_BUFFER_DESC cbDesc = {};
-    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.ByteWidth = (sizeof(TileLightCullSettings) + 0xf) & 0xfffffff0; // struct 정의 필요
-    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    D3D11_BUFFER_DESC CBDesc = {};
+    CBDesc.Usage = D3D11_USAGE_DYNAMIC;
+    CBDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    CBDesc.ByteWidth = (sizeof(TileLightCullSettings) + 0xf) & 0xfffffff0; // struct 정의 필요
+    CBDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    hr = Graphics->Device->CreateBuffer(&cbDesc, nullptr, &TileLightConstantBuffer);
+    hr = Graphics->Device->CreateBuffer(&CBDesc, nullptr, &TileLightConstantBuffer);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create TileLight Constant Buffer!"));
     }
 }
 
-
-
 void FTileLightCullingPass::Release()
 {
     // Compute Shader Release는 ShaderManager에서 관리
-    SAFE_RELEASE(TileUAVBuffer);			// PointLight UAV Buffer / UAV
-    SAFE_RELEASE(TileUAV);
+    SAFE_RELEASE(PerTilePointLightIndexMaskBuffer)
+    SAFE_RELEASE(PerTilePointLightIndexMaskBufferUAV)
+    SAFE_RELEASE(PerTilePointLightIndexMaskBufferSRV)
 
-	SAFE_RELEASE(TileSpotUAVBuffer);		// SpotLight UAV Buffer / UAV
-	SAFE_RELEASE(TileSpotUAV);
+	SAFE_RELEASE(PerTileSpotLightIndexMaskBuffer)
+	SAFE_RELEASE(PerTileSpotLightIndexMaskBufferUAV)
+    SAFE_RELEASE(PerTileSpotLightIndexMaskBufferSRV)
     
-    SAFE_RELEASE(DebugHeatmapTexture);
-    SAFE_RELEASE(DebugHeatmapUAV);
-    SAFE_RELEASE(DebugHeatmapSRV);
+    SAFE_RELEASE(DebugHeatmapTexture)
+    SAFE_RELEASE(DebugHeatmapUAV)
+    SAFE_RELEASE(DebugHeatmapSRV)
 
-    SAFE_RELEASE(TileLightConstantBuffer);
+    SAFE_RELEASE(TileLightConstantBuffer)
     
-    SAFE_RELEASE(PointLightBuffer);
-    SAFE_RELEASE(PointLightSRV);
+    SAFE_RELEASE(PointLightBuffer)
+    SAFE_RELEASE(PointLightBufferSRV)
 
-    SAFE_RELEASE(SpotLightBuffer);
-    SAFE_RELEASE(SpotLightSRV);
+    SAFE_RELEASE(SpotLightBuffer)
+    SAFE_RELEASE(SpotLightBufferSRV)
 }
 
-void FTileLightCullingPass::ClearUAVs()
+void FTileLightCullingPass::ClearUAVs() const
 {
     // UAV 초기화용 zero값
-    UINT clearColor[4] = { 0, 0, 0, 0 };
+    constexpr UINT ClearColor[4] = { 0, 0, 0, 0 };
 
     // 1. 타일 마스크 초기화
-	Graphics->DeviceContext->ClearUnorderedAccessViewUint(TileUAV, clearColor);
-	Graphics->DeviceContext->ClearUnorderedAccessViewUint(TileSpotUAV, clearColor);
+	Graphics->DeviceContext->ClearUnorderedAccessViewUint(PerTilePointLightIndexMaskBufferUAV, ClearColor);
+	Graphics->DeviceContext->ClearUnorderedAccessViewUint(PerTileSpotLightIndexMaskBufferUAV, ClearColor);
 
     // 2. 히트맵 초기화
-    float clearColorF[4] = { 0, 0, 0, 0 };
-    Graphics->DeviceContext->ClearUnorderedAccessViewFloat(DebugHeatmapUAV, clearColorF);
+    constexpr float ClearColorF[4] = { 0, 0, 0, 0 };
+    Graphics->DeviceContext->ClearUnorderedAccessViewFloat(DebugHeatmapUAV, ClearColorF);
 }
 
-void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     // 1. Constant Buffer 업데이트
-    TileLightCullSettings settings;
-    settings.ScreenSize[0] = static_cast<uint32>(Viewport->GetD3DViewport().Width);
-    settings.ScreenSize[1] = static_cast<uint32>(Viewport->GetD3DViewport().Height);
-    settings.TileSize[0] = TILE_SIZE;
-    settings.TileSize[1] = TILE_SIZE;
-    settings.NearZ = Viewport->NearClip;
-    settings.FarZ = Viewport->FarClip;
-    settings.ViewMatrix = Viewport->GetViewMatrix();
-    settings.ProjectionMatrix = Viewport->GetProjectionMatrix();
-    settings.InvProjectionMatrix = FMatrix::Inverse(Viewport->GetProjectionMatrix());
-    settings.NumPointLights = PointLights.Num();
-    settings.NumSpotLights = SpotLights.Num();
-    settings.Enable25DCulling = 1;                      // TODO : IMGUI 연결!
+    TileLightCullSettings Settings;
+    Settings.ScreenSize[0] = static_cast<uint32>(Viewport->GetD3DViewport().Width);
+    Settings.ScreenSize[1] = static_cast<uint32>(Viewport->GetD3DViewport().Height);
+    Settings.TileSize[0] = TILE_SIZE;
+    Settings.TileSize[1] = TILE_SIZE;
+    Settings.NearZ = Viewport->NearClip;
+    Settings.FarZ = Viewport->FarClip;
+    Settings.ViewMatrix = Viewport->GetViewMatrix();
+    Settings.ProjectionMatrix = Viewport->GetProjectionMatrix();
+    Settings.InvProjectionMatrix = FMatrix::Inverse(Viewport->GetProjectionMatrix());
+    Settings.NumPointLights = PointLights.Num();
+    Settings.NumSpotLights = SpotLights.Num();
+    Settings.Enable25DCulling = 1;                      // TODO : IMGUI 연결!
 
-    D3D11_MAPPED_SUBRESOURCE msr;
-    HRESULT hr = Graphics->DeviceContext->Map(TileLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+    D3D11_MAPPED_SUBRESOURCE MSR;
+
+    HRESULT hr = Graphics->DeviceContext->Map(TileLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MSR);
     if (FAILED(hr)) {
         UE_LOG(LogLevel::Error, TEXT("Failed to map TileLightConstantBuffer"));
         return;
     }
-    memcpy(msr.pData, &settings, sizeof(TileLightCullSettings));
+    memcpy(MSR.pData, &Settings, sizeof(TileLightCullSettings));
     
     Graphics->DeviceContext->Unmap(TileLightConstantBuffer, 0);
 }
 
 // Compute Shader에 사용되는 모든 SRV와 UAV를 해제
-void FTileLightCullingPass::ResizeViewBuffers(uint32 InWidth, uint32 InHeight)
+void FTileLightCullingPass::ResizeViewBuffers(const uint32 InWidth, const uint32 InHeight)
 {
     ResizeTiles(InWidth, InHeight);
 
     Release();
+
     CreateViews();
     CreateBuffers(InWidth, InHeight);
 }
 
-bool FTileLightCullingPass::CopyTileLightMaskToCPU(TArray<uint32>& OutData, ID3D11Buffer*& TileUAVBuffer)
+// TileUAVBuffer = 조명 비트마스크 결과를 저장 UAV 
+// UAV -> StagingBuffer로 복사하는 코드를 만들 것임 (UAV는 USAGE_DEFAULT라서 CPU에서 읽을 수 없음)
+bool FTileLightCullingPass::CopyPerTileLightIndexMaskBufferToCPU(TArray<uint32>& OutData, ID3D11Buffer*& PerTileLightIndexMaskBuffer) const
 {
-    // TileUAVBuffer = 조명 비트마스크 결과를 저장 UAV 
-    // UAV -> StagingBuffer로 복사하는 코드를 만들 것임 (UAV는 USAGE_DEFAULT라서 CPU에서 읽을 수 없음)
-
-    D3D11_BUFFER_DESC bufferDesc = {};
-    TileUAVBuffer->GetDesc(&bufferDesc);
-    bufferDesc.Usage = D3D11_USAGE_STAGING;
-    bufferDesc.BindFlags = 0; 
-    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ; // CPU 읽기 가능
+    D3D11_BUFFER_DESC BufferDesc = {};
+    PerTileLightIndexMaskBuffer->GetDesc(&BufferDesc);
+    BufferDesc.Usage = D3D11_USAGE_STAGING;
+    BufferDesc.BindFlags = 0; 
+    BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ; // CPU 읽기 가능
 
     ID3D11Buffer* StagingBuffer = nullptr;
-    HRESULT hr = Graphics->Device->CreateBuffer(&bufferDesc, nullptr, &StagingBuffer);
 
+    HRESULT hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &StagingBuffer);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create staging buffer for TileUAVBuffer"));
         return false;
     }
 
-    Graphics->DeviceContext->CopyResource(StagingBuffer, TileUAVBuffer);
+    Graphics->DeviceContext->CopyResource(StagingBuffer, PerTileLightIndexMaskBuffer);
+
     D3D11_MAPPED_SUBRESOURCE MSR = {};
+
     hr = Graphics->DeviceContext->Map(StagingBuffer, 0, D3D11_MAP_READ, 0, &MSR);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("TileUAVBuffer Staging Buffer Mapping Failed"));
-        SAFE_RELEASE(StagingBuffer);
+        SAFE_RELEASE(StagingBuffer)
         return false;
     }
 
-    uint32 count = bufferDesc.ByteWidth / sizeof(uint32);
-    OutData.SetNum(count);
-    memcpy(OutData.GetData(), MSR.pData, bufferDesc.ByteWidth);
+    const int Count = static_cast<int>(BufferDesc.ByteWidth) / sizeof(uint32);
+    OutData.SetNum(Count);
+    memcpy(OutData.GetData(), MSR.pData, BufferDesc.ByteWidth);
 
     Graphics->DeviceContext->Unmap(StagingBuffer, 0);
-    SAFE_RELEASE(StagingBuffer);
+    SAFE_RELEASE(StagingBuffer)
 
     return true;
-}
-
-void FTileLightCullingPass::ParseTileLightMaskData()
-{
-    // UAV 버퍼 데이터를 CPU 메모리로 복사
-    if (!CopyTileLightMaskToCPU(PointLightMaskData, TileUAVBuffer))
-    {
-        UE_LOG(LogLevel::Error, TEXT("Tile Point LightMask 데이터를 CPU로 복사 실패"));
-        return;
-    }
-
-    if (!CopyTileLightMaskToCPU(SpotLightMaskData, TileSpotUAVBuffer))
-    {
-        UE_LOG(LogLevel::Error, TEXT("Tile Spot LightMask 데이터를 CPU로 복사 실패"));
-        return;
-    }
-
-    // 화면 타일 수: TileUAVBuffer의 데이터는 각 타일마다 SHADER_ENTITY_TILE_BUCKET_COUNT개의 uint32로 구성
-
-    uint32 TotalTiles = TILE_COUNT_X * TILE_COUNT_Y; // MaskData사이즈 = TILECNT_X * TILECNT_Y * 32비트
-    PointLightPerTiles.SetNum(TotalTiles);
-    SpotLightPerTiles.SetNum(TotalTiles);
-
-    uint32 BucketsPerTile = SHADER_ENTITY_TILE_BUCKET_COUNT;
-    uint32 TotalPointLightCount = PointLights.Num(); 
-    uint32 TotalSpotLightCount = SpotLights.Num();
-
-    // 각 타일을 순회하면서 각 타일별 비트마스크를 파싱
-    for (uint32 tileIndex = 0; tileIndex < TotalTiles; ++tileIndex)
-    {
-        TArray<uint32> PointLightIndices;
-        TArray<uint32> SpotLightIndices;
-
-        uint32 startIndex = tileIndex * BucketsPerTile;
-        for (uint32 bucket = 0; bucket < BucketsPerTile; ++bucket)
-        {
-            uint32 pointMask = PointLightMaskData[startIndex + bucket];
-            uint32 spotMask = SpotLightMaskData[startIndex + bucket];
-            for (uint32 bit = 0; bit < 32; ++bit)
-            {
-                if (pointMask & (1u << bit))
-                {
-                    // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
-                    // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
-                    uint32 globalLightIndex = bucket * 32 + bit;
-                    if (globalLightIndex < TotalPointLightCount)
-                    {
-                        PointLightIndices.Add(globalLightIndex);
-                    }
-                }
-                if (spotMask & (1u << bit))
-                {
-                    uint32 globalLightIndex = bucket * 32 + bit;
-                    if (globalLightIndex < TotalSpotLightCount)
-                    {
-                        SpotLightIndices.Add(globalLightIndex);
-                    }
-                }
-            }
-        }
-        PointLightPerTiles[tileIndex] = PointLightIndices;
-        SpotLightPerTiles[tileIndex] = SpotLightIndices;
-    }
-
-#if _PRINTDEBUG
-    PrintLightTilesMapping();
-#endif
-    //UE_LOG(LogLevel::Error, TEXT("타일별 조명 파싱 완료. 총 타일 수: %d"), TotalTiles);
-
-}
-
-void FTileLightCullingPass::PrintLightTilesMapping()
-{
-    // 총 전역 조명 수
-    uint32 TotalPointLights = PointLights.Num();
-    uint32 TotalSpotLights = SpotLights.Num();
-
-    TArray<TArray<uint32>> PointLightTiles;
-    TArray<TArray<uint32>> SpotLightTiles;
-    PointLightTiles.SetNum(TotalPointLights);
-    SpotLightTiles.SetNum(TotalSpotLights);
-
-    uint32 TotalPointLightTiles = PointLightPerTiles.Num();
-    uint32 TotalSpotLightTiles = SpotLightPerTiles.Num();
-    for (uint32 tileIndex = 0; tileIndex < TotalPointLightTiles; ++tileIndex)
-    {
-        // 해당 타일에 영향을 주는 조명 인덱스 목록
-        const TArray<uint32>& LightIndices = PointLightPerTiles[tileIndex];
-        for (uint32 idx = 0; idx < LightIndices.Num(); ++idx)
-        {
-            uint32 globalLightIndex = LightIndices[idx]; // 전역 조명 인덱스 (예: 0, 4, 7 등)
-            if (globalLightIndex < TotalPointLights)
-            {
-                PointLightTiles[globalLightIndex].Add(tileIndex);
-            }
-        }
-    }
-
-    for (uint32 tileIndex = 0; tileIndex < TotalSpotLightTiles; ++tileIndex)
-    {
-        // 해당 타일에 영향을 주는 조명 인덱스 목록
-        const TArray<uint32>& LightIndices = SpotLightPerTiles[tileIndex];
-        for (uint32 idx = 0; idx < LightIndices.Num(); ++idx)
-        {
-            uint32 globalLightIndex = LightIndices[idx]; // 전역 조명 인덱스 (예: 0, 4, 7 등)
-            if (globalLightIndex < TotalSpotLights)
-            {
-                SpotLightTiles[globalLightIndex].Add(tileIndex);
-            }
-        }
-    }
-
-    // 각 조명별로 어떤 타일이 영향을 받는지 출력
-    for (uint32 lightIndex = 0; lightIndex < TotalPointLights; ++lightIndex)
-    {
-        const TArray<uint32>& Tiles = PointLightTiles[lightIndex];
-        if (Tiles.Num() == 0)
-        {
-            continue; // 해당 조명이 어느 타일에도 영향을 주지 않으면 생략
-        }
-
-        // 출력 문자열 구성 (예: "Light No. 1: 0, 3, 5")
-        FString Output = FString::Printf(TEXT("PointLight No. %d: "), lightIndex + 1);
-        for (int32 i = 0; i < Tiles.Num(); ++i)
-        {
-            Output += FString::Printf(TEXT("%d"), Tiles[i]);
-            if (i < Tiles.Num() - 1)
-            {
-                Output += TEXT(", ");
-            }
-        }
-
-        UE_LOG(LogLevel::Error, TEXT("%s"), *Output);
-    }
-
-    for (uint32 lightIndex = 0; lightIndex < TotalSpotLights; ++lightIndex)
-    {
-        const TArray<uint32>& Tiles = SpotLightTiles[lightIndex];
-        if (Tiles.Num() == 0)
-        {
-            continue; // 해당 조명이 어느 타일에도 영향을 주지 않으면 생략
-        }
-        // 출력 문자열 구성 (예: "Light No. 1: 0, 3, 5")
-        FString Output = FString::Printf(TEXT("SpotLight No. %d: "), lightIndex + 1);
-        for (int32 i = 0; i < Tiles.Num(); ++i)
-        {
-            Output += FString::Printf(TEXT("%d"), Tiles[i]);
-            if (i < Tiles.Num() - 1)
-            {
-                Output += TEXT(", ");
-            }
-        }
-        UE_LOG(LogLevel::Error, TEXT("%s"), *Output);
-    }
 }
 
