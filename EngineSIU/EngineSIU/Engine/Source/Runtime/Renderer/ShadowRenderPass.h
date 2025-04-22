@@ -24,7 +24,7 @@ class FShadowRenderPass : public IRenderPass
 public:
     FShadowRenderPass();
     virtual ~FShadowRenderPass();
-    void CreateShader() const;
+    void CreateShader();
     void UpdateViewport(const uint32& InWidth, const uint32& InHeight);
     void CreateSampler();
     void PrepareCubeMapRenderState(UPointLightComponent*& PointLight);

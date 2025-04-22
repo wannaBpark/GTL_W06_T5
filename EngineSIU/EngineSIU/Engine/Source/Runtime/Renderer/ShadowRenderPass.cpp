@@ -78,7 +78,7 @@ void FShadowRenderPass::ClearRenderArr()
 
 }
 
-void FShadowRenderPass::CreateShader() const
+void FShadowRenderPass::CreateShader()
 {
     HRESULT hr = ShaderManager->AddVertexShader(L"DepthOnlyVS", L"Shaders/DepthOnlyVS.hlsl", "mainVS");
     if (FAILED(hr))
@@ -102,6 +102,10 @@ void FShadowRenderPass::CreateShader() const
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
     }
+
+    StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
 }
 
 void FShadowRenderPass::UpdateViewport(const uint32& InWidth, const uint32& InHeight)

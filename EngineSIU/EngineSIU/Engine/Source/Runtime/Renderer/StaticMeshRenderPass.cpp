@@ -156,9 +156,9 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
 
+    CreateShader();
     ShadowRenderPass = new FShadowRenderPass();
     ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-    CreateShader();
 }
 
 void FStaticMeshRenderPass::PrepareRenderArr()
