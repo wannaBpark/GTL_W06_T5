@@ -379,7 +379,7 @@ float CalculateSpotShadowFactor(float3 WorldPosition, FSpotLightInfo LightInfo, 
     float ShadowFactor = ShadowMapArray.SampleCmpLevelZero(
         ShadowSampler,
         float3(ShadowMapUV, (float)LightInfo.ShadowMapArrayIndex), // UV와 배열 인덱스 사용
-        CurrentDepth  // 바이어스 적용
+        CurrentDepth - LightInfo.ShadowBias  // 바이어스 적용
     );
 
     return ShadowFactor;
