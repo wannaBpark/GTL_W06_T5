@@ -3,6 +3,7 @@
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Math/JungleMath.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "D3D11RHI/DXDBufferManager.h"
 
 // --- 생성자 및 소멸자 ---
 
@@ -24,7 +25,7 @@ FShadowManager::~FShadowManager()
 
 // --- Public 멤버 함수 구현 ---
 
-bool FShadowManager::Initialize(FGraphicsDevice* InGraphics,
+bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager,
                                uint32_t InMaxSpotShadows, uint32_t InSpotResolution,
                                uint32_t InNumCascades, uint32_t InDirResolution)
 {
@@ -36,6 +37,7 @@ bool FShadowManager::Initialize(FGraphicsDevice* InGraphics,
 
     D3DDevice = InGraphics->Device;
     D3DContext = InGraphics->DeviceContext;
+    BufferManager = InBufferManager;
 
     
     SpotShadowDepthRHI = new FShadowDepthRHI();
@@ -142,7 +144,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어
-    //D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t directionalShadowSlot, uint32_t samplerCmpSlot)
@@ -166,6 +168,23 @@ void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t 
     if (DirectionalShadowCascadeDepthRHI->ShadowSRV)
     {
         D3DContext->PSSetShaderResources(directionalShadowSlot, 1, &DirectionalShadowCascadeDepthRHI->ShadowSRV);
+
+        FCascadeConstantBuffer CascadeData = {};
+        CascadeData.World = FMatrix::Identity;
+        for (uint32 i = 0; i < NumCascades; i++)
+        {
+            CascadeData.ViewProj[i] = CascadesViewProjMatrices[i];
+            CascadeData.InvViewProj[i] = FMatrix::Inverse(CascadeData.ViewProj[i]);
+            CascadeData.InvProj[i] = CascadesInvProjMatrices[i];
+        }
+        CascadeData.CascadeSplit = { CascadeSplits[0], CascadeSplits[1], CascadeSplits[2], CascadeSplits[3] };
+            //CascadeData.CascadeSplits[i] = CascadeSplits[i];
+        //CascadeData.CascadeSplits[NumCascades] = CascadeSplits[NumCascades];
+
+        BufferManager->UpdateConstantBuffer(TEXT("FCascadeConstantBuffer"), CascadeData);
+        BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 9, EShaderStage::Pixel);
+        /*ID3D11Buffer* CascadeConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCascadeConstantBuffer"));
+        D3DContext->PSSetConstantBuffers(9,1,&CascadeConstantBuffer);*/
     }
 
 
@@ -369,75 +388,117 @@ void FShadowManager::ReleaseDirectionalShadowResources()
 }
 
 void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight)
-{
-    TArray<float> CascadeSplits;
+{    
     FMatrix InvViewProj = FMatrix::Inverse(Viewport->GetViewMatrix()*Viewport->GetProjectionMatrix());
 
     CascadesViewProjMatrices.Empty();
+    CascadesInvProjMatrices.Empty();
+	const FMatrix CamView = Viewport->GetViewMatrix();
     float NearClip = Viewport->GetCameraNearClip();
     float FarClip = Viewport->GetCameraFarClip();
+	const float FOV = Viewport->GetCameraFOV();          // Degrees
+	const float AspectRatio = Viewport->AspectRatio;
 
+	float halfHFOV = FMath::DegreesToRadians(FOV) * 0.5f;
+	float tanHFOV = FMath::Tan(halfHFOV);
+	float tanVFOV = tanHFOV / AspectRatio;
+	FMatrix InvView = FMatrix::Inverse(CamView);
+
+    //CascadeSplits.Empty();
     CascadeSplits.SetNum(NumCascades + 1);
-    for (uint32 i = 1; i <=NumCascades; ++i)
+    CascadeSplits[0] = NearClip;
+    CascadeSplits[NumCascades] = FarClip;
+    for (uint32 i = 1; i < NumCascades; ++i)
     {
-        float p = float(i) / float(NumCascades); // 1~NumCascades
-        CascadeSplits[i - 1] = NearClip * pow(FarClip / NearClip, p); // 분할 거리 계산
+        float p = float(i) / float(NumCascades);
+        float logSplit = NearClip * powf(FarClip / NearClip, p);      // 로그 분포
+        float uniSplit = NearClip + (FarClip - NearClip) * p;         // 균등 분포
+        CascadeSplits[i] = 0.7f * logSplit + 0.3f * uniSplit;         // 혼합 (0.5:0.5)
     }
 
-    for (uint32 i = 0; i< NumCascades; ++i)
-    {
-        float PrevSplit = (i == 0) ? NearClip : CascadeSplits[i - 1];
-        float CurSplit = CascadeSplits[i];
-        float zn = (PrevSplit - NearClip) / (FarClip - NearClip);
-        float zf = (CurSplit - NearClip) / (FarClip - NearClip);
+	// 4) LightDir, Up
+	const FVector LightDir = DirectionalLight->GetDirection().GetSafeNormal();
+	FVector Up = FVector::UpVector;
+	if (FMath::Abs(FVector::DotProduct(LightDir, FVector::UpVector)) > 0.99f)
+		Up = FVector::ForwardVector;
 
-        // NDC 기준 nearPlane의 4개 모서리 좌표와 farPlane의 4개 모서리 좌표
-        FVector4 FrustumCorners[8] = {
-            { -1,  1, zn, 1 }, {  1,  1, zn, 1 },
-            {  1, -1, zn, 1 }, { -1, -1, zn, 1 },
-            { -1,  1, zf, 1 }, {  1,  1, zf, 1 },
-            {  1, -1, zf, 1 }, { -1, -1, zf, 1 }
-        };
-        for (auto& Corner : FrustumCorners)
-        {
-            Corner = InvViewProj.TransformFVector4(Corner); // ViewProj 행렬로 변환
-            Corner = Corner / Corner.W; // w로 나누기
-        }
+	CascadesViewProjMatrices.Empty();
+
+    for (uint32 c = 0; c< NumCascades; ++c)
+    {
+		// i 단계의 Near / Far (월드 단위) 계산
+		float splitN = CascadeSplits[c];
+		float splitF = CascadeSplits[c + 1];
+		float zn = (splitN - NearClip) / (FarClip - NearClip);
+        float zf = (splitF - NearClip) / (FarClip - NearClip);
+
+		// 뷰 공간 평면상의 X,Y 절댓값
+		float nx = tanHFOV * splitN;
+		float ny = tanVFOV * splitN;
+		float fx = tanHFOV * splitF;
+		float fy = tanVFOV * splitF;
+
+		// 뷰 공간 8개 코너
+		FVector ViewCorners[8] = {
+			{ -nx,  ny, splitN },
+			{  nx,  ny, splitN },
+			{  nx, -ny, splitN },
+			{ -nx, -ny, splitN },
+			{ -fx,  fy, splitF },
+			{  fx,  fy, splitF },
+			{  fx, -fy, splitF },
+			{ -fx, -fy, splitF }
+		};
+
+		// 월드 공간으로 변환
+		FVector WorldCorners[8];
+		for (int i = 0; i < 8; ++i)
+		{
+			// TransformPosition 은 w=1 가정 + divide 처리
+			WorldCorners[i] = InvView.TransformPosition(ViewCorners[i]);
+		}
 
         // Light Space AABB
         FMatrix LightView = DirectionalLight->GetViewMatrix();
-        FVector Min = FVector(FLT_MAX, FLT_MAX, FLT_MAX);
-        FVector Max = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+		LightView.M[3][0] = LightView.M[3][1] = LightView.M[3][2] = 0; // translation 제거 - Rot만 필요
 
-        for (auto& Corner : FrustumCorners)
-        {
-            FVector4 WorldPos = InvViewProj.TransformFVector4(Corner);
-            Min.X = FMath::Min(Min.X, WorldPos.X);
-            Min.Y = FMath::Min(Min.Y, WorldPos.Y);
-            Min.Z = FMath::Min(Min.Z, WorldPos.Z);
+        FVector Min(FLT_MAX), Max(-FLT_MAX);
+		for (auto& World : WorldCorners) {
+			Min.X = FMath::Min(Min.X, World.X);  Max.X = FMath::Max(Max.X, World.X);
+			Min.Y = FMath::Min(Min.Y, World.Y);  Max.Y = FMath::Max(Max.Y, World.Y);
+			Min.Z = FMath::Min(Min.Z, World.Z);  Max.Z = FMath::Max(Max.Z, World.Z);
+		}
+		FVector CenterWS = (Min + Max) * 0.5f;
+		float Radius = FMath::Max3(Max.X - Min.X, Max.Y - Min.Y, Max.Z - Min.Z) * 0.5f;
 
-            Max.X = FMath::Max(Max.X, WorldPos.X);
-            Max.Y = FMath::Max(Max.Y, WorldPos.Y);
-            Max.Z = FMath::Max(Max.Z, WorldPos.Z);
-            
-        }
+		// 3. Light View 생성
+		FVector Eye = CenterWS - LightDir * Radius;
+		LightView = JungleMath::CreateViewMatrix(Eye, CenterWS, Up);
 
+		// 4. 모든 WorldCorners를 LightView로 변환, LightSpace에서의 Min/Max 구함
+		FVector MinLS(FLT_MAX), MaxLS(-FLT_MAX);
+		for (auto& World : WorldCorners) {
+			FVector LS = LightView.TransformPosition(World);
+			MinLS.X = FMath::Min(MinLS.X, LS.X);  MaxLS.X = FMath::Max(MaxLS.X, LS.X);
+			MinLS.Y = FMath::Min(MinLS.Y, LS.Y);  MaxLS.Y = FMath::Max(MaxLS.Y, LS.Y);
+			MinLS.Z = FMath::Min(MinLS.Z, LS.Z);  MaxLS.Z = FMath::Max(MaxLS.Z, LS.Z);
+		}
+		float Zm = (MaxLS.Z - MinLS.Z) * 0.1f;
+        MinLS.X -= Zm; MinLS.Y -= Zm; MinLS.Z -= Zm;
+        MaxLS.X -= Zm; MaxLS.Y -= Zm; MaxLS.Z -= Zm;
 
-        // 캐스케이드 뷰 프로젝션 행렬 저장
-        FMatrix LightProjection = JungleMath::CreateOrthoProjectionMatrix(
-            Max.X - Min.X,
-            Max.Y - Min.Y,
-            Min.Z, Max.Z
-        );
-        FMatrix LightViewProj = LightView * LightProjection;
+		// 5. LightSpace에서 Ortho 행렬 생성
+		FMatrix LightProj = JungleMath::CreateOrthoProjectionMatrix(
+            MaxLS.X- MinLS.X,
+            MaxLS.Y - MinLS.Y,
+			MinLS.Z, MaxLS.Z
+		);
 
-        CascadesViewProjMatrices.Add(LightViewProj); 
+		// 6. 최종 ViewProj 행렬
+		CascadesViewProjMatrices.Add(LightView * LightProj);
+        CascadesInvProjMatrices.Add(FMatrix::Inverse(LightProj));
     }
 
-    for (uint32 i  = 0; i < NumCascades; ++i)
-    {
-
-    }
 }
 
 bool FShadowManager::CreateSamplers()

@@ -27,6 +27,13 @@ struct FMath
 		return B < A ? A : B;
 	}
 
+    /** A, B, C 중에 가장 큰 값을 반환합니다. */
+    template <typename T>
+    [[nodiscard]] static FORCEINLINE constexpr T Max3(const T A, const T B, const T C)
+    {
+        return Max(A, Max(B, C));
+    }
+
 	/** X를 Min과 Max의 사이의 값으로 클램핑 합니다. */
 	template <typename T>
 	[[nodiscard]] static FORCEINLINE constexpr T Clamp(const T X, const T MinValue, const T MaxValue)

@@ -1,4 +1,5 @@
 #define MAX_CASCADE_NUM 5 // TO DO : TO FIX!!!!
+#define NUM_CASCADES 3
 
 struct VS_INPUT_StaticMesh
 {
@@ -35,13 +36,13 @@ GS_INPUT mainVS(VS_INPUT_StaticMesh Input)
     return output;
 }
 
-[maxvertexcount(3 * 3)]
+[maxvertexcount(3 * NUM_CASCADES)]
 void mainGS( 
     triangle GS_INPUT input[3], 
 	inout TriangleStream<GS_OUTPUT> TriStream
 )
 {
-    for (uint csmIdx = 0; csmIdx < MAX_CASCADE_NUM; ++csmIdx)
+    for (uint csmIdx = 0; csmIdx < NUM_CASCADES; ++csmIdx)
     {
         for (int i = 0; i < 3; ++i)
         {

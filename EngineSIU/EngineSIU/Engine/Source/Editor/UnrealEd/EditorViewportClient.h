@@ -165,6 +165,8 @@ public:
 
     FVector GetCameraLocation() const;
 
+    float GetCameraFOV() const;
+
     float GetCameraNearClip() const;
     float GetCameraFarClip() const;
     

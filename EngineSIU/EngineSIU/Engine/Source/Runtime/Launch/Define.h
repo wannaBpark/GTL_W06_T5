@@ -323,6 +323,12 @@ struct FCascadeConstantBuffer
 {
     FMatrix World;
     FMatrix ViewProj[MAX_CASCADE_NUM];
+    FMatrix InvViewProj[MAX_CASCADE_NUM];
+    FMatrix InvProj[MAX_CASCADE_NUM];
+    FVector4 CascadeSplit;
+
+    float pad1;
+    float pad2;
 };
 
 struct FShadowConstantBuffer

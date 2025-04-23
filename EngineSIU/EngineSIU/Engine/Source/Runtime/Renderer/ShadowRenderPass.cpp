@@ -81,6 +81,7 @@ void FShadowRenderPass::PrepareCSMRenderState()
 
     BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 0, EShaderStage::Geometry);
+    BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 9, EShaderStage::Pixel);
 
 }
 
@@ -111,11 +112,19 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             ShadowManager->UpdateCascadeMatrices(Viewport, DirectionalLight);
 
             PrepareCSMRenderState();
-            FCascadeConstantBuffer CascadeData;
-            for (int i = 0; i < ShadowManager->GetNumCasCades(); i++)
+            FCascadeConstantBuffer CascadeData = {};
+            uint32 NumCascades = ShadowManager->GetNumCasCades();
+            for (uint32 i = 0; i < NumCascades; i++)
             {
                 CascadeData.ViewProj[i] = ShadowManager->GetCascadeViewProjMatrix(i);
+                /*CascadeData.CascadeSplits[i] = ShadowManager->GetCascadeSplitDistance(i);*/
+                //CascadeData.ViewProj[i] = Viewport->GetViewMatrix()*Viewport->GetProjectionMatrix();
             }
+            //CascadeData.CascadeSplits[NumCascades] = ShadowManager->GetCascadeSplitDistance(NumCascades);
+
+             //CascadeData.ViewProj[2] = Viewport->GetViewMatrix() * Viewport->GetProjectionMatrix();
+            //CascadeData.ViewProj[0] = DirectionalLight->GetViewMatrix() * DirectionalLight->GetProjectionMatrix();
+
             ShadowManager->BeginDirectionalShadowCascadePass(0);
             //RenderAllStaticMeshes(Viewport);
 
