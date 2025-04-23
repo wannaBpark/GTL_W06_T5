@@ -179,6 +179,7 @@ void UEditorEngine::DeselectActor(AActor* InActor)
     if (PrivateEditorSelection::GActorSelected == InActor && InActor)
     {
         PrivateEditorSelection::GActorSelected = nullptr;
+        ClearComponentSelection();
     }
 }
 
