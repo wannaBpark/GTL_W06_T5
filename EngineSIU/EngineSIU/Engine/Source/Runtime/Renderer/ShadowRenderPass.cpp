@@ -122,7 +122,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         UpdateIsShadowConstant(0);
     }
 
-    PrepareRenderState();
+    
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
     {
         // Cascade Shadow Map을 위한 ViewProjection Matrix 설정
@@ -145,7 +145,8 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             Graphics->DeviceContext->RSSetViewports(0, nullptr);
             Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
        
-       }
+    }
+    PrepareRenderState();
     for (int i = 0 ; i < SpotLights.Num(); i++)
     {
         const auto& SpotLight = SpotLights[i];
