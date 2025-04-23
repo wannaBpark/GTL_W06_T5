@@ -171,8 +171,9 @@ public:
     FShadowDepthRHI* GetSpotShadowDepthRHI() const { return SpotShadowDepthRHI; }
     FShadowCubeMapArrayRHI* GetPointShadowCubeMapRHI() const { return PointShadowCubeMapRHI; } // << 추가
     FShadowDepthRHI* GetDirectionalShadowCascadeDepthRHI() const { return DirectionalShadowCascadeDepthRHI; }
+    int32 GetMaxPointLightCount() const { return MaxPointLightShadows; } 
+    int32 GetMaxSpotLightCount() const { return MaxSpotLightShadows; }
 
-    
 private:
     
     // D3D 디바이스 및 컨텍스트

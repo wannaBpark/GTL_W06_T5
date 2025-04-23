@@ -43,7 +43,9 @@ public:
 
     void SetPointLightData(const TArray<UPointLightComponent*>& InPointLights, TArray<TArray<uint32>> InPointLightPerTiles);
     void SetSpotLightData(const TArray<USpotLightComponent*>& InSpotLights, TArray<TArray<uint32>> InSpotLightPerTiles);
-    void SetLightData(const TArray<UPointLightComponent*>& InPointLights, const TArray<USpotLightComponent*>& InSpotLights, ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView* InSpotLightIndexBufferSRV);
+    void SetLightData(const TArray<UPointLightComponent*>& InPointLights, const TArray<USpotLightComponent*>& InSpotLights,
+    const TMap<UPointLightComponent*, uint32>& PointLightToCulledIndexMap, const TMap<USpotLightComponent*, uint32>& SpotLightToCulledIndexMap,
+    ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView* InSpotLightIndexBufferSRV);
 
     void SetTileConstantBuffer(ID3D11Buffer* InTileConstantBuffer);
 
@@ -64,6 +66,7 @@ private:
     TArray<UPointLightComponent*> PointLights;
     TArray<UDirectionalLightComponent*> DirectionalLights;
     TArray<UAmbientLightComponent*> AmbientLights;
+    
 
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
@@ -71,6 +74,10 @@ private:
 
     TArray<TArray<uint32>> PointLightPerTiles;
     TArray<PointLightPerTile> GPointLightPerTiles;
+
+    TMap<USpotLightComponent*, uint32> SpotLightToCulledIndexMap;
+    TMap<UPointLightComponent*, uint32> PointLightToCulledIndexMap;
+    
 
     TArray<TArray<uint32>> SpotLightPerTiles;
     TArray<SpotLightPerTile> GSpotLightPerTiles;

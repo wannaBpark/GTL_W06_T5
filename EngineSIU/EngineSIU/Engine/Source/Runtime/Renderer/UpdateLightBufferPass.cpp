@@ -215,10 +215,14 @@ void FUpdateLightBufferPass::SetSpotLightData(const TArray<USpotLightComponent*>
 }
 
 void FUpdateLightBufferPass::SetLightData(const TArray<UPointLightComponent*>& InPointLights, const TArray<USpotLightComponent*>& InSpotLights,
-    ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView* InSpotLightIndexBufferSRV)
+                                          const TMap<UPointLightComponent*, uint32>& InPointLightToCulledIndexMap, const TMap<USpotLightComponent*, uint32>&
+                                          InSpotLightToCulledIndexMap, ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView*
+                                          InSpotLightIndexBufferSRV)
 {
     PointLights = InPointLights;
     SpotLights = InSpotLights;
+    PointLightToCulledIndexMap = InPointLightToCulledIndexMap;
+    SpotLightToCulledIndexMap = InSpotLightToCulledIndexMap;
     PointLightIndexBufferSRV = InPointLightIndexBufferSRV;
     SpotLightIndexBufferSRV = InSpotLightIndexBufferSRV;
 
@@ -358,7 +362,18 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
         {
             LightInfo.LightViewProjs[j] = PointLights[i]->GetViewProjectionMatrix(j);
         }
-        LightInfo.ShadowMapArrayIndex = i;
+        // <<< 핵심: 역방향 맵에서 컬링된 인덱스 조회 >>>
+        const uint32* FoundCulledIndexPtr = PointLightToCulledIndexMap.Find(PointLights[i]);
+        if (FoundCulledIndexPtr != nullptr)
+        {
+            // 컬링된 라이트 목록에 포함됨 -> 해당 인덱스 사용
+            LightInfo.ShadowMapArrayIndex = *FoundCulledIndexPtr;
+        }
+        else
+        {
+            // 컬링되지 않음 (이 라이트에 대한 섀도우 맵 없음) -> 유효하지 않은 인덱스 설정
+            LightInfo.ShadowMapArrayIndex = 0xFFFFFFFF;
+        }
         LightInfo.ShadowBias = 0.005f;
         TempBuffer[i] = LightInfo;
     }
@@ -379,7 +394,16 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
         LightInfo.Position = SpotLights[i]->GetWorldLocation();
         LightInfo.Direction = SpotLights[i]->GetDirection();
         LightInfo.LightViewProj = SpotLights[i]->GetViewMatrix() * SpotLights[i]->GetProjectionMatrix();
-        LightInfo.ShadowMapArrayIndex = i;
+        // <<< 핵심: 역방향 맵에서 컬링된 인덱스 조회 >>>
+        const uint32* FoundCulledIndexPtr = SpotLightToCulledIndexMap.Find(SpotLights[i]);
+        if (FoundCulledIndexPtr != nullptr)
+        {
+            LightInfo.ShadowMapArrayIndex = *FoundCulledIndexPtr;
+        }
+        else
+        {
+            LightInfo.ShadowMapArrayIndex = 0xFFFFFFFF;
+        }
         LightInfo.ShadowBias = 0.005f;
         TempBuffer[i] = LightInfo;
     }
