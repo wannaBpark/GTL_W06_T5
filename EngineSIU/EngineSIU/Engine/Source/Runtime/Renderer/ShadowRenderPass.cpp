@@ -74,48 +74,7 @@ void FShadowRenderPass::PrepareRenderArr()
 
 void FShadowRenderPass::Render(ULightComponentBase* Light)
 {
-
-    if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
-    {
-        FShadowConstantBuffer ShadowData;
-        FMatrix LightViewMatrix = SpotLight->GetViewMatrix();
-        FMatrix LightProjectionMatrix = SpotLight->GetProjectionMatrix();
-        ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
-        ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
-        //ShadowData.LightNearZ = SpotLight->GetShadowNearPlane();
-        //ShadowData.LightFrustumWidth = SpotLight->GetShadowFrustumWidth();
-                    
-        ShadowData.ShadowMapWidth = SpotLight->GetShadowMapWidth();
-        ShadowData.ShadowMapHeight = SpotLight->GetShadowMapHeight();
-        BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
-
-        ShadowManager->BeginSpotShadowPass(0);
-    }
-    if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
-    {
-
-        FShadowConstantBuffer ShadowData;
-        FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
-        FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
-        ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
-        ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
-        ShadowData.LightNearZ = DirectionalLight->GetShadowNearPlane();
-        ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
-        /*ShadowData.AreaLightRadius = DirectionalLight->GetRadius();*/
-                    
-                    
-        // FMatrix ViewMatrix = JungleMath::CreateViewMatrix(-DirectionalLight->GetDirection() * 40, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
-        // FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(80.0f, 80.0f, 1.0f, 100.0f);
-        //
-        // ShadowData.ShadowViewProj = ViewMatrix * ProjectionMatrix;
-        // ShadowData.ShadowInvProj = FMatrix::Inverse(ProjectionMatrix);
-                    
-        ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
-        ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
-        BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
-
-        ShadowManager->BeginDirectionalShadowCascadePass(0);
-    }
+    
 }
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -124,7 +83,19 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     PrepareRenderState();
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
        {
-            Render(DirectionalLight);
+            FShadowConstantBuffer ShadowData;
+            FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
+            FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
+            ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
+            ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
+            ShadowData.LightNearZ = DirectionalLight->GetShadowNearPlane();
+            ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
+                        
+            ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
+            ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
+            BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+    
+            ShadowManager->BeginDirectionalShadowCascadePass(0);
             RenderAllStaticMeshes(Viewport);
            
             Graphics->DeviceContext->RSSetViewports(0, nullptr);
@@ -139,9 +110,20 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
         Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     }
-    for (const auto & SpotLight : SpotLights)
+    for (int i = 0 ; i < SpotLights.Num(); i++)
     {
-        Render(SpotLight);
+        const auto& SpotLight = SpotLights[i];
+        FShadowConstantBuffer ShadowData;
+        FMatrix LightViewMatrix = SpotLight->GetViewMatrix();
+        FMatrix LightProjectionMatrix = SpotLight->GetProjectionMatrix();
+        ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
+        ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
+                    
+        ShadowData.ShadowMapWidth = SpotLight->GetShadowMapWidth();
+        ShadowData.ShadowMapHeight = SpotLight->GetShadowMapHeight();
+        BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
+
+        ShadowManager->BeginSpotShadowPass(i);
         RenderAllStaticMeshes(Viewport);
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
