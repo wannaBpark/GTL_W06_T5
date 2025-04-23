@@ -24,7 +24,7 @@ class FShadowRenderPass : public IRenderPass
 public:
     FShadowRenderPass();
     virtual ~FShadowRenderPass() override;
-    void CreateShader() const;
+    void CreateShader();
     void PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport,
                                    UPointLightComponent*& PointLight);
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;

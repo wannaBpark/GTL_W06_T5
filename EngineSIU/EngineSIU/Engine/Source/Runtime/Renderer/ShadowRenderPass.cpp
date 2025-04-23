@@ -28,9 +28,6 @@ FShadowRenderPass::~FShadowRenderPass()
 {
 }
 
-void FShadowRenderPass::CreateShader() const
-{
-}
 
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -237,40 +234,40 @@ void FShadowRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const F
     ObjectData.bIsSelected = bIsSelected;
     
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
-    Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
-    Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
+   // Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
+    //Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    //Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
 }
 
-// void FShadowRenderPass::CreateShader()
-// {
-//     HRESULT hr = ShaderManager->AddVertexShader(L"DepthOnlyVS", L"Shaders/DepthOnlyVS.hlsl", "mainVS");
-//     if (FAILED(hr))
-//     {
-//         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyVS shader!"));
-//     }
-//     hr = ShaderManager->AddVertexShader(L"DepthCubeMapVS", L"Shaders/DepthCubeMapVS.hlsl", "mainVS");
-//     if (FAILED(hr))
-//     {
-//         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapVS shader!"));
-//     }
-//
-//     hr = ShaderManager->AddGeometryShader(L"DepthCubeMapGS", L"Shaders/PointLightCubemapGS.hlsl", "mainGS");
-//     if (FAILED(hr))
-//     {
-//         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapGS shader!"));
-//     }
-//
-//     hr = ShaderManager->AddPixelShader(L"DepthOnlyPS", L"Shaders/PointLightCubemapGS.hlsl", "mainPS");
-//     if (FAILED(hr))
-//     {
-//         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
-//     }
-//
-//     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-//     DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
-//     DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
-// }
+void FShadowRenderPass::CreateShader()
+{
+    HRESULT hr = ShaderManager->AddVertexShader(L"DepthOnlyVS", L"Shaders/DepthOnlyVS.hlsl", "mainVS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyVS shader!"));
+    }
+    hr = ShaderManager->AddVertexShader(L"DepthCubeMapVS", L"Shaders/DepthCubeMapVS.hlsl", "mainVS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapVS shader!"));
+    }
+
+    hr = ShaderManager->AddGeometryShader(L"DepthCubeMapGS", L"Shaders/PointLightCubemapGS.hlsl", "mainGS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthCubeMapGS shader!"));
+    }
+
+    hr = ShaderManager->AddPixelShader(L"DepthOnlyPS", L"Shaders/PointLightCubemapGS.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
+    }
+
+    StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+}
 
 
 //void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
