@@ -108,7 +108,7 @@ FVector USpotLightComponent::GetDirection()
     return WorldForward;
 }
 
-const FSpotLightInfo& USpotLightComponent::GetSpotLightInfo() const
+FSpotLightInfo& USpotLightComponent::GetSpotLightInfo() 
 {
     return SpotLightInfo;
 }

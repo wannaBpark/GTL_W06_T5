@@ -17,8 +17,10 @@ public:
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
 
-    const FPointLightInfo& GetPointLightInfo() const;
+    FPointLightInfo& GetPointLightInfo();
     void SetPointLightInfo(const FPointLightInfo& InPointLightInfo);
+
+    
 
     float GetRadius() const;
     void SetRadius(float InRadius);

@@ -352,14 +352,15 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
     TempBuffer.SetNum(MAX_NUM_POINTLIGHTS);
     for (uint32 i = 0; i < PointLights.Num(); ++i)
     {
-        TempBuffer[i] = PointLights[i]->GetPointLightInfo();
-        TempBuffer[i].Position = PointLights[i]->GetWorldLocation();
+        FPointLightInfo& LightInfo = PointLights[i]->GetPointLightInfo();
+        LightInfo.Position = PointLights[i]->GetWorldLocation();
         for (int j = 0; j < 6; ++j)
         {
-            TempBuffer[i].LightViewProjs[j] = PointLights[i]->GetViewProjectionMatrix(j);
+            LightInfo.LightViewProjs[j] = PointLights[i]->GetViewProjectionMatrix(j);
         }
-        TempBuffer[i].ShadowMapArrayIndex = i;
-        TempBuffer[i].ShadowBias = 0.005f;
+        LightInfo.ShadowMapArrayIndex = i;
+        LightInfo.ShadowBias = 0.005f;
+        TempBuffer[i] = LightInfo;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(PointLightBuffer, 0, nullptr,
@@ -374,12 +375,13 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
     TempBuffer.SetNum(MAX_NUM_SPOTLIGHTS);
     for (uint32 i = 0; i < SpotLights.Num(); ++i)
     {
-        TempBuffer[i] = SpotLights[i]->GetSpotLightInfo();
-        TempBuffer[i].Position = SpotLights[i]->GetWorldLocation();
-        TempBuffer[i].Direction = SpotLights[i]->GetDirection();
-        TempBuffer[i].LightViewProj = SpotLights[i]->GetViewMatrix() * SpotLights[i]->GetProjectionMatrix();
-        TempBuffer[i].ShadowMapArrayIndex = i;
-        TempBuffer[i].ShadowBias = 0.005f;
+        FSpotLightInfo& LightInfo = SpotLights[i]->GetSpotLightInfo();
+        LightInfo.Position = SpotLights[i]->GetWorldLocation();
+        LightInfo.Direction = SpotLights[i]->GetDirection();
+        LightInfo.LightViewProj = SpotLights[i]->GetViewMatrix() * SpotLights[i]->GetProjectionMatrix();
+        LightInfo.ShadowMapArrayIndex = i;
+        LightInfo.ShadowBias = 0.005f;
+        TempBuffer[i] = LightInfo;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightBuffer, 0, nullptr,

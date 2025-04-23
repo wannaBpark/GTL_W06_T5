@@ -283,7 +283,7 @@ void UPointLightComponent::SetProperties(const TMap<FString, FString>& InPropert
     
 }
 
-const FPointLightInfo& UPointLightComponent::GetPointLightInfo() const
+FPointLightInfo& UPointLightComponent::GetPointLightInfo()
 {
     return PointLightInfo;
 }

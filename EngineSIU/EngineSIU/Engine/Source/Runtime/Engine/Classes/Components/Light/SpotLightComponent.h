@@ -14,7 +14,7 @@ public:
     void SetProperties(const TMap<FString, FString>& InProperties) override;
     FVector GetDirection();
 
-    const FSpotLightInfo& GetSpotLightInfo() const;
+    FSpotLightInfo& GetSpotLightInfo();
     void SetSpotLightInfo(const FSpotLightInfo& InSpotLightInfo);
 
     float GetRadius() const;
