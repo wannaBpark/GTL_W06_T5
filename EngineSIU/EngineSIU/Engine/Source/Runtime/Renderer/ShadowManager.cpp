@@ -39,7 +39,7 @@ bool FShadowManager::Initialize(FGraphicsDevice* InGraphics,
     
     // 설정 값 저장
     MaxSpotLightShadows = InMaxSpotShadows;
-    NumCascades = InNumCascades;
+    //NumCascades = InNumCascades;                              // 차후 명시적인 바인딩 위해 주석처리 
     SpotShadowDepthRHI->ShadowMapResolution = InSpotResolution;
     DirectionalShadowCascadeDepthRHI->ShadowMapResolution = InDirResolution; 
 

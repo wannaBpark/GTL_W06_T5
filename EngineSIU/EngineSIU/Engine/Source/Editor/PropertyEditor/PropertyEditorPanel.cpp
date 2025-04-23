@@ -286,7 +286,7 @@ void PropertyEditorPanel::Render()
                 for (uint32 i = 0; i < NumCascades; ++i)
                 {
                     ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager->GetDirectionalShadowCascadeDepthRHI()->ShadowSRVs[i]), ImVec2(200, 200));
-                    ImGui::SameLine();
+                    //ImGui::SameLine();
                 }
                 ImGui::TreePop();
             }

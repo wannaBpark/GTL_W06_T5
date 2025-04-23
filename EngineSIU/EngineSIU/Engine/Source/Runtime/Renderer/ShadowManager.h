@@ -71,7 +71,7 @@ public:
      */
     bool Initialize(FGraphicsDevice* InGraphics,
                     uint32_t InMaxSpotShadows = 16, uint32_t InSpotResolution = 1024,
-                    uint32_t InNumCascades = 1, uint32_t InDirResolution = 2048);
+                    uint32_t InNumCascades = 4, uint32_t InDirResolution = 2048); // NUM Cascades 바인딩 위치가 불명확합니다.
 
     /** 생성된 모든 D3D 리소스를 해제합니다. */
     void Release();
@@ -112,9 +112,11 @@ private:
     uint32 MaxSpotLightShadows = 16;
 
     FShadowDepthRHI* DirectionalShadowCascadeDepthRHI = nullptr; // 방향성 광원 섀도우 맵을 위한 Depth RHI
-    //uint32 MaxDirectionalLightShadows = 1; 
-    uint32 NumCascades = 1;
-    TArray<FMatrix> DirectionalLightViewProjMatrices; // 계산된 캐스케이드 ViewProj 행렬
+    //uint32 MaxDirectionalLightShadows = 1;
+
+
+    uint32 NumCascades = 4;                             // [캐스케이드 개수] : **여기서 초기화**
+    TArray<FMatrix> DirectionalLightViewProjMatrices;   // 계산된 캐스케이드 ViewProj 행렬
 
     // --- 공통 샘플러 ---
     ID3D11SamplerState* ShadowSamplerCmp = nullptr;
