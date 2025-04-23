@@ -23,6 +23,9 @@ public:
     float GetIntensity() const;
     void SetIntensity(float InIntensity);
 
+    bool GetCastShadows() const { return DirectionalLightInfo.CastShadows; }
+    void SetCastShadows(bool InCastShadows) { DirectionalLightInfo.CastShadows = InCastShadows; }
+
     FLinearColor GetLightColor() const;
     void SetLightColor(const FLinearColor& InColor);
 

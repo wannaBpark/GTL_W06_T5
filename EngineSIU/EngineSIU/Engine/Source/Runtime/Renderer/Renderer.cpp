@@ -318,22 +318,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     {
         QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
         QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
-        TArray<UPointLightComponent*> CulledPointLights, TotalPointLights;
-        TArray<USpotLightComponent*> CulledSpotLights, TotalSpotLights;
-        TArray<uint32> CulledPointLightIndexArr = TileLightCullingPass->GetCulledPointLightMaskData();
-        TArray<uint32> CulledSpotLightIndexArr = TileLightCullingPass->GetCulledSpotLightMaskData();
-
-        TotalPointLights = TileLightCullingPass->GetPointLights();
-        for (int i = 0; i < CulledPointLightIndexArr.Num(); i++)
-        {
-            CulledPointLights.Add(TotalPointLights[CulledPointLightIndexArr[i]]);
-        }
-        TotalSpotLights = TileLightCullingPass->GetSpotLights();
-        for (int i = 0; i < CulledSpotLightIndexArr.Num(); i++)
-        {
-            CulledSpotLights.Add(TotalSpotLights[CulledSpotLightIndexArr[i]]);
-        }
-        ShadowRenderPass->SetLightData(CulledPointLights, CulledSpotLights);
+        ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
         ShadowRenderPass->Render(Viewport);
     }
 
@@ -356,6 +341,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
     EndRender();
 }
+
 
 void FRenderer::EndRender()
 {
