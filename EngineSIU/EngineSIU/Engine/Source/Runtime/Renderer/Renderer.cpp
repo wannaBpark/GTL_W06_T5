@@ -31,14 +31,17 @@
 #include "GameFrameWork/Actor.h"
 
 #include "PropertyEditor/ShowFlags.h"
+#include "Stats/Stats.h"
+#include "Stats/GPUTimingManager.h"
 
 //------------------------------------------------------------------------------
 // 초기화 및 해제 관련 함수
 //------------------------------------------------------------------------------
-void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager)
+void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager, FGPUTimingManager* InGPUTimingManager)
 {
     Graphics = InGraphics;
     BufferManager = InBufferManager;
+    GPUTimingManager = InGPUTimingManager;
 
     ShaderManager = new FDXDShaderManager(Graphics->Device);
     ShadowManager = new FShadowManager();
@@ -166,12 +169,12 @@ void FRenderer::CreateConstantBuffers()
     Graphics->DeviceContext->PSSetConstantBuffers(13, 1, &CameraConstantBuffer);
 }
 
-void FRenderer::ReleaseConstantBuffer()
+void FRenderer::ReleaseConstantBuffer() const
 {
     BufferManager->ReleaseConstantBuffer();
 }
 
-void FRenderer::CreateCommonShader()
+void FRenderer::CreateCommonShader() const
 {
     D3D11_INPUT_ELEMENT_DESC StaticMeshLayoutDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -202,7 +205,7 @@ void FRenderer::CreateCommonShader()
 #pragma endregion UberShader
 }
 
-void FRenderer::PrepareRender(FViewportResource* ViewportResource)
+void FRenderer::PrepareRender(FViewportResource* ViewportResource) const
 {
     // Setup Viewport
     Graphics->DeviceContext->RSSetViewports(1, &ViewportResource->GetD3DViewport());
@@ -213,7 +216,7 @@ void FRenderer::PrepareRender(FViewportResource* ViewportResource)
     PrepareRenderPass();
 }
 
-void FRenderer::PrepareRenderPass()
+void FRenderer::PrepareRenderPass() const
 {
     StaticMeshRenderPass->PrepareRenderArr();
     ShadowRenderPass->PrepareRenderArr();
@@ -227,7 +230,7 @@ void FRenderer::PrepareRenderPass()
     DepthPrePass->PrepareRenderArr();
 }
 
-void FRenderer::ClearRenderArr()
+void FRenderer::ClearRenderArr() const
 {
     StaticMeshRenderPass->ClearRenderArr();
     ShadowRenderPass->ClearRenderArr();
@@ -241,7 +244,7 @@ void FRenderer::ClearRenderArr()
     TileLightCullingPass->ClearRenderArr();
 }
 
-void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     FCameraConstantBuffer CameraConstantBuffer;
     CameraConstantBuffer.ViewMatrix = Viewport->GetViewMatrix();
@@ -270,6 +273,14 @@ void FRenderer::BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewpo
 
 void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    if (!GPUTimingManager || !GPUTimingManager->IsInitialized())
+    {
+        return;
+    }
+
+    QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
+    QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
+
     BeginRender(Viewport);
 
     /**
@@ -288,111 +299,54 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
 	if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
     {
+        QUICK_SCOPE_CYCLE_COUNTER(DepthPrePass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthPrePass_GPU, *GPUTimingManager)
         DepthPrePass->Render(Viewport);
     }
 
     // Added Compute Shader Pass
     if (TileLightCullingPass)
     {
+        QUICK_SCOPE_CYCLE_COUNTER(TileLightCulling_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(TileLightCulling_GPU, *GPUTimingManager)
         TileLightCullingPass->Render(Viewport);
+
+        // 이후 패스에서 사용할 수 있도록 리소스 생성
         LightHeatMapRenderPass->SetDebugHeatmapSRV(TileLightCullingPass->GetDebugHeatmapSRV());
+        // @todo UpdateLightBuffer에서 병목 발생 -> 필요한 라이트에 대하여만 업데이트 필요, Tiled Culling으로 GPU->CPU 전송은 주객전도
+        UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
+                                TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
         UpdateLightBufferPass->SetTileConstantBuffer(TileLightCullingPass->GetTileConstantBuffer());
-        
     }
 
     if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
     {
-        
-        // TMap 또는 std::unordered_map 사용 가능
-        TMap<UPointLightComponent*, uint32> PointLightPtrToCulledIndex;
-        TMap<USpotLightComponent*, uint32> SpotLightPtrToCulledIndex;
-        // 또는 TMap<int32, int32> OriginalIndexToCulledIndex; (원본 인덱스를 키로 사용)
-
-        TArray<UPointLightComponent*> CulledPointLights, TotalPointLights;
-        TArray<USpotLightComponent*> CulledSpotLights, TotalSpotLights;
-        TArray<uint32> CulledPointLightIndexArr = TileLightCullingPass->GetCulledPointLightMaskData();
-        TArray<uint32> CulledSpotLightIndexArr = TileLightCullingPass->GetCulledSpotLightMaskData();
-
-        TotalPointLights = TileLightCullingPass->GetPointLights();
-        // 역방향 매핑 생성 (포인터 기반)
-        CulledPointLights.Reserve(CulledPointLightIndexArr.Num()); // 미리 공간 확보
-        PointLightPtrToCulledIndex.Reserve(CulledPointLightIndexArr.Num());
-        for (int32 CulledIndex = 0; CulledIndex < CulledPointLightIndexArr.Num(); ++CulledIndex)
-        {
-            if (CulledIndex >= ShadowManager->GetMaxPointLightCount())
-            {
-                break; // 최대 포인트 라이트 수를 초과하면 종료
-            }
-            uint32 OriginalIndex = CulledPointLightIndexArr[CulledIndex];
-            if (TotalPointLights.IsValidIndex(OriginalIndex)) // 안전 확인
-            {
-                UPointLightComponent* Light = TotalPointLights[OriginalIndex];
-                CulledPointLights.Add(Light);
-                PointLightPtrToCulledIndex.Add(Light, CulledIndex); // 포인터 -> 컬링된 인덱스 매핑 추가
-            }
-        }
-
-        TotalSpotLights = TileLightCullingPass->GetSpotLights();
-        // 역방향 매핑 생성 (포인터 기반)
-        CulledSpotLights.Reserve(CulledSpotLightIndexArr.Num());
-        SpotLightPtrToCulledIndex.Reserve(CulledSpotLightIndexArr.Num());
-        for (int32 CulledIndex = 0; CulledIndex < CulledSpotLightIndexArr.Num(); ++CulledIndex)
-        {
-            if (CulledIndex >= ShadowManager->GetMaxSpotLightCount())
-            {
-                break; // 최대 스팟 라이트 수를 초과하면 종료
-            }
-            
-            uint32 OriginalIndex = CulledSpotLightIndexArr[CulledIndex];
-            if (TotalSpotLights.IsValidIndex(OriginalIndex)) // 안전 확인
-            {
-                USpotLightComponent* Light = TotalSpotLights[OriginalIndex];
-                CulledSpotLights.Add(Light);
-                SpotLightPtrToCulledIndex.Add(Light, CulledIndex); // 포인터 -> 컬링된 인덱스 매핑 추가
-            }
-        }
-        
-        ShadowRenderPass->SetLightData(CulledPointLights, CulledSpotLights);
+        QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
+        ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
         ShadowRenderPass->Render(Viewport);
-
-        if (TileLightCullingPass)
-        {
-            UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
-                                            PointLightPtrToCulledIndex, SpotLightPtrToCulledIndex,
-                                            TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
-       
-        }
-        
     }
 
     RenderWorldScene(Viewport);
     RenderPostProcess(Viewport);
     RenderEditorOverlay(Viewport);
-    
-    // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
-    
+
     Graphics->DeviceContext->PSSetShaderResources(
         static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
         1,
         &TileLightCullingPass->GetDebugHeatmapSRV()
     ); // TODO: 최악의 코드
-    CompositingPass->Render(Viewport);
 
- //    if (!IsSceneDepth)
- //    {
- //        DepthBufferDebugPass->UpdateDepthBufferSRV();
- //        
- //        LightHeatMapRenderPass->Render(Viewport, DepthBufferDebugPass->GetDepthSRV());
- //    }
-
-    // 테스트용 tile light 열화상맵 추가
-    if (TileLightCullingPass)
+    // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
     {
-        //LightHeatMapRenderPass->Render(Viewport);
+        QUICK_SCOPE_CYCLE_COUNTER(CompositingPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(CompositingPass_GPU, *GPUTimingManager)
+        CompositingPass->Render(Viewport);
     }
 
     EndRender();
 }
+
 
 void FRenderer::EndRender()
 {
@@ -400,24 +354,36 @@ void FRenderer::EndRender()
     ShaderManager->ReloadAllShaders(); // 
 }
 
-void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     
     if (ShowFlag & EEngineShowFlags::SF_Primitives)
     {
-        UpdateLightBufferPass->Render(Viewport);
-        StaticMeshRenderPass->Render(Viewport);
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_GPU, *GPUTimingManager)
+            UpdateLightBufferPass->Render(Viewport);
+        }
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(StaticMeshPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(StaticMeshPass_GPU, *GPUTimingManager)
+            StaticMeshRenderPass->Render(Viewport);
+        }
     }
     
     // Render World Billboard
     if (ShowFlag & EEngineShowFlags::SF_BillboardText)
     {
-        WorldBillboardRenderPass->Render(Viewport);
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(WorldBillboardPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(WorldBillboardPass_GPU, *GPUTimingManager)
+            WorldBillboardRenderPass->Render(Viewport);
+        }
     }
 }
 
-void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
@@ -429,6 +395,8 @@ void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& 
     
     if (ShowFlag & EEngineShowFlags::SF_Fog)
     {
+        QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
         FogRenderPass->Render(Viewport);
         /**
          * TODO: Fog 렌더 작업 해야 함.
@@ -441,14 +409,18 @@ void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& 
     /**
      * TODO: 반드시 씬에 먼저 반영되어야 하는 포스트 프로세싱 효과는 먼저 씬에 반영하고,
      *       그 외에는 렌더한 포스트 프로세싱 효과들을 이 시점에서 하나로 합친 후에, 다음에 올 컴포짓 과정에서 합성.
-     */ 
+     */
 
-    PostProcessCompositingPass->Render(Viewport);
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(PostProcessCompositing_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessCompositing_GPU, *GPUTimingManager)
+        PostProcessCompositingPass->Render(Viewport);
+    }
     
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
@@ -467,19 +439,33 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
      */
     if (ShowFlag & EEngineShowFlags::SF_BillboardText)
     {
+        QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorBillboardPass_GPU, *GPUTimingManager)
         EditorBillboardRenderPass->Render(Viewport);
     }
 
-    EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
-
-    LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
-    
-    GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
+        EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
+    }
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
+        LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
+    }
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
+        GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
+    }
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void FRenderer::RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
+    QUICK_SCOPE_CYCLE_COUNTER(SlatePass_CPU)
+    QUICK_GPU_SCOPE_CYCLE_COUNTER(SlatePass_GPU, *GPUTimingManager)
     SlateRenderPass->Render(Viewport);
 }

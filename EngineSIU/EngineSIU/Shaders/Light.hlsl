@@ -32,7 +32,7 @@ struct FDirectionalLightInfo
     row_major matrix LightInvProj; // 섀도우맵 생성 시 사용한 VP 행렬
     
     uint ShadowMapArrayIndex;//캐스캐이드전 임시 배열
-    bool CastShadows;
+    uint  CastShadows;
     float ShadowBias;
     float Padding3; // 필요시
 
@@ -60,7 +60,7 @@ struct FPointLightInfo
     // --- Shadow Info ---
     row_major matrix LightViewProj[6]; // 섀도우맵 생성 시 사용한 VP 행렬
     
-    bool CastShadows;
+    uint CastShadows;
     float ShadowBias;
     uint ShadowMapArrayIndex; // 필요시
     float Padding2; // 필요시
@@ -85,7 +85,7 @@ struct FSpotLightInfo
     // --- Shadow Info ---
     row_major matrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
     
-    bool CastShadows;
+    uint CastShadows;
     float ShadowBias;
     uint ShadowMapArrayIndex; // 필요시
     float Padding2; // 필요시
@@ -223,6 +223,11 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
                                 Texture2DArray DirectionShadowMapArray,
                                 SamplerComparisonState ShadowSampler)
 {
+    if (LightInfo.CastShadows == false)
+    {
+        return 1.0f;
+    }
+    
     float ShadowFactor = 1.0;
     float NdotL = dot(normalize(WorldNormal), LightInfo.Direction);
     float bias = 0.001f /** (1 - NdotL) + 0.0001f*/;
@@ -238,6 +243,7 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
 
     float LightDistance = LightScreen.z;
     LightDistance -= bias;
+
 
     ShadowFactor = PCSS(LightInfo, ShadowMapTexCoord, LightDistance, DirectionShadowMapArray, LightInfo.LightInvProj, LIGHT_RADIUS_WORLD);
     return ShadowFactor;
@@ -400,11 +406,19 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
         return float4(0.f, 0.f, 0.f, 0.f);
     }
     
-    // --- 그림자 계산 
-    float Shadow = CalculatePointShadowFactor(WorldPosition, LightInfo, PointShadowMapArray, ShadowSamplerCmp);
-    if(!IsShadow)
+
+    // --- 그림자 계산
+    
+    float Shadow;
+
+    if (LightInfo.CastShadows && IsShadow)
     {
-        Shadow = float4(1.0f, 1.0f, 1.0f, 1.0f);
+        // 그림자 계산
+        Shadow = CalculatePointShadowFactor(WorldPosition, LightInfo, PointShadowMapArray, ShadowSamplerCmp);
+    }
+    else
+    {
+        Shadow = 1.0;
     }
 
     // 그림자 계수가 0 이하면 더 이상 계산 불필요
@@ -447,11 +461,16 @@ float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
         return float4(0.0, 0.0, 0.0, 0.0);
     }
 
-    // --- 그림자 계산 
-    float Shadow = CalculateSpotShadowFactor(WorldPosition, LightInfo, SpotShadowMapArray, ShadowSamplerCmp);
-    if(!IsShadow)
+    float Shadow;
+
+    if (LightInfo.CastShadows && IsShadow)
     {
-        Shadow = float4(1.0f, 1.0f, 1.0f, 1.0f);
+        // 그림자 계산
+        Shadow  = CalculateSpotShadowFactor(WorldPosition, LightInfo, SpotShadowMapArray, ShadowSamplerCmp);
+    }
+    else
+    {
+        Shadow = 1.0;
     }
 
     // 그림자 계수가 0 이하면 더 이상 계산 불필요

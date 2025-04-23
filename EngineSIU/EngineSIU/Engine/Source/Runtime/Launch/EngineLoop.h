@@ -4,6 +4,8 @@
 #include "LevelEditor/SlateAppMessageHandler.h"
 #include "Renderer/Renderer.h"
 #include "UnrealEd/PrimitiveDrawBatch.h"
+#include "Stats/ProfilerStatsManager.h"
+#include "Stats/GPUTimingManager.h"
 
 
 class FSlateAppMessageHandler;
@@ -15,7 +17,6 @@ class SSplitterV;
 class SSplitterH;
 class FGraphicDevice;
 class SLevelEditor;
-
 class FDXDBufferManager;
 
 class FEngineLoop
@@ -46,6 +47,9 @@ public:
     static uint32 TotalAllocationCount;
 
     HWND AppWnd;
+
+    FGPUTimingManager GPUTimingManager;
+    FEngineProfiler EngineProfiler;
 
 private:
     UImGuiManager* UIMgr;

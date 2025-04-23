@@ -25,6 +25,9 @@ public:
     float GetRadius() const;
     void SetRadius(float InRadius);
 
+    bool GetCastShadows() const { return PointLightInfo.CastShadows; }
+    void SetCastShadows(bool InCastShadows) { PointLightInfo.CastShadows = InCastShadows; }
+
     FLinearColor GetLightColor() const;
     void SetLightColor(const FLinearColor& InColor);
 

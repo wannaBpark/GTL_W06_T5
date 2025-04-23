@@ -80,7 +80,7 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     UpdateTileLightConstantBuffer(Viewport);
     Dispatch(Viewport);
 
-    ParseCulledLightMaskData();
+    //ParseCulledLightMaskData();
 }
 
 void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const
@@ -321,6 +321,10 @@ void FTileLightCullingPass::CreateViews()
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Tile Spot SRV!"));
     }
+
+    BufferDesc.ByteWidth = sizeof(uint32) * SHADER_ENTITY_TILE_BUCKET_COUNT;
+    SRVDesc.Buffer.NumElements = SHADER_ENTITY_TILE_BUCKET_COUNT;
+    UAVDesc.Buffer.NumElements = SHADER_ENTITY_TILE_BUCKET_COUNT;
 
     // Culled PointLight Index Buffer
     hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &CulledPointLightIndexMaskBuffer);

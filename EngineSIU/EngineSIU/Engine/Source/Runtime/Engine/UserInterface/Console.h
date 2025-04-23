@@ -2,6 +2,7 @@
 #include "Container/Array.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "HAL/PlatformType.h"
+#include "UObject/NameTypes.h"
 #include "ImGUI/imgui.h"
 #include "PropertyEditor/IWindowToggleable.h"
 
@@ -25,6 +26,31 @@ public:
 
     void ToggleStat(const std::string& Command);
     void Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) const;
+};
+
+struct FProfiledScope
+{
+    FString DisplayName;
+    FName CPUStatName;
+    FName GPUStatName;
+};
+
+class FGPUTimingManager;
+
+class FEngineProfiler
+{
+public:
+    FEngineProfiler() = default;
+    ~FEngineProfiler() = default;
+
+    void SetGPUTimingManager(FGPUTimingManager* InGPUTimingManager);
+    void Render(ID3D11DeviceContext* Context, UINT Width, UINT Height);
+    void RegisterStatScope(const FString& DisplayName, const FName& CPUStatName, const FName& GPUStatName);
+
+private:
+    FGPUTimingManager* GPUTimingManager = nullptr;
+    TArray<FProfiledScope> TrackedScopes;
+    bool bShowWindow = true;
 };
 
 class Console : public IWindowToggleable
