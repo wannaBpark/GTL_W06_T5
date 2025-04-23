@@ -21,7 +21,9 @@
 #include "Components/ProjectileMovementComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Renderer/ShadowManager.h"
+#include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 
 void PropertyEditorPanel::Render()
@@ -334,6 +336,45 @@ void PropertyEditorPanel::Render()
                 ImGui::TreePop();
             }
 
+            ImGui::PopStyleColor();
+        }
+    }
+    if (PickedActor)
+    {
+        if (ULightComponentBase* LightComponent = PickedActor->GetComponentByClass<ULightComponentBase>())
+        {
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
+            // --- "Override Camera" 버튼 추가 ---
+            if (ImGui::Button("Override Camera with Light's Perspective"))
+            {
+                // 1. 라이트의 월드 위치 및 회전 가져오기
+                FVector LightLocation = LightComponent->GetWorldLocation();
+                FVector LightForward = LightComponent->GetForwardVector();
+                FRotator LightRotation = LightComponent->GetWorldRotation();
+                FVector LightRotationVecter;
+                LightRotationVecter.X = LightRotation.Roll;
+                LightRotationVecter.Y = LightRotation.Pitch;
+                LightRotationVecter.Z = LightRotation.Yaw;
+
+                // 2. 활성 에디터 뷰포트 클라이언트 가져오기 (!!! 엔진별 구현 필요 !!!)
+                std::shared_ptr<FEditorViewportClient> ViewportClient = GEngineLoop.GetLevelEditor()->GetActiveViewportClient(); // 위에 정의된 헬퍼 함수 사용 (또는 직접 구현)
+
+                // 3. 뷰포트 클라이언트가 유효하면 카메라 설정
+                if (ViewportClient)
+                {
+                    ViewportClient->PerspectiveCamera.SetLocation(LightLocation + LightForward); // 카메라 위치 설정 함수 호출
+                    ViewportClient->PerspectiveCamera.SetRotation(LightRotationVecter); // 카메라 회전 설정 함수 호출
+
+                    // 필요시 뷰포트 강제 업데이트/다시 그리기 호출
+                    // ViewportClient->Invalidate();
+                }
+                else
+                {
+                    // 뷰포트 클라이언트를 찾을 수 없음 (오류 로그 등)
+                    // UE_LOG(LogTemp, Warning, TEXT("Active Viewport Client not found."));
+                }
+            }
             ImGui::PopStyleColor();
         }
     }
