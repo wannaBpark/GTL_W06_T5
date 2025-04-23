@@ -46,7 +46,7 @@ private:
     ID3D11ShaderResourceView* SliceSRVs[6] = { nullptr };
 
 public:
-    TArray<FDepthStencilRHI> GetShadowMap() override;
+    //TArray<FDepthStencilRHI> GetShadowMap() override;
 };
 
 

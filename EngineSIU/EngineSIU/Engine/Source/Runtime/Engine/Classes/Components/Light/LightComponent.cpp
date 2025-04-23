@@ -15,7 +15,6 @@ ULightComponentBase::~ULightComponentBase()
 }
 void ULightComponentBase::Initialize()
 {
-    CreateShadowMap();
 }
 
 UObject* ULightComponentBase::Duplicate(UObject* InOuter)

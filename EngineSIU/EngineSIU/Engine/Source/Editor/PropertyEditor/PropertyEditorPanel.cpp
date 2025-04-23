@@ -187,7 +187,7 @@ void PropertyEditorPanel::Render()
                 // CubeMap이므로 6개의 ShadowMap을 그립니다.
                 for (int i = 0; i < 6; ++i)
                 {
-                    auto s = static_cast<void*>(PointlightComponent->GetSliceSRV(i));
+                    //auto s = static_cast<void*>(PointlightComponent->GetSliceSRV(i));
                 //    ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
 
                     if (i % 2 == 0)

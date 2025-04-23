@@ -36,17 +36,7 @@ cbuffer TextureConstants : register(b4)
 
 #include "Light.hlsl"
 
-float GetPointLightShadow(PS_INPUT_StaticMesh input)
-{
-    float3 toLight = input.WorldPosition - LightPos;      // 라이트 방향 & 거리
-    float  dist   = length(toLight);
-    float  bias   = 0.001f;
-    // 비교 샘플: toLight(방향) 과 dist-bias(깊이) 비교
-    float shadow = PointShadowMap.SampleCmpLevelZero(ShadowSampler,
-                     normalize(toLight),
-                     dist - bias);
-    return shadow;
-}
+
 
 
 

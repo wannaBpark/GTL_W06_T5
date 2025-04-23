@@ -167,8 +167,8 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     // ShadowRenderPass->InitializeShadowManager();
     
     CreateShader();
-    ShadowRenderPass = new FShadowRenderPass();
-    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    //ShadowRenderPass = new FShadowRenderPass();
+    //ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
 }
 
 void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
@@ -410,7 +410,7 @@ void FStaticMeshRenderPass::RenderAllStaticMeshesForPointLight(const std::shared
 
         FMatrix WorldMatrix = Comp->GetWorldMatrix();
 
-        ShadowRenderPass->UpdateCubeMapConstantBuffer(PointLight, WorldMatrix);
+        //ShadowRenderPass->UpdateCubeMapConstantBuffer(PointLight, WorldMatrix);
 
         RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
     }
