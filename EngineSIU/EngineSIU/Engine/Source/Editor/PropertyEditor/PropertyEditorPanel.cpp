@@ -280,8 +280,14 @@ void PropertyEditorPanel::Render()
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
 
                 ImGui::Text("ShadowMap");
-                ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager-> GetDirectionalShadowCascadeDepthRHI()->ShadowSRVs[0]), ImVec2(200, 200));
 
+                // 분할된 개수만큼 CSM 해당 SRV 출력
+                const uint32& NumCascades = FEngineLoop::Renderer.ShadowManager->GetNumCasCades();
+                for (uint32 i = 0; i < NumCascades; ++i)
+                {
+                    ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager->GetDirectionalShadowCascadeDepthRHI()->ShadowSRVs[i]), ImVec2(200, 200));
+                    ImGui::SameLine();
+                }
                 ImGui::TreePop();
             }
 

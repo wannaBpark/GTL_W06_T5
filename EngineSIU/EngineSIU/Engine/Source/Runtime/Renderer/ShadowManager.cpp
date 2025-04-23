@@ -118,7 +118,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     // 유효성 검사
     if (!D3DContext || cascadeIndex >= (uint32_t)DirectionalShadowCascadeDepthRHI->ShadowDSVs.Num() || !DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex])
     {
-        // UE_LOG(LogTemp, Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
+         UE_LOG(LogLevel::Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
         return;
     }
 
@@ -317,7 +317,8 @@ bool FShadowManager::CreateDirectionalShadowResources()
         if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
     }
 
-    DirectionalShadowCascadeDepthRHI->ShadowSRVs.SetNum(NumCascades);
+    // Directional Light의 Shadow Map 개수 = Cascade 개수 (분할 개수)
+    DirectionalShadowCascadeDepthRHI->ShadowSRVs.SetNum(NumCascades); 
     for (uint32_t i = 0; i < NumCascades; ++i)
     {
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};

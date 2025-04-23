@@ -15,7 +15,7 @@ struct FShadowDepthRHI
     TArray<ID3D11DepthStencilView*> ShadowDSVs; // 디렉셔널인경우  cascade
     TArray<ID3D11ShaderResourceView*> ShadowSRVs; // imgui용 각 텍스쳐의 srv
     
-    uint32 ShadowMapResolution = 1024;
+    uint32 ShadowMapResolution = 1024; // 섀도우 맵 해상도 (기본값: 1024x1024)
 
     void Release()
     {
@@ -100,7 +100,7 @@ public:
     
     FShadowDepthRHI* GetSpotShadowDepthRHI() const { return SpotShadowDepthRHI; }
     FShadowDepthRHI* GetDirectionalShadowCascadeDepthRHI() const { return DirectionalShadowCascadeDepthRHI; }
-
+    uint32 GetNumCasCades() const { return NumCascades; }
     
 private:
     
