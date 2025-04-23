@@ -216,9 +216,13 @@ void FShadowManager::BindResourcesForSampling(
         {
             CascadeData.ViewProj[i] = CascadesViewProjMatrices[i];
             CascadeData.InvViewProj[i] = FMatrix::Inverse(CascadeData.ViewProj[i]);
+            if (i >= CascadesInvProjMatrices.Num()) { continue; }
             CascadeData.InvProj[i] = CascadesInvProjMatrices[i];
         }
-        CascadeData.CascadeSplit = { CascadeSplits[0], CascadeSplits[1], CascadeSplits[2], CascadeSplits[3] };
+
+        if (CascadeSplits.Num() >= 4) {
+            CascadeData.CascadeSplit = { CascadeSplits[0], CascadeSplits[1], CascadeSplits[2], CascadeSplits[3] };
+        }
             //CascadeData.CascadeSplits[i] = CascadeSplits[i];
         //CascadeData.CascadeSplits[NumCascades] = CascadeSplits[NumCascades];
 
