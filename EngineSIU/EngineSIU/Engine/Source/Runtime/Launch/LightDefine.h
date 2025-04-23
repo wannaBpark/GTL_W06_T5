@@ -24,7 +24,7 @@ struct FDirectionalLightInfo
     FMatrix LightInvProj;  // Light 광원 입장에서의 InvProj
 
     uint32 ShadowMapArrayIndex = 0 ;//캐스캐이드전 임시 배열
-    bool CastShadows;
+    uint32 CastShadows;
     float ShadowBias;
     float Padding3; // 필요시
 
@@ -58,7 +58,7 @@ struct FPointLightInfo
     // --- Shadow Info ---
     FMatrix LightViewProjs[6]; // 섀도우맵 생성 시 사용한 VP 행렬
     
-    bool CastShadows;
+    uint32 CastShadows;
     float ShadowBias;
     uint32 ShadowMapArrayIndex = 0;
     float Padding2; // 필요시
@@ -82,7 +82,7 @@ struct FSpotLightInfo
     // --- Shadow Info ---
     FMatrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
     
-    bool CastShadows;
+    uint32 CastShadows;
     float ShadowBias;
     uint32 ShadowMapArrayIndex;
     float Padding2; // 필요시

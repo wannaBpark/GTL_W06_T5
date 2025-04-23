@@ -41,6 +41,9 @@ public:
     float GetOuterDegree() const;
     void SetOuterDegree(float InOuterDegree);
 
+    bool GetCastShadows() const { return SpotLightInfo.CastShadows; }
+    void SetCastShadows(bool InCastShadows) { SpotLightInfo.CastShadows = InCastShadows; }
+
     
     void UpdateViewMatrix() override;
     void UpdateProjectionMatrix() override;

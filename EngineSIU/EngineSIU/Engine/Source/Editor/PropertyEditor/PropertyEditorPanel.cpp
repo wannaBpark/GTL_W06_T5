@@ -182,6 +182,14 @@ void PropertyEditorPanel::Render()
                 {
                     PointlightComponent->SetRadius(Radius);
                 }
+                // --- Cast Shadows 체크박스 추가 ---
+                bool bCastShadows = PointlightComponent->GetCastShadows(); // 현재 상태 가져오기
+                if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) // 체크박스 UI 생성 및 상호작용 처리
+                {
+                    PointlightComponent->SetCastShadows(bCastShadows); // 변경된 상태 설정
+                    // 필요하다면, 상태 변경에 따른 즉각적인 렌더링 업데이트 요청 로직 추가
+                    // 예: PointlightComponent->MarkRenderStateDirty();
+                }
 
                 ImGui::Text("ShadowMap");
 
@@ -253,6 +261,15 @@ void PropertyEditorPanel::Render()
                     SpotLightComponent->SetInnerDegree(InnerConeAngle);
                 }
 
+                // --- Cast Shadows 체크박스 추가 ---
+                bool bCastShadows = SpotLightComponent->GetCastShadows(); // 현재 상태 가져오기
+                if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) // 체크박스 UI 생성 및 상호작용 처리
+                {
+                    SpotLightComponent->SetCastShadows(bCastShadows); // 변경된 상태 설정
+                    // 필요하다면, 상태 변경에 따른 즉각적인 렌더링 업데이트 요청 로직 추가
+                    // 예: PointlightComponent->MarkRenderStateDirty();
+                }
+
                 ImGui::Text("ShadowMap");
                 ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager->GetSpotShadowDepthRHI()->ShadowSRVs[0]), ImVec2(200, 200));
 
@@ -284,6 +301,15 @@ void PropertyEditorPanel::Render()
                 LightDirection = DirectionalLightComponent->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
 
+
+                // --- Cast Shadows 체크박스 추가 ---
+                bool bCastShadows = DirectionalLightComponent->GetCastShadows(); // 현재 상태 가져오기
+                if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) // 체크박스 UI 생성 및 상호작용 처리
+                {
+                    DirectionalLightComponent->SetCastShadows(bCastShadows); // 변경된 상태 설정
+                    // 필요하다면, 상태 변경에 따른 즉각적인 렌더링 업데이트 요청 로직 추가
+                    // 예: PointlightComponent->MarkRenderStateDirty();
+                }
                 ImGui::Text("ShadowMap");
                 ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager-> GetDirectionalShadowCascadeDepthRHI()->ShadowSRVs[0]), ImVec2(200, 200));
 
