@@ -58,7 +58,7 @@ struct FPointLightInfo
     float Padding;
 
     // --- Shadow Info ---
-    row_major matrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
+    row_major matrix LightViewProj[6]; // 섀도우맵 생성 시 사용한 VP 행렬
     
     bool CastShadows;
     float ShadowBias;
@@ -141,7 +141,7 @@ SamplerState ShadowPointSampler : register(s11);
 
 Texture2DArray SpotShadowMapArray : register(t50);
 Texture2DArray DirectionShadowMapArray : register(t51);
-Texture2DArray PointShadowMapArray : register(t52);
+TextureCubeArray PointShadowMapArray : register(t52);
 
 bool InRange(float val, float min, float max)
 {
@@ -268,6 +268,47 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
     // return Light;
 }
 
+int GetMajorFaceIndex(float3 Dir){
+    float3 absDir = abs(Dir);
+    if(absDir.x > absDir.y && absDir.x > absDir.z)
+    {
+        return Dir.x > 0.0f ? 0 : 1;
+    }
+    else if(absDir.y > absDir.z)
+    {
+        return Dir.y > 0.0f ? 2 : 3;
+    }
+    else
+    {
+        return Dir.z > 0.0f ? 4 : 5;
+    }
+}
+
+float CalculatePointShadowFactor(float3 WorldPosition, FPointLightInfo LightInfo, // 라이트 정보 전체 전달
+                                TextureCubeArray ShadowMapArray,
+                                SamplerComparisonState ShadowSampler)
+{
+    // 1) 광원→조각 방향 (큐브맵 샘플링 좌표)
+    float3 Dir = normalize(WorldPosition - LightInfo.Position);
+    // 2) 해당 face의 뷰·프로젝션 적용
+    int face = GetMajorFaceIndex(Dir);
+    float4 posCS = mul(float4(WorldPosition, 1.0f), LightInfo.LightViewProj[face]);
+    // 3) 클립스페이스 깊이
+    float refDepth = posCS.z / posCS.w;
+    // 5) 하드웨어 비교 샘플
+    float3 SampleDir = normalize(WorldPosition - LightInfo.Position);
+    float shadow = ShadowMapArray.SampleCmpLevelZero(ShadowSampler, float4(SampleDir, (float)LightInfo.ShadowMapArrayIndex), refDepth - LightInfo.ShadowBias).r;
+    return shadow;
+}
+
+
+// cbuffer PointLightShadowConstants : register(b5)
+// {
+//     row_major matrix PointLightViewProj[NUM_FACES]; // 6 : NUM_FACES
+//     float3 PointLightPos;
+//     float pad0;
+// }
+
 
 // 기본적인 그림자 계산 함수 (Directional/Spot 용)
 // 하드웨어 PCF (SamplerComparisonState 사용) 예시
@@ -359,6 +400,15 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
         return float4(0.f, 0.f, 0.f, 0.f);
     }
     
+    // --- 그림자 계산 
+    float Shadow = CalculatePointShadowFactor(WorldPosition, LightInfo, PointShadowMapArray, ShadowSamplerCmp);
+
+    // 그림자 계수가 0 이하면 더 이상 계산 불필요
+    if (Shadow <= 0.0)
+    {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }
+    
     float3 LightDir = normalize(ToLight);
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
 #ifdef LIGHTING_MODEL_LAMBERT
@@ -369,7 +419,7 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
     float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * Material.SpecularColor)) * LightInfo.LightColor.rgb;
 #endif
     
-    return float4(Lit * Attenuation * LightInfo.Intensity, 1.0);
+    return float4(Lit * Attenuation * LightInfo.Intensity * Shadow, 1.0);
 }
 
 float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor)

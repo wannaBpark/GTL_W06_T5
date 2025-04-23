@@ -338,7 +338,6 @@ void UPointLightComponent::SetType(int InType)
 void UPointLightComponent::UpdateViewMatrix()
 {
     FVector PointLightPos = GetWorldLocation();
-
     // ViewMatrices 배열의 크기가 6인지 확인하고, 아니면 조정합니다.
     // 생성자 등에서 미리 크기를 6으로 설정하는 것이 더 효율적일 수 있습니다.
     if (ViewMatrices.Num() != 6)
@@ -347,29 +346,24 @@ void UPointLightComponent::UpdateViewMatrix()
     }
     // 1. +X 면 (World Forward)
     // Target: 정면 / Up: 월드 위쪽 (Z+)
-    ViewMatrices[0] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos + FVector::ForwardVector, FVector::UpVector);
-
+    ViewMatrices[0] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos + FVector::ForwardVector, FVector::RightVector);
     // 2. -X 면 (World Backward)
     // Target: 후면 / Up: 월드 위쪽 (Z+)
-    ViewMatrices[1] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos - FVector::ForwardVector, FVector::UpVector);
-
+    ViewMatrices[1] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos - FVector::ForwardVector, FVector::RightVector);
     // 3. +Y 면 (World Right)
     // Target: 우측 / Up: 월드 위쪽 (Z+)
-    ViewMatrices[2] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos + FVector::RightVector, FVector::UpVector);
-
+    ViewMatrices[2] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos + FVector::RightVector, FVector::DownVector);
     // 4. -Y 면 (World Left)
     // Target: 좌측 / Up: 월드 위쪽 (Z+)
     ViewMatrices[3] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos - FVector::RightVector, FVector::UpVector);
-
     // 5. +Z 면 (World Up)
     // Target: 위쪽 / Up: 월드 정면 (X+) -> 위를 볼 때, 화면 상단이 월드의 정면 방향이 되도록 설정
     // Up 벡터가 시선 방향(Z+)과 평행하면 안 되므로 다른 축 사용
-    ViewMatrices[4] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos + FVector::UpVector, FVector::ForwardVector); // Up: World Forward (+X)
-
+    ViewMatrices[4] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos + FVector::UpVector, FVector::RightVector); // Up: World Forward (+X)
     // 6. -Z 면 (World Down)
     // Target: 아래쪽 / Up: 월드 정면 (X+) -> 아래를 볼 때, 화면 상단이 월드의 정면 방향이 되도록 설정
     // Up 벡터가 시선 방향(-Z)과 평행하면 안 되므로 다른 축 사용
-    ViewMatrices[5] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos - FVector::UpVector, FVector::ForwardVector); // Up: World Forward (+X)
+    ViewMatrices[5] = JungleMath::CreateViewMatrix(PointLightPos, PointLightPos - FVector::UpVector, FVector::RightVector); // Up: World Forward (+X)
 }
 
 void UPointLightComponent::UpdateProjectionMatrix()

@@ -354,7 +354,10 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
     {
         TempBuffer[i] = PointLights[i]->GetPointLightInfo();
         TempBuffer[i].Position = PointLights[i]->GetWorldLocation();
-        TempBuffer[i].LightViewProj = PointLights[i]->GetViewMatrix() * PointLights[i]->GetProjectionMatrix();
+        for (int j = 0; j < 6; ++j)
+        {
+            TempBuffer[i].LightViewProjs[j] = PointLights[i]->GetViewProjectionMatrix(j);
+        }
         TempBuffer[i].ShadowMapArrayIndex = i;
         TempBuffer[i].ShadowBias = 0.005f;
     }

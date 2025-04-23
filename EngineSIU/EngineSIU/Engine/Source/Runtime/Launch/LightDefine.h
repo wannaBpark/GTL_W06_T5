@@ -56,7 +56,7 @@ struct FPointLightInfo
     float   Padding;  // 16바이트 정렬
 
     // --- Shadow Info ---
-    FMatrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
+    FMatrix LightViewProjs[6]; // 섀도우맵 생성 시 사용한 VP 행렬
     
     bool CastShadows;
     float ShadowBias;
