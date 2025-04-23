@@ -1,39 +1,10 @@
-﻿#pragma once
+#pragma once
+#include "StatDefine.h"
 #include "Container/String.h"
 #include "HAL/PlatformType.h"
 #include "UObject/NameTypes.h"
 
-
-struct TStatId
-{
-    FName Name;
-
-    TStatId()
-        : Name(NAME_None)
-    {
-    }
-
-    TStatId(FName Name)
-        : Name(Name)
-    {
-    }
-
-    FName GetName() const
-    {
-        return Name;
-    }
-
-    bool operator==(const TStatId& Other) const
-    {
-        return Name == Other.Name;
-    }
-
-    bool operator!=(const TStatId& Other) const
-    {
-        return Name != Other.Name;
-    }
-};
-
+class FGPUTimingManager; // Forward declaration
 
 class FScopeCycleCounter
 {
@@ -59,3 +30,32 @@ private:
 #define QUICK_SCOPE_CYCLE_COUNTER(Stat) \
     static TStatId FStat_##Stat(TEXT(#Stat)); \
     FScopeCycleCounter CycleCount_##Stat(FStat_##Stat);
+
+// RAII class for timing GPU operations using FGpuTimingManager.
+// Constructor calls StartTimestamp, Destructor calls StopTimestamp.
+class FGPUScopeCycleCounter
+{
+public:
+    // Constructor: Starts the GPU timestamp. Requires the manager instance.
+    FGPUScopeCycleCounter(const TStatId& StatId, FGPUTimingManager& GPUTimingManager);
+
+    // Destructor: Stops the GPU timestamp.
+    ~FGPUScopeCycleCounter();
+
+    // Non-copyable/movable
+    FGPUScopeCycleCounter(const FGPUScopeCycleCounter&) = delete;
+    FGPUScopeCycleCounter& operator=(const FGPUScopeCycleCounter&) = delete;
+    FGPUScopeCycleCounter(FGPUScopeCycleCounter&&) = delete;
+    FGPUScopeCycleCounter& operator=(FGPUScopeCycleCounter&&) = delete;
+
+private:
+    FGPUTimingManager& GPUTimingManager;
+    TStatId StatId;
+    bool bStarted; // Track if Start was successfully called
+};
+
+// Macro similar to QUICK_SCOPE_CYCLE_COUNTER for convenience
+// Requires a pointer or reference to your FGpuTimingManager instance (e.g., gGpuTimingManager)
+#define QUICK_GPU_SCOPE_CYCLE_COUNTER(Stat, GPUTimerMgr) \
+    static TStatId FStat_GPU_##Stat(TEXT(#Stat));        \
+    FGPUScopeCycleCounter GpuCycleCount_##Stat(FStat_GPU_##Stat, GPUTimerMgr);
