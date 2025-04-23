@@ -65,6 +65,25 @@ void FShadowRenderPass::PrepareRenderState()
     
 }
 
+void FShadowRenderPass::PrepareCSMRenderState()
+{
+    StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    CascadedShadowMapVS = ShaderManager->GetVertexShaderByKey(L"CascadedShadowMapVS");
+    CascadedShadowMapPS = ShaderManager->GetPixelShaderByKey(L"CascadedShadowMapPS");
+
+    Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
+    Graphics->DeviceContext->VSSetShader(CascadedShadowMapVS, nullptr, 0);
+    Graphics->DeviceContext->GSSetShader(CascadedShadowMapGS, nullptr, 0);
+
+    // Note : PS만 언바인드할 뿐, UpdateLightBuffer에서 바인딩된 SRV 슬롯들은 그대로 남아 있음
+    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->RSSetState(Graphics->RasterizerShadow);
+
+    BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 0, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 0, EShaderStage::Geometry);
+
+}
+
 void FShadowRenderPass::PrepareRenderArr()
 {
     for (const auto iter : TObjectRange<UStaticMeshComponent>())
@@ -87,10 +106,25 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 
     PrepareRenderState();
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
-       {
+    {
         // Cascade Shadow Map을 위한 ViewProjection Matrix 설정
             ShadowManager->UpdateCascadeMatrices(Viewport, DirectionalLight);
-            
+
+            PrepareCSMRenderState();
+            FCascadeConstantBuffer CascadeData;
+            for (int i = 0; i < ShadowManager->GetNumCasCades(); i++)
+            {
+                CascadeData.ViewProj[i] = ShadowManager->GetCascadeViewProjMatrix(i);
+            }
+            ShadowManager->BeginDirectionalShadowCascadePass(0);
+            //RenderAllStaticMeshes(Viewport);
+
+            RenderAllStaticMeshesForCSM(Viewport, CascadeData);
+
+            Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
+            Graphics->DeviceContext->RSSetViewports(0, nullptr);
+            Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        continue;
             FShadowConstantBuffer ShadowData;
             FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
             FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
@@ -110,9 +144,9 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
        }
 
-    for (const auto & PonintLight : PointLights)
+    for (const auto & PointLight : PointLights)
     {
-        Render(PonintLight);
+        Render(PointLight);
         RenderAllStaticMeshes(Viewport);
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
@@ -221,6 +255,31 @@ void FShadowRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorViewp
     }
 }
 
+void FShadowRenderPass::RenderAllStaticMeshesForCSM(const std::shared_ptr<FEditorViewportClient>& Viewport, FCascadeConstantBuffer FCasCadeData)
+{
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh())
+        {
+            continue;
+        }
+
+        OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr)
+        {
+            continue;
+        }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+        FCasCadeData.World = WorldMatrix;
+        BufferManager->UpdateConstantBuffer(TEXT("FCascadeConstantBuffer"), FCasCadeData);
+
+        RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+
+    }
+}
+
 void FShadowRenderPass::BindResourcesForSampling()
 {
     ShadowManager->BindResourcesForSampling(static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight),
@@ -283,8 +342,7 @@ void FShadowRenderPass::CreateShader()
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Failed to create Cascaded ShadowMap Pixel shader!"));
-    }
-    
+    }   
 
 
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");

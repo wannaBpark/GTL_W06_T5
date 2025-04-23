@@ -101,6 +101,7 @@ public:
     
     FShadowDepthRHI* GetSpotShadowDepthRHI() const { return SpotShadowDepthRHI; }
     FShadowDepthRHI* GetDirectionalShadowCascadeDepthRHI() const { return DirectionalShadowCascadeDepthRHI; }
+    FMatrix GetCascadeViewProjMatrix(int i) const;
     uint32 GetNumCasCades() const { return NumCascades; }
     
 private:

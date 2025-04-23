@@ -142,7 +142,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어
-    D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    //D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t directionalShadowSlot, uint32_t samplerCmpSlot)
@@ -183,6 +183,16 @@ void FShadowManager::BindResourcesForSampling(uint32_t spotShadowSlot, uint32_t 
         D3DContext->PSSetSamplers(samplerCmpSlot + 1, 1, &ShadowPointSampler);
     }
     // 필요시 다른 샘플러도 바인딩
+}
+
+FMatrix FShadowManager::GetCascadeViewProjMatrix(int i) const
+{
+    if (i < 0 || i >= CascadesViewProjMatrices.Num())
+    {
+        UE_LOG(LogLevel::Warning, TEXT("GetCascadeViewProjMatrix: Invalid cascade index."));
+        return FMatrix::Identity;
+    }
+    return CascadesViewProjMatrices[i];
 }
 
 
@@ -308,7 +318,18 @@ bool FShadowManager::CreateDirectionalShadowResources()
     if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
 
     // 3. 각 캐스케이드용 DSV 생성
-    DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(NumCascades);
+    DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(1);
+
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+    dsvDesc.Texture2DArray.MipSlice = 0;
+    dsvDesc.Texture2DArray.FirstArraySlice = 0;
+    dsvDesc.Texture2DArray.ArraySize = NumCascades;
+
+    hr = D3DDevice->CreateDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &dsvDesc, &DirectionalShadowCascadeDepthRHI->ShadowDSVs[0]);
+    if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
+    /*DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(NumCascades);
     for (uint32_t i = 0; i < NumCascades; ++i)
     {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
@@ -320,7 +341,7 @@ bool FShadowManager::CreateDirectionalShadowResources()
 
         hr = D3DDevice->CreateDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &dsvDesc, &DirectionalShadowCascadeDepthRHI->ShadowDSVs[i]);
         if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
-    }
+    }*/
 
     // Directional Light의 Shadow Map 개수 = Cascade 개수 (분할 개수)
     DirectionalShadowCascadeDepthRHI->ShadowSRVs.SetNum(NumCascades); 

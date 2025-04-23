@@ -27,15 +27,17 @@ struct GS_OUTPUT
     uint RTIndex : SV_RenderTargetArrayIndex;
 };
 
-float4 mainVS(VS_INPUT_StaticMesh Input) : SV_POSITION
+GS_INPUT mainVS(VS_INPUT_StaticMesh Input)
 {
+    GS_INPUT output;
     float4 pos = mul(float4(Input.Position, 1.0f), World);
-    return pos;
+    output.position = pos;
+    return output;
 }
 
 [maxvertexcount(3 * 3)]
 void mainGS( 
-    triangle GS_INPUT input[3] : SV_POSITION, 
+    triangle GS_INPUT input[3], 
 	inout TriangleStream<GS_OUTPUT> TriStream
 )
 {
@@ -44,7 +46,8 @@ void mainGS(
         for (int i = 0; i < 3; ++i)
         {
             GS_OUTPUT output;
-            float4 worldPos = mul(input[i].position, World);
+            float4 worldPos = input[i].position;
+            //worldPos = mul(input[i].position, World);
             output.pos = mul(worldPos, CascadedViewProj[csmIdx]);
             output.RTIndex = csmIdx;
 
