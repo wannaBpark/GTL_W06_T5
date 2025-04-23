@@ -382,7 +382,7 @@ void UPointLightComponent::UpdateProjectionMatrix()
     const float CurrentAspectRatio = 1.0f;
 
     // Near Clip Plane 값 설정 (매우 작은 값 사용)
-    const float NearClipPlane = 1.f; // 또는 직접 상수 값 사용 (예: 0.01f)
+    const float NearClipPlane = NEAR_PLANE; // 또는 직접 상수 값 사용 (예: 0.01f)
 
     // Far Clip Plane 값 설정 (라이트의 감쇠 반경 사용)
     // GetRadius() 함수나 멤버 변수(PointLightInfo.Radius)를 통해 가져옴
