@@ -22,6 +22,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
 #include "LevelEditor/SLevelEditor.h"
+#include "Math/JungleMath.h"
 #include "Renderer/ShadowManager.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
@@ -350,11 +351,14 @@ void PropertyEditorPanel::Render()
             {
                 // 1. 라이트의 월드 위치 및 회전 가져오기
                 FVector LightLocation = LightComponent->GetWorldLocation();
-                FVector LightForward = LightComponent->GetForwardVector();
+
+                FVector Forward = FVector(1.f, 0.f, 0.0f);
+                Forward = JungleMath::FVectorRotate(Forward, LightLocation);
+                FVector LightForward = Forward;
                 FRotator LightRotation = LightComponent->GetWorldRotation();
                 FVector LightRotationVecter;
                 LightRotationVecter.X = LightRotation.Roll;
-                LightRotationVecter.Y = LightRotation.Pitch;
+                LightRotationVecter.Y = -LightRotation.Pitch;
                 LightRotationVecter.Z = LightRotation.Yaw;
 
                 // 2. 활성 에디터 뷰포트 클라이언트 가져오기 (!!! 엔진별 구현 필요 !!!)
