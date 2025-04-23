@@ -31,6 +31,10 @@ public:
     {
         return ProjectionMatrix;
     }
+    FMatrix GetViewProjectionMatrix(int Index = 0) const
+    {
+        return ViewMatrices[Index] * ProjectionMatrix;
+    }
     
 protected:
 

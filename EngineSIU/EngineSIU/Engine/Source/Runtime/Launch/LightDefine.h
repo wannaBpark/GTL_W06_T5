@@ -19,10 +19,28 @@ struct FDirectionalLightInfo
     FVector Direction;   // 정규화된 광선 방향 (월드 공간 기준)
     float   Intensity;   // 밝기
 
+    // --- Shadow Info ---
+    FMatrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
+    FMatrix LightInvProj;  // Light 광원 입장에서의 InvProj
+
     uint32 ShadowMapArrayIndex = 0 ;//캐스캐이드전 임시 배열
-    float Padding; // 필요시
-    float Padding2; // 필요시
+    bool CastShadows;
+    float ShadowBias;
     float Padding3; // 필요시
+
+    // --- 직교 투영 파라미터 ---
+    // 직교 투영 볼륨의 월드 단위 너비 (섀도우 영역)
+    float OrthoWidth = 100.0f;
+
+    // 직교 투영 볼륨의 월드 단위 높이 (섀도우 영역)
+    float OrthoHeight = 100.0f;
+
+    // 섀도우 계산을 위한 라이트 시점의 Near Plane (음수 가능)
+    float ShadowNearPlane = 1.0F;
+
+    // 섀도우 계산을 위한 라이트 시점의 Far Plane
+    float ShadowFarPlane = 1000.0f;
+
 };
 
 struct FPointLightInfo

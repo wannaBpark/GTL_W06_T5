@@ -34,17 +34,6 @@ public:
 private:
     FDirectionalLightInfo DirectionalLightInfo;
 
-    // --- 직교 투영 파라미터 ---
-    // 직교 투영 볼륨의 월드 단위 너비 (섀도우 영역)
-    float OrthoWidth = 100.0f;
 
-    // 직교 투영 볼륨의 월드 단위 높이 (섀도우 영역)
-    float OrthoHeight = 100.0f;
-
-    // 섀도우 계산을 위한 라이트 시점의 Near Plane (음수 가능)
-    float ShadowNearPlane = 1.0F;
-
-    // 섀도우 계산을 위한 라이트 시점의 Far Plane
-    float ShadowFarPlane = 1000.0f;
 };
 

@@ -92,12 +92,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
             FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
             ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
-            ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
-            ShadowData.LightNearZ = DirectionalLight->GetShadowNearPlane();
-            ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
-                        
-            ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
-            ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
+
             BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
     
             ShadowManager->BeginDirectionalShadowCascadePass(0);
@@ -122,10 +117,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         FMatrix LightViewMatrix = SpotLight->GetViewMatrix();
         FMatrix LightProjectionMatrix = SpotLight->GetProjectionMatrix();
         ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
-        ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
-                    
-        ShadowData.ShadowMapWidth = SpotLight->GetShadowMapWidth();
-        ShadowData.ShadowMapHeight = SpotLight->GetShadowMapHeight();
+
         BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
         ShadowManager->BeginSpotShadowPass(i);

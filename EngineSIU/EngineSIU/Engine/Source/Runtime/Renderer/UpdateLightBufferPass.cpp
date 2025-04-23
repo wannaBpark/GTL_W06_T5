@@ -126,6 +126,14 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
         {
             LightBufferData.Directional[DirectionalLightsCount] = Light->GetDirectionalLightInfo();
             LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
+            LightBufferData.Directional[DirectionalLightsCount].LightViewProj = Light->GetViewProjectionMatrix();
+            LightBufferData.Directional[DirectionalLightsCount].LightInvProj = FMatrix::Inverse(Light->GetProjectionMatrix());
+            //ShadowData.LightNearZ = Light->GetShadowNearPlane();
+            //ShadowData.LightFrustumWidth = Light->GetShadowFrustumWidth();
+                        
+            //ShadowData.ShadowMapWidth = Light->GetShadowMapWidth();
+            //ShadowData.ShadowMapHeight = Light->GetShadowMapHeight();
+           
             DirectionalLightsCount++;
         }
     }

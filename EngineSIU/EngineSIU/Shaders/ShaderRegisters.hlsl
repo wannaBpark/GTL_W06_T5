@@ -78,23 +78,8 @@ struct PS_INPUT_StaticMesh
 /// 공용: 11 ~ 13
 ///////
 
-cbuffer FShadowConstantBuffer : register(b11)
-{
-    row_major matrix ShadowViewProj;
-    row_major matrix ShadowInvProj;
 
 
-    //
-    float LightNearZ;
-    float LightFrustumWidth;
-    float ShadowMapWidth;
-    float ShadowMapHeight;
-    
-    float4 gCascadeSplits;
-
-    float AreaLightRadius; // 반그림자 연산에 사용됨 (빛의 영역)
-    float3 padding;
-};
 
 cbuffer ObjectBuffer : register(b12)
 {
