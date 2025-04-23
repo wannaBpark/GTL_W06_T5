@@ -184,15 +184,20 @@ void PropertyEditorPanel::Render()
                 }
 
                 ImGui::Text("ShadowMap");
+
+                FShadowCubeMapArrayRHI* pointRHI = FEngineLoop::Renderer.ShadowManager->GetPointShadowCubeMapRHI();
+                const char* faceNames[] = { "+X", "-X", "+Y", "-Y", "+Z", "-Z" };
+                float imageSize = 128.0f;
+                int index =  PointlightComponent->GetPointLightInfo().ShadowMapArrayIndex;
                 // CubeMap이므로 6개의 ShadowMap을 그립니다.
                 for (int i = 0; i < 6; ++i)
                 {
-                    //auto s = static_cast<void*>(PointlightComponent->GetSliceSRV(i));
-                //    ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
-
-                    if (i % 2 == 0)
+                    ID3D11ShaderResourceView* faceSRV = pointRHI->ShadowFaceSRVs[index][i];
+                    if (faceSRV)
                     {
-                        ImGui::SameLine();
+                        ImGui::Image(reinterpret_cast<ImTextureID>(faceSRV), ImVec2(imageSize, imageSize));
+                        ImGui::SameLine(); 
+                        ImGui::Text("%s", faceNames[i]);
                     }
                 }
 

@@ -54,6 +54,14 @@ struct FPointLightInfo
     float   Intensity;   // 밝기
     float   Attenuation;
     float   Padding;  // 16바이트 정렬
+
+    // --- Shadow Info ---
+    FMatrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
+    
+    bool CastShadows;
+    float ShadowBias;
+    uint32 ShadowMapArrayIndex = 0;
+    float Padding2; // 필요시
 };
 
 struct FSpotLightInfo

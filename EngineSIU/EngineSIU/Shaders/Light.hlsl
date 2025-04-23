@@ -133,6 +133,7 @@ SamplerState ShadowPointSampler : register(s11);
 
 Texture2DArray SpotShadowMapArray : register(t50);
 Texture2DArray DirectionShadowMapArray : register(t51);
+Texture2DArray PointShadowMapArray : register(t52);
 
 bool InRange(float val, float min, float max)
 {

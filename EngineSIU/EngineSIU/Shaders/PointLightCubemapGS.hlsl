@@ -40,9 +40,9 @@ void mainGS(
 }
 
 
-float4 mainPS(GS_OUTPUT Input) : SV_TARGET
-{
-    // clip.z/clip.w 를 깊이로 저장
-    float depth = Input.pos.z / Input.pos.w;
-    return float4(depth, depth, depth, 1.0f);
-}
+// float4 mainPS(GS_OUTPUT Input) : SV_TARGET
+// {
+//     // clip.z/clip.w 를 깊이로 저장
+//     float depth = Input.pos.z / Input.pos.w;
+//     return float4(depth, depth, depth, 1.0f);
+// }
