@@ -70,8 +70,8 @@ cbuffer FLightInfoBuffer : register(b0)
 {
     FAmbientLightInfo Ambient[MAX_AMBIENT_LIGHT];
     FDirectionalLightInfo Directional[MAX_DIRECTIONAL_LIGHT];
-    FPointLightInfo PointLights[MAX_POINT_LIGHT];
-    FSpotLightInfo SpotLights[MAX_SPOT_LIGHT];
+    FPointLightInfo PointLights[MAX_POINT_LIGHT]; //삭제 예정
+    FSpotLightInfo SpotLights[MAX_SPOT_LIGHT]; // 삭제 예정
     
     int DirectionalLightsCount;
     int PointLightsCount;
@@ -247,10 +247,10 @@ float CalculateSpotShadowFactor(float3 WorldPosition, FSpotLightInfo LightInfo, 
                                 Texture2DArray ShadowMapArray,
                                 SamplerComparisonState ShadowSampler)
 {
-    if (!LightInfo.CastShadows)
-    {
-        return 1.0f; // 그림자 안 드리움
-    }
+    // if (!LightInfo.CastShadows)
+    // {
+    //     return 1.0f; // 그림자 안 드리움
+    // }
 
     // 1 & 2. 라이트 클립 공간 좌표 계산
     float4 PixelPosLightClip = mul(float4(WorldPosition, 1.0f), LightInfo.LightViewProj);
@@ -272,7 +272,7 @@ float CalculateSpotShadowFactor(float3 WorldPosition, FSpotLightInfo LightInfo, 
     float ShadowFactor = ShadowMapArray.SampleCmpLevelZero(
         ShadowSampler,
         float3(ShadowMapUV, (float)LightInfo.ShadowMapArrayIndex), // UV와 배열 인덱스 사용
-        CurrentDepth - LightInfo.ShadowBias // 바이어스 적용
+        CurrentDepth  // 바이어스 적용
     );
 
     return ShadowFactor;
