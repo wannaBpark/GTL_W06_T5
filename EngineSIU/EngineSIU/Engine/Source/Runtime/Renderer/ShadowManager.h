@@ -127,8 +127,8 @@ public:
      * @return 초기화 성공 여부
      */
     bool Initialize(FGraphicsDevice* InGraphics,
-                    uint32_t InMaxSpotShadows = 16, uint32_t InSpotResolution = 1024,
-                    uint32_t InMaxPointShadows = 8, uint32_t InPointResolution = 512, // << 추가된 파라미터
+                    uint32_t InMaxSpotShadows = 32, uint32_t InSpotResolution = 1024,
+                    uint32_t InMaxPointShadows = 32, uint32_t InPointResolution = 512, // << 추가된 파라미터
                     uint32_t InNumCascades = 1, uint32_t InDirResolution = 2048);
 
     /** 생성된 모든 D3D 리소스를 해제합니다. */

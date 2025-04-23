@@ -300,7 +300,22 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
     if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
     {
-        ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
+        TArray<UPointLightComponent*> CulledPointLights, TotalPointLights;
+        TArray<USpotLightComponent*> CulledSpotLights, TotalSpotLights;
+        TArray<uint32> CulledPointLightIndexArr = TileLightCullingPass->GetCulledPointLightMaskData();
+        TArray<uint32> CulledSpotLightIndexArr = TileLightCullingPass->GetCulledSpotLightMaskData();
+
+        TotalPointLights = TileLightCullingPass->GetPointLights();
+        for (int i = 0; i < CulledPointLightIndexArr.Num(); i++)
+        {
+            CulledPointLights.Add(TotalPointLights[CulledPointLightIndexArr[i]]);
+        }
+        TotalSpotLights = TileLightCullingPass->GetSpotLights();
+        for (int i = 0; i < CulledSpotLightIndexArr.Num(); i++)
+        {
+            CulledSpotLights.Add(TotalSpotLights[CulledSpotLightIndexArr[i]]);
+        }
+        ShadowRenderPass->SetLightData(CulledPointLights, CulledSpotLights);
         ShadowRenderPass->Render(Viewport);
     }
 
