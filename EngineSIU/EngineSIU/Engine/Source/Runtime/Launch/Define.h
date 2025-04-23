@@ -362,6 +362,12 @@ struct FLitUnlitConstants
     FVector pad;
 };
 
+struct FIsShadowConstants
+{
+    int bIsShadow;
+    FVector pad;
+};
+
 struct FViewModeConstants
 {
     uint32 ViewMode;

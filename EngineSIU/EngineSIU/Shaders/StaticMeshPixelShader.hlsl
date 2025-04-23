@@ -34,14 +34,13 @@ cbuffer TextureConstants : register(b4)
     float2 TexturePad0;
 }
 
+cbuffer ShadowFlagConstants : register(b5)
+{
+    bool IsShadow;
+    float3 shadowFlagPad0;
+}
+
 #include "Light.hlsl"
-
-
-
-
-
-
-
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {

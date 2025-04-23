@@ -402,6 +402,10 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
     
     // --- 그림자 계산 
     float Shadow = CalculatePointShadowFactor(WorldPosition, LightInfo, PointShadowMapArray, ShadowSamplerCmp);
+    if(!IsShadow)
+    {
+        Shadow = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
 
     // 그림자 계수가 0 이하면 더 이상 계산 불필요
     if (Shadow <= 0.0)
@@ -445,6 +449,10 @@ float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
 
     // --- 그림자 계산 
     float Shadow = CalculateSpotShadowFactor(WorldPosition, LightInfo, SpotShadowMapArray, ShadowSamplerCmp);
+    if(!IsShadow)
+    {
+        Shadow = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
 
     // 그림자 계수가 0 이하면 더 이상 계산 불필요
     if (Shadow <= 0.0)
@@ -476,6 +484,11 @@ float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     
     //FinalColor *= GetLightFromShadowMap(Input);
     float Shadow = CalculateDirectionalShadowFactor(WorldPosition, WorldNormal, LightInfo, DirectionShadowMapArray, ShadowSamplerCmp);
+    if(!IsShadow)
+    {
+        Shadow = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
     //float Shadow = GetLightFromShadowMap(WorldPosition);
 
     // 그림자 계수가 0 이하면 더 이상 계산 불필요
