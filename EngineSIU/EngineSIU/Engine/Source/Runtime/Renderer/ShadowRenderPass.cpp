@@ -88,6 +88,9 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     PrepareRenderState();
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
        {
+        // Cascade Shadow Map을 위한 ViewProjection Matrix 설정
+            ShadowManager->UpdateCascadeMatrices(Viewport, DirectionalLight);
+            
             FShadowConstantBuffer ShadowData;
             FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
             FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
@@ -264,9 +267,33 @@ void FShadowRenderPass::CreateShader()
         UE_LOG(LogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
     }
 
+    hr = ShaderManager->AddVertexShader(L"CascadedShadowMapVS", L"Shaders/CascadedShadowMap.hlsl", "mainVS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Cascaded ShadowMap Vertex shader!"));
+    }
+
+    hr = ShaderManager->AddGeometryShader(L"CascadedShadowMapGS", L"Shaders/CascadedShadowMap.hlsl", "mainGS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Cascaded ShadowMap Geometry shader!"));
+    }
+
+    hr = ShaderManager->AddPixelShader(L"CascadedShadowMapPS", L"Shaders/CascadedShadowMap.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to create Cascaded ShadowMap Pixel shader!"));
+    }
+    
+
+
     StaticMeshIL = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
     DepthOnlyVS = ShaderManager->GetVertexShaderByKey(L"DepthOnlyVS");
     DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+
+    CascadedShadowMapVS = ShaderManager->GetVertexShaderByKey(L"CascadedShadowMapVS");
+    CascadedShadowMapGS = ShaderManager->GetGeometryShaderByKey(L"CascadedShadowMapGS");
+    CascadedShadowMapPS = ShaderManager->GetPixelShaderByKey(L"CascadedShadowMapPS");
 }
 
 

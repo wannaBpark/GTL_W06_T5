@@ -481,7 +481,7 @@ FVector FEditorViewportClient::GetCameraLocation() const
     return OrthogonalCamera.GetLocation();
 }
 
-float FEditorViewportClient::GetCameraLearClip() const
+float FEditorViewportClient::GetCameraNearClip() const
 {
     return NearClip;
 }

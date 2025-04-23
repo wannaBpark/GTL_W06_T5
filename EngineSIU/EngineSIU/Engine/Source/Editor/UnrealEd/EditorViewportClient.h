@@ -165,7 +165,7 @@ public:
 
     FVector GetCameraLocation() const;
 
-    float GetCameraLearClip() const;
+    float GetCameraNearClip() const;
     float GetCameraFarClip() const;
     
     ELevelViewportType GetViewportType() const;

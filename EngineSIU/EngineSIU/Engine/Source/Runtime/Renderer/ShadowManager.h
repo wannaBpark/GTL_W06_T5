@@ -48,6 +48,7 @@ struct FShadowDepthRHI
     }
 };
 
+class UDirectionalLightComponent;
 class FShadowManager
 {
 public:
@@ -115,8 +116,8 @@ private:
     //uint32 MaxDirectionalLightShadows = 1;
 
 
-    uint32 NumCascades = 4;                             // [캐스케이드 개수] : **여기서 초기화**
-    TArray<FMatrix> DirectionalLightViewProjMatrices;   // 계산된 캐스케이드 ViewProj 행렬
+    uint32 NumCascades = 3;                             // [캐스케이드 개수] : **여기서 초기화**
+    TArray<FMatrix> CascadesViewProjMatrices;   // 계산된 캐스케이드 ViewProj 행렬
 
     // --- 공통 샘플러 ---
     ID3D11SamplerState* ShadowSamplerCmp = nullptr;
@@ -133,6 +134,9 @@ private:
     bool CreateDirectionalShadowResources();
     /** 방향성 광원 섀도우 관련 D3D 리소스를 해제합니다. */
     void ReleaseDirectionalShadowResources();
+
+    /* 캐스케이드 분할 관련 Matrix를 갱신합니다 */
+    void UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight);
 
     /** 섀도우 샘플링에 사용될 D3D 샘플러 상태(비교 샘플러 등)를 생성합니다. */
     bool CreateSamplers();

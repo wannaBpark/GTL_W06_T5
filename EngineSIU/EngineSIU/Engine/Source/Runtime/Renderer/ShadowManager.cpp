@@ -1,4 +1,9 @@
 #include "ShadowManager.h"
+
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Math/JungleMath.h"
+#include "UnrealEd/EditorViewportClient.h"
+
 // --- 생성자 및 소멸자 ---
 
 FShadowManager::FShadowManager()
@@ -64,7 +69,7 @@ bool FShadowManager::Initialize(FGraphicsDevice* InGraphics,
     }
 
     // 방향성 광원 ViewProj 행렬 배열 크기 설정
-    DirectionalLightViewProjMatrices.SetNum(NumCascades);
+    CascadesViewProjMatrices.SetNum(NumCascades);
 
     // UE_LOG(LogTemp, Log, TEXT("FShadowManager Initialized Successfully."));
     return true;
@@ -78,7 +83,7 @@ void FShadowManager::Release()
     ReleaseSpotShadowResources();
 
     // 배열 클리어
-    DirectionalLightViewProjMatrices.Empty();
+    CascadesViewProjMatrices.Empty();
 
     // D3D 객체 포인터는 외부에서 관리하므로 여기서는 nullptr 처리만 함
     D3DDevice = nullptr;
@@ -340,6 +345,78 @@ bool FShadowManager::CreateDirectionalShadowResources()
 void FShadowManager::ReleaseDirectionalShadowResources()
 {
     DirectionalShadowCascadeDepthRHI->Release();
+}
+
+void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight)
+{
+    TArray<float> CascadeSplits;
+    FMatrix InvViewProj = FMatrix::Inverse(Viewport->GetViewMatrix()*Viewport->GetProjectionMatrix());
+
+    CascadesViewProjMatrices.Empty();
+    float NearClip = Viewport->GetCameraNearClip();
+    float FarClip = Viewport->GetCameraFarClip();
+
+    CascadeSplits.SetNum(NumCascades + 1);
+    for (uint32 i = 1; i <=NumCascades; ++i)
+    {
+        float p = float(i) / float(NumCascades); // 1~NumCascades
+        CascadeSplits[i - 1] = NearClip * pow(FarClip / NearClip, p); // 분할 거리 계산
+    }
+
+    for (uint32 i = 0; i< NumCascades; ++i)
+    {
+        float PrevSplit = (i == 0) ? NearClip : CascadeSplits[i - 1];
+        float CurSplit = CascadeSplits[i];
+        float zn = (PrevSplit - NearClip) / (FarClip - NearClip);
+        float zf = (CurSplit - NearClip) / (FarClip - NearClip);
+
+        // NDC 기준 nearPlane의 4개 모서리 좌표와 farPlane의 4개 모서리 좌표
+        FVector4 FrustumCorners[8] = {
+            { -1,  1, zn, 1 }, {  1,  1, zn, 1 },
+            {  1, -1, zn, 1 }, { -1, -1, zn, 1 },
+            { -1,  1, zf, 1 }, {  1,  1, zf, 1 },
+            {  1, -1, zf, 1 }, { -1, -1, zf, 1 }
+        };
+        for (auto& Corner : FrustumCorners)
+        {
+            Corner = InvViewProj.TransformFVector4(Corner); // ViewProj 행렬로 변환
+            Corner = Corner / Corner.W; // w로 나누기
+        }
+
+        // Light Space AABB
+        FMatrix LightView = DirectionalLight->GetViewMatrix();
+        FVector Min = FVector(FLT_MAX, FLT_MAX, FLT_MAX);
+        FVector Max = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+        for (auto& Corner : FrustumCorners)
+        {
+            FVector4 WorldPos = InvViewProj.TransformFVector4(Corner);
+            Min.X = FMath::Min(Min.X, WorldPos.X);
+            Min.Y = FMath::Min(Min.Y, WorldPos.Y);
+            Min.Z = FMath::Min(Min.Z, WorldPos.Z);
+
+            Max.X = FMath::Max(Max.X, WorldPos.X);
+            Max.Y = FMath::Max(Max.Y, WorldPos.Y);
+            Max.Z = FMath::Max(Max.Z, WorldPos.Z);
+            
+        }
+
+
+        // 캐스케이드 뷰 프로젝션 행렬 저장
+        FMatrix LightProjection = JungleMath::CreateOrthoProjectionMatrix(
+            Max.X - Min.X,
+            Max.Y - Min.Y,
+            Min.Z, Max.Z
+        );
+        FMatrix LightViewProj = LightView * LightProjection;
+
+        CascadesViewProjMatrices.Add(LightViewProj); 
+    }
+
+    for (uint32 i  = 0; i < NumCascades; ++i)
+    {
+
+    }
 }
 
 bool FShadowManager::CreateSamplers()

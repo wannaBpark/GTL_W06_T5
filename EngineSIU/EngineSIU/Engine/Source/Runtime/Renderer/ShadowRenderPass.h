@@ -66,6 +66,10 @@ private:
     ID3D11VertexShader* DepthCubeMapVS;
     ID3D11GeometryShader* DepthCubeMapGS;
 
+    ID3D11VertexShader* CascadedShadowMapVS;
+    ID3D11GeometryShader* CascadedShadowMapGS;
+    ID3D11PixelShader* CascadedShadowMapPS;
+
     D3D11_VIEWPORT ShadowViewport;
 
     uint32 ShadowMapWidth = 2048;

@@ -114,6 +114,9 @@ void FRenderer::Release()
 //------------------------------------------------------------------------------
 void FRenderer::CreateConstantBuffers()
 {
+    UINT CascadeBufferSize = sizeof(FCascadeConstantBuffer);
+    BufferManager->CreateBufferGeneric<FCascadeConstantBuffer>("FCascadeConstantBuffer", nullptr, CascadeBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
     UINT PointLightGSBufferSize = sizeof(FPointLightGSBuffer);
     BufferManager->CreateBufferGeneric<FPointLightGSBuffer>("FPointLightGSBuffer", nullptr, PointLightGSBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
@@ -246,7 +249,7 @@ void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>&
     CameraConstantBuffer.ProjectionMatrix = Viewport->GetProjectionMatrix();
     CameraConstantBuffer.InvProjectionMatrix = FMatrix::Inverse(CameraConstantBuffer.ProjectionMatrix);
     CameraConstantBuffer.ViewLocation = Viewport->GetCameraLocation();
-    CameraConstantBuffer.NearClip = Viewport->GetCameraLearClip();
+    CameraConstantBuffer.NearClip = Viewport->GetCameraNearClip();
     CameraConstantBuffer.FarClip = Viewport->GetCameraFarClip();
     BufferManager->UpdateConstantBuffer("FCameraConstantBuffer", CameraConstantBuffer);
 }
