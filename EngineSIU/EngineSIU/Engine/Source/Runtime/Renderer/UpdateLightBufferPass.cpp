@@ -363,6 +363,9 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
         TempBuffer[i] = SpotLights[i]->GetSpotLightInfo();
         TempBuffer[i].Position = SpotLights[i]->GetWorldLocation();
         TempBuffer[i].Direction = SpotLights[i]->GetDirection();
+        TempBuffer[i].LightViewProj = SpotLights[i]->GetViewMatrix() * SpotLights[i]->GetProjectionMatrix();
+        TempBuffer[i].ShadowMapArrayIndex = i;
+        TempBuffer[i].ShadowBias = 0.005f;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightBuffer, 0, nullptr,
