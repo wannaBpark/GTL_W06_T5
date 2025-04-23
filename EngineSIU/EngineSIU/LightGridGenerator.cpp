@@ -4,6 +4,8 @@
 #include "World/World.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
+#include "Engine/EditorEngine.h"
+#include "Engine/Engine.h"
 
 FLightGridGenerator::~FLightGridGenerator()
 {
@@ -96,6 +98,12 @@ void FLightGridGenerator::DeleteLight(UWorld* World)
         return;
     }
 
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    if (!Engine)
+    {
+        return;
+    }
+
     const int ShellIndex = CurrentHalfCountPerAxis - 1;
 
     // 유효한 인덱스인지 확인
@@ -110,6 +118,7 @@ void FLightGridGenerator::DeleteLight(UWorld* World)
     {
         if (Light)
         {
+            Engine->DeselectActor(Light);
             Light->Destroy();
         }
     }
