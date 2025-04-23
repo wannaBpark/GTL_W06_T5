@@ -80,7 +80,7 @@ FVector UDirectionalLightComponent::GetDirection()
 
 float UDirectionalLightComponent::GetShadowNearPlane() const
 {
-    return ShadowNearPlane;
+    return DirectionalLightInfo.ShadowNearPlane;
 }
 
 const FDirectionalLightInfo& UDirectionalLightComponent::GetDirectionalLightInfo() const
@@ -147,14 +147,14 @@ void UDirectionalLightComponent::UpdateViewMatrix()
 void UDirectionalLightComponent::UpdateProjectionMatrix()
 {
     ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(
-        OrthoWidth,
-        OrthoHeight,
-        ShadowNearPlane,
-        ShadowFarPlane
+        DirectionalLightInfo.OrthoWidth,
+        DirectionalLightInfo.OrthoHeight,
+        DirectionalLightInfo.ShadowNearPlane,
+        DirectionalLightInfo.ShadowFarPlane
     );
 }
 
 float UDirectionalLightComponent::GetShadowFrustumWidth() const
 {
-    return OrthoWidth;
+    return DirectionalLightInfo.OrthoWidth;
 }

@@ -15,6 +15,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/Casts.h"
 #include "UObject/UObjectIterator.h"
+#include "Editor/PropertyEditor/ShowFlags.h"
 
 class UEditorEngine;
 class UStaticMeshComponent;
@@ -62,7 +63,7 @@ void FShadowRenderPass::PrepareRenderState()
     
     BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Pixel);
-    
+    BufferManager->BindConstantBuffer(TEXT("FIsShadowConstants"), 5, EShaderStage::Pixel);
 }
 
 void FShadowRenderPass::PrepareCSMRenderState()
@@ -96,6 +97,13 @@ void FShadowRenderPass::PrepareRenderArr()
     }
 }
 
+void FShadowRenderPass::UpdateIsShadowConstant(int32 isShadow) const
+{
+    FIsShadowConstants ShadowData;
+    ShadowData.bIsShadow = isShadow;
+    BufferManager->UpdateConstantBuffer(TEXT("FIsShadowConstants"), ShadowData);
+}
+
 
 void FShadowRenderPass::Render(ULightComponentBase* Light)
 {
@@ -104,6 +112,15 @@ void FShadowRenderPass::Render(ULightComponentBase* Light)
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    if (ShowFlag & EEngineShowFlags::SF_Shadow)
+    {
+        UpdateIsShadowConstant(1);
+    }
+    else
+    {
+        UpdateIsShadowConstant(0);
+    }
 
     PrepareRenderState();
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
@@ -117,13 +134,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             for (uint32 i = 0; i < NumCascades; i++)
             {
                 CascadeData.ViewProj[i] = ShadowManager->GetCascadeViewProjMatrix(i);
-                /*CascadeData.CascadeSplits[i] = ShadowManager->GetCascadeSplitDistance(i);*/
-                //CascadeData.ViewProj[i] = Viewport->GetViewMatrix()*Viewport->GetProjectionMatrix();
             }
-            //CascadeData.CascadeSplits[NumCascades] = ShadowManager->GetCascadeSplitDistance(NumCascades);
-
-             //CascadeData.ViewProj[2] = Viewport->GetViewMatrix() * Viewport->GetProjectionMatrix();
-            //CascadeData.ViewProj[0] = DirectionalLight->GetViewMatrix() * DirectionalLight->GetProjectionMatrix();
 
             ShadowManager->BeginDirectionalShadowCascadePass(0);
             //RenderAllStaticMeshes(Viewport);
@@ -133,34 +144,8 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
             Graphics->DeviceContext->RSSetViewports(0, nullptr);
             Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-        continue;
-            FShadowConstantBuffer ShadowData;
-            FMatrix LightViewMatrix = DirectionalLight->GetViewMatrix();
-            FMatrix LightProjectionMatrix = DirectionalLight->GetProjectionMatrix();
-            ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
-            ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
-            ShadowData.LightNearZ = DirectionalLight->GetShadowNearPlane();
-            ShadowData.LightFrustumWidth = DirectionalLight->GetShadowFrustumWidth();
-                        
-            ShadowData.ShadowMapWidth = DirectionalLight->GetShadowMapWidth();
-            ShadowData.ShadowMapHeight = DirectionalLight->GetShadowMapHeight();
-            BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
-    
-            ShadowManager->BeginDirectionalShadowCascadePass(0);
-            RenderAllStaticMeshes(Viewport);
-           
-            Graphics->DeviceContext->RSSetViewports(0, nullptr);
-            Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+       
        }
-
-    for (const auto & PointLight : PointLights)
-    {
-        Render(PointLight);
-        RenderAllStaticMeshes(Viewport);
-           
-        Graphics->DeviceContext->RSSetViewports(0, nullptr);
-        Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-    }
     for (int i = 0 ; i < SpotLights.Num(); i++)
     {
         const auto& SpotLight = SpotLights[i];
@@ -168,10 +153,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         FMatrix LightViewMatrix = SpotLight->GetViewMatrix();
         FMatrix LightProjectionMatrix = SpotLight->GetProjectionMatrix();
         ShadowData.ShadowViewProj = LightViewMatrix * LightProjectionMatrix;
-        ShadowData.ShadowInvProj = FMatrix::Inverse(LightProjectionMatrix);
-                    
-        ShadowData.ShadowMapWidth = SpotLight->GetShadowMapWidth();
-        ShadowData.ShadowMapHeight = SpotLight->GetShadowMapHeight();
+
         BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
         ShadowManager->BeginSpotShadowPass(i);
@@ -180,6 +162,18 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
         Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     }
+
+    PrepareCubeMapRenderState();
+    for (int i = 0 ; i < PointLights.Num(); i++)
+    {
+        
+        ShadowManager->BeginPointShadowPass(i);
+        RenderAllStaticMeshesForPointLight(Viewport, PointLights[i]);
+           
+        Graphics->DeviceContext->RSSetViewports(0, nullptr);
+        Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    }
+    Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
 }
 
 
@@ -310,6 +304,25 @@ void FShadowRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const F
     //Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
 }
 
+void FShadowRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+{
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh()) { continue; }
+
+        OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr) { continue; }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+
+        UpdateCubeMapConstantBuffer(PointLight, WorldMatrix);
+
+        RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+    }
+}
+
 void FShadowRenderPass::CreateShader()
 {
     HRESULT hr = ShaderManager->AddVertexShader(L"DepthOnlyVS", L"Shaders/DepthOnlyVS.hlsl", "mainVS");
@@ -364,50 +377,55 @@ void FShadowRenderPass::CreateShader()
 }
 
 
-//void FShadowRenderPass::PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
-//{
-//    /*auto*& DSV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Scene)->DSV;*/
-//    auto sm = PointLight->GetShadowMap();
-//    auto*& DSV = sm[1].DSV;
-//    Graphics->DeviceContext->ClearDepthStencilView(DSV,
-//        D3D11_CLEAR_DEPTH, 1.0f, 0);
-//    Graphics->DeviceContext->ClearRenderTargetView(PointLight->DepthRTVArray, ClearColor);
-//    Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, DSV);
-//    Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
-//
-//    DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
-//    DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
-//    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
-//
-//    Graphics->DeviceContext->VSSetShader(DepthCubeMapVS, nullptr, 0);
-//    Graphics->DeviceContext->GSSetShader(DepthCubeMapGS, nullptr, 0);
-//    Graphics->DeviceContext->PSSetShader(DepthOnlyPS, nullptr, 0);
-//    // VS, GS에 대한 상수버퍼 업데이트
-//    BufferManager->BindConstantBuffer(TEXT("FPointLightGSBuffer"), 0, EShaderStage::Geometry);
-//
-//    UpdateViewport(ShadowMapWidth, ShadowMapHeight);
-//    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
-//    Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
-//}
-//
-//void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight,
-//    const FMatrix& WorldMatrix
-//    ) const
-//{
-//    FPointLightGSBuffer DepthCubeMapBuffer;
-//    DepthCubeMapBuffer.World = WorldMatrix;
-//    for (uint32 i = 0; i < 6; ++i)
-//    {
-//        DepthCubeMapBuffer.ViewProj[i] = PointLight->GetViewMatrix(i) * PointLight->GetProjectionMatrix();
-//    }
-//    BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
-//}
-//
-//void FShadowRenderPass::RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
-//{
-//    //UpdateCubeMapConstantBuffer(PointLight);
-//    PrepareCubeMapRenderState(Viewport, PointLight);
-//
-//}
-//
-//
+void FShadowRenderPass::PrepareCubeMapRenderState()
+{
+    /*auto*& DSV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Scene)->DSV;*/
+    // auto sm = PointLight->GetShadowMap();
+    // auto*& DSV = sm[1].DSV;
+    // Graphics->DeviceContext->ClearDepthStencilView(DSV,
+    //     D3D11_CLEAR_DEPTH, 1.0f, 0);
+    //Graphics->DeviceContext->ClearRenderTargetView(PointLight->DepthRTVArray, ClearColor);
+    //Graphics->DeviceContext->OMSetRenderTargets(1, &PointLight->DepthRTVArray, DSV);
+
+    DepthCubeMapVS = ShaderManager->GetVertexShaderByKey(L"DepthCubeMapVS");
+    DepthCubeMapGS = ShaderManager->GetGeometryShaderByKey(L"DepthCubeMapGS");
+    DepthOnlyPS = ShaderManager->GetPixelShaderByKey(L"DepthOnlyPS");
+
+    Graphics->DeviceContext->VSSetShader(DepthCubeMapVS, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(StaticMeshIL);
+    
+    Graphics->DeviceContext->GSSetShader(DepthCubeMapGS, nullptr, 0);
+    
+    Graphics->DeviceContext->PSSetShader(DepthOnlyPS, nullptr, 0);
+    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
+    
+    // VS, GS에 대한 상수버퍼 업데이트
+    BufferManager->BindConstantBuffer(TEXT("FPointLightGSBuffer"), 0, EShaderStage::Geometry);
+    BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Pixel);
+
+    //UpdateViewport(ShadowMapWidth, ShadowMapHeight);
+    //Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
+}
+
+void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight,
+    const FMatrix& WorldMatrix
+    ) const
+{
+    FPointLightGSBuffer DepthCubeMapBuffer;
+    DepthCubeMapBuffer.World = WorldMatrix;
+    for (uint32 i = 0; i < 6; ++i)
+    {
+        DepthCubeMapBuffer.ViewProj[i] = PointLight->GetViewMatrix(i) * PointLight->GetProjectionMatrix();
+    }
+    BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
+}
+
+void FShadowRenderPass::RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+{
+    //UpdateCubeMapConstantBuffer(PointLight);
+    PrepareCubeMapRenderState();
+
+}
+
+

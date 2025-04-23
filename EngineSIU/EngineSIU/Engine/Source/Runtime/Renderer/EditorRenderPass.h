@@ -77,15 +77,16 @@ private:
     void UpdateTextureIcon(IconType type);
 
     // Arrow
-    void RenderArrows();
-    void PrepareConstantbufferArrow();
-    void UdpateConstantbufferArrow(FConstantBufferDebugArrow Buffer);
+    void RenderArrowsInstanced();
+    void PrepareConstantbufferArrowInstanced() const;
+    void UdpateConstantbufferArrowInstanced(TArray<FConstantBufferDebugArrow>& Buffer) const;
 
     // ShaderManager의 Hot Reload에 대응하기 위한 함수
     void SetShaderAndPrepare(const std::wstring& VertexKey, const std::wstring& PixelKey, FShaderResource& ShaderSlot);
 
     const UINT32 ConstantBufferSizeAABB = 8;
     const UINT32 ConstantBufferSizeSphere = 8;
-    const UINT32 ConstantBufferSizeCone = 100; // 최대
+    const UINT32 ConstantBufferSizeCone = 100;
+    const UINT32 ConstantBufferSizeArrow = 100;
 };
 

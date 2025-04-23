@@ -108,7 +108,7 @@ FVector USpotLightComponent::GetDirection()
     return WorldForward;
 }
 
-const FSpotLightInfo& USpotLightComponent::GetSpotLightInfo() const
+FSpotLightInfo& USpotLightComponent::GetSpotLightInfo() 
 {
     return SpotLightInfo;
 }
@@ -227,7 +227,7 @@ void USpotLightComponent::UpdateProjectionMatrix()
     const float FieldOfViewRadians = OuterCosine;
 
     // Near Clip Plane 값 설정 (매우 작은 값 사용)
-    const float NearClipPlane = 1.f; // 또는 직접 상수 값 사용 (예: 0.01f)
+    const float NearClipPlane = NEAR_PLANE; // 또는 직접 상수 값 사용 (예: 0.01f)
 
     // Far Clip Plane 값 설정 (라이트의 감쇠 반경 사용)
     const float FarClipPlane = SpotLightInfo.Radius; // 또는 GetRadius() 함수 사용 가능

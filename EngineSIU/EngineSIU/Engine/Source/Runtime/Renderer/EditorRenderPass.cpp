@@ -307,14 +307,14 @@ void FEditorRenderPass::CreateBuffers()
 
 void FEditorRenderPass::CreateConstantBuffers()
 {
-    auto CreateCB = [this](UINT size, ID3D11Buffer** outBuffer)
+    auto CreateCB = [this](const UINT Size, ID3D11Buffer** OutBuffer)
     {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.ByteWidth = size;
-        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        Graphics->Device->CreateBuffer(&desc, nullptr, outBuffer);
+        D3D11_BUFFER_DESC Desc = {};
+        Desc.Usage = D3D11_USAGE_DYNAMIC;
+        Desc.ByteWidth = Size;
+        Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        Graphics->Device->CreateBuffer(&Desc, nullptr, OutBuffer);
     };
 
     CreateCB(sizeof(FConstantBufferCamera), &Resources.ConstantBuffers.Camera00);
@@ -323,7 +323,7 @@ void FEditorRenderPass::CreateConstantBuffers()
     CreateCB(sizeof(FConstantBufferDebugCone) * ConstantBufferSizeCone, &Resources.ConstantBuffers.Cone11);
     CreateCB(sizeof(FConstantBufferDebugGrid), &Resources.ConstantBuffers.Grid11);
     CreateCB(sizeof(FConstantBufferDebugIcon), &Resources.ConstantBuffers.Icon11);
-    CreateCB(sizeof(FConstantBufferDebugArrow), &Resources.ConstantBuffers.Arrow11);
+    CreateCB(sizeof(FConstantBufferDebugArrow) * ConstantBufferSizeArrow, &Resources.ConstantBuffers.Arrow11);
 }
 
 void FEditorRenderPass::PrepareRendertarget(std::shared_ptr<FEditorViewportClient> Viewport)
@@ -432,7 +432,7 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
         RenderSpotlightInstanced(ShowFlag);
     }
 
-    RenderArrows();    // Directional Light Arrow : Depth Test Enabled
+    RenderArrowsInstanced();
     //RenderIcons(World, ActiveViewport); // 기존 렌더패스에서 아이콘 렌더하고 있으므로 제거
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -775,43 +775,66 @@ void FEditorRenderPass::UpdateTextureIcon(IconType type)
     Graphics->DeviceContext->PSSetSamplers(0, 1, &Resources.IconTextures[type]->SamplerState);
 }
 
-void FEditorRenderPass::RenderArrows()
+void FEditorRenderPass::RenderArrowsInstanced()
 {
-    // XYZ한번. Z는 중복으로 적용
-    const float ArrowScale = 1;
-
     SetShaderAndPrepare(L"ArrowVS", L"ArrowPS", Resources.Shaders.Arrow);
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Arrow.Vertex, &Resources.Primitives.Arrow.VertexStride, &offset);
+    constexpr UINT Offset = 0;
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Arrow.Vertex, &Resources.Primitives.Arrow.VertexStride, &Offset);
     Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Arrow.Index, DXGI_FORMAT_R32_UINT, 0);
 
-    PrepareConstantbufferArrow();
+    // 1. Collect Instance Data
+    TArray<FConstantBufferDebugArrow> BufferAll;
     for (ULightComponentBase* LightComp : Resources.Components.Light)
     {
+        constexpr float ArrowScale = 1.0f;
         if (UDirectionalLightComponent* DLightComp = Cast<UDirectionalLightComponent>(LightComp))
         {
-            FConstantBufferDebugArrow buf;
-            buf.Position = DLightComp->GetWorldLocation();
-            buf.ArrowScaleXYZ = ArrowScale;
-            buf.Direction = DLightComp->GetDirection();
-            buf.ArrowScaleZ = ArrowScale;
-            UdpateConstantbufferArrow(buf);
-            Graphics->DeviceContext->DrawIndexed(Resources.Primitives.Arrow.NumIndices, 0, 0);
+            FConstantBufferDebugArrow Buf;
+            Buf.Position = DLightComp->GetWorldLocation();
+            Buf.ScaleXYZ = ArrowScale;
+            Buf.Direction = DLightComp->GetDirection();
+            Buf.ScaleZ = ArrowScale;
+            BufferAll.Add(Buf);
         }
-        if (USpotLightComponent* SpotComp = Cast<USpotLightComponent>(LightComp))
+        else if (USpotLightComponent* SpotComp = Cast<USpotLightComponent>(LightComp))
         {
-            FConstantBufferDebugArrow buf;
-            buf.Position = SpotComp->GetWorldLocation();
-            buf.ArrowScaleXYZ = ArrowScale;
-            buf.Direction = SpotComp->GetDirection();
-            buf.ArrowScaleZ = ArrowScale;
-            UdpateConstantbufferArrow(buf);
-            Graphics->DeviceContext->DrawIndexed(Resources.Primitives.Arrow.NumIndices, 0, 0);
+            FConstantBufferDebugArrow Buf;
+            Buf.Position = SpotComp->GetWorldLocation();
+            Buf.ScaleXYZ = ArrowScale;
+            Buf.Direction = SpotComp->GetDirection();
+            Buf.ScaleZ = ArrowScale;
+            BufferAll.Add(Buf);
+        }
+    }
+
+    PrepareConstantbufferArrowInstanced();
+
+    int32 BufferIndex = 0;
+    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeArrow) * ConstantBufferSizeArrow; ++i)
+    {
+        TArray<FConstantBufferDebugArrow> SubBuffer;
+        for (int32 j = 0; j < ConstantBufferSizeArrow; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            UdpateConstantbufferArrowInstanced(SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Arrow.NumIndices, SubBuffer.Num(), 0, 0, 0);
         }
     }
 }
 
-void FEditorRenderPass::PrepareConstantbufferArrow()
+void FEditorRenderPass::PrepareConstantbufferArrowInstanced() const
 {
     if (Resources.ConstantBuffers.Arrow11)
     {
@@ -819,15 +842,20 @@ void FEditorRenderPass::PrepareConstantbufferArrow()
     }
 }
 
-void FEditorRenderPass::UdpateConstantbufferArrow(FConstantBufferDebugArrow Buffer)
+void FEditorRenderPass::UdpateConstantbufferArrowInstanced(TArray<FConstantBufferDebugArrow>& Buffer) const
 {
+    if (Buffer.Num() > ConstantBufferSizeArrow)
+    {
+        UE_LOG(LogLevel::Error, "Invalid Arrow Buffer Num");
+        return;
+    }
+
     if (Resources.ConstantBuffers.Arrow11)
     {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
-
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Arrow11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(FConstantBufferDebugArrow)); // TArray이니까 실제 값을 받아와야함
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Arrow11, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
+        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Arrow11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
+        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugArrow) * Buffer.Num());
+        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Arrow11, 0);
     }
 }
 

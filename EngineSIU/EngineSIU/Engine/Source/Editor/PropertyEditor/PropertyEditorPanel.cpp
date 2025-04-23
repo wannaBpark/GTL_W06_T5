@@ -21,7 +21,10 @@
 #include "Components/ProjectileMovementComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "Math/JungleMath.h"
 #include "Renderer/ShadowManager.h"
+#include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 
 void PropertyEditorPanel::Render()
@@ -182,17 +185,30 @@ void PropertyEditorPanel::Render()
                 {
                     PointlightComponent->SetRadius(Radius);
                 }
+                // --- Cast Shadows 체크박스 추가 ---
+                bool bCastShadows = PointlightComponent->GetCastShadows(); // 현재 상태 가져오기
+                if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) // 체크박스 UI 생성 및 상호작용 처리
+                {
+                    PointlightComponent->SetCastShadows(bCastShadows); // 변경된 상태 설정
+                    // 필요하다면, 상태 변경에 따른 즉각적인 렌더링 업데이트 요청 로직 추가
+                    // 예: PointlightComponent->MarkRenderStateDirty();
+                }
 
                 ImGui::Text("ShadowMap");
+
+                FShadowCubeMapArrayRHI* pointRHI = FEngineLoop::Renderer.ShadowManager->GetPointShadowCubeMapRHI();
+                const char* faceNames[] = { "+X", "-X", "+Y", "-Y", "+Z", "-Z" };
+                float imageSize = 128.0f;
+                int index =  PointlightComponent->GetPointLightInfo().ShadowMapArrayIndex;
                 // CubeMap이므로 6개의 ShadowMap을 그립니다.
                 for (int i = 0; i < 6; ++i)
                 {
-                    //auto s = static_cast<void*>(PointlightComponent->GetSliceSRV(i));
-                //    ImGui::Image(reinterpret_cast<ImTextureID>(s), ImVec2(100, 100));
-
-                    if (i % 2 == 0)
+                    ID3D11ShaderResourceView* faceSRV = pointRHI->ShadowFaceSRVs[index][i];
+                    if (faceSRV)
                     {
-                        ImGui::SameLine();
+                        ImGui::Image(reinterpret_cast<ImTextureID>(faceSRV), ImVec2(imageSize, imageSize));
+                        ImGui::SameLine(); 
+                        ImGui::Text("%s", faceNames[i]);
                     }
                 }
 
@@ -248,6 +264,15 @@ void PropertyEditorPanel::Render()
                     SpotLightComponent->SetInnerDegree(InnerConeAngle);
                 }
 
+                // --- Cast Shadows 체크박스 추가 ---
+                bool bCastShadows = SpotLightComponent->GetCastShadows(); // 현재 상태 가져오기
+                if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) // 체크박스 UI 생성 및 상호작용 처리
+                {
+                    SpotLightComponent->SetCastShadows(bCastShadows); // 변경된 상태 설정
+                    // 필요하다면, 상태 변경에 따른 즉각적인 렌더링 업데이트 요청 로직 추가
+                    // 예: PointlightComponent->MarkRenderStateDirty();
+                }
+
                 ImGui::Text("ShadowMap");
                 ImGui::Image(reinterpret_cast<ImTextureID>(FEngineLoop::Renderer.ShadowManager->GetSpotShadowDepthRHI()->ShadowSRVs[0]), ImVec2(200, 200));
 
@@ -279,6 +304,15 @@ void PropertyEditorPanel::Render()
                 LightDirection = DirectionalLightComponent->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
 
+
+                // --- Cast Shadows 체크박스 추가 ---
+                bool bCastShadows = DirectionalLightComponent->GetCastShadows(); // 현재 상태 가져오기
+                if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) // 체크박스 UI 생성 및 상호작용 처리
+                {
+                    DirectionalLightComponent->SetCastShadows(bCastShadows); // 변경된 상태 설정
+                    // 필요하다면, 상태 변경에 따른 즉각적인 렌더링 업데이트 요청 로직 추가
+                    // 예: PointlightComponent->MarkRenderStateDirty();
+                }
                 ImGui::Text("ShadowMap");
 
                 // 분할된 개수만큼 CSM 해당 SRV 출력
@@ -309,6 +343,48 @@ void PropertyEditorPanel::Render()
                 ImGui::TreePop();
             }
 
+            ImGui::PopStyleColor();
+        }
+    }
+    if (PickedActor)
+    {
+        if (ULightComponentBase* LightComponent = PickedActor->GetComponentByClass<ULightComponentBase>())
+        {
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
+            // --- "Override Camera" 버튼 추가 ---
+            if (ImGui::Button("Override Camera with Light's Perspective"))
+            {
+                // 1. 라이트의 월드 위치 및 회전 가져오기
+                FVector LightLocation = LightComponent->GetWorldLocation();
+
+                FVector Forward = FVector(1.f, 0.f, 0.0f);
+                Forward = JungleMath::FVectorRotate(Forward, LightLocation);
+                FVector LightForward = Forward;
+                FRotator LightRotation = LightComponent->GetWorldRotation();
+                FVector LightRotationVecter;
+                LightRotationVecter.X = LightRotation.Roll;
+                LightRotationVecter.Y = -LightRotation.Pitch;
+                LightRotationVecter.Z = LightRotation.Yaw;
+
+                // 2. 활성 에디터 뷰포트 클라이언트 가져오기 (!!! 엔진별 구현 필요 !!!)
+                std::shared_ptr<FEditorViewportClient> ViewportClient = GEngineLoop.GetLevelEditor()->GetActiveViewportClient(); // 위에 정의된 헬퍼 함수 사용 (또는 직접 구현)
+
+                // 3. 뷰포트 클라이언트가 유효하면 카메라 설정
+                if (ViewportClient)
+                {
+                    ViewportClient->PerspectiveCamera.SetLocation(LightLocation + LightForward); // 카메라 위치 설정 함수 호출
+                    ViewportClient->PerspectiveCamera.SetRotation(LightRotationVecter); // 카메라 회전 설정 함수 호출
+
+                    // 필요시 뷰포트 강제 업데이트/다시 그리기 호출
+                    // ViewportClient->Invalidate();
+                }
+                else
+                {
+                    // 뷰포트 클라이언트를 찾을 수 없음 (오류 로그 등)
+                    // UE_LOG(LogTemp, Warning, TEXT("Active Viewport Client not found."));
+                }
+            }
             ImGui::PopStyleColor();
         }
     }

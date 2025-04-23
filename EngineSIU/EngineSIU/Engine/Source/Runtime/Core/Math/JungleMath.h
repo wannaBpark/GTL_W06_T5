@@ -5,7 +5,7 @@
 
 //  Near Clip Plane 값을 정의한 헤더
 #ifndef NEAR_PLANE
-#define NEAR_PLANE 0.001f 
+#define NEAR_PLANE 1.f 
 #endif
 
 class JungleMath

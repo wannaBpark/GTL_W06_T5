@@ -25,8 +25,8 @@ public:
     FShadowRenderPass();
     virtual ~FShadowRenderPass() override;
     void CreateShader();
-    void PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport,
-                                   UPointLightComponent*& PointLight);
+    void PrepareCubeMapRenderState(
+    );
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
     void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
     void SetLightData(const TArray<class UPointLightComponent*>& InPointLights, const TArray<class USpotLightComponent*>& InSpotLights);
@@ -36,6 +36,7 @@ public:
     void PrepareRenderState();
     void PrepareCSMRenderState();
     virtual void PrepareRenderArr() override;
+    void UpdateIsShadowConstant(int32 isShadow) const;
     void Render(ULightComponentBase* Light);
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
     virtual void ClearRenderArr() override;
@@ -47,6 +48,8 @@ public:
     void BindResourcesForSampling();
 
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
+
+    void RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
 
 
 private:
@@ -69,11 +72,13 @@ private:
     ID3D11VertexShader* DepthCubeMapVS;
     ID3D11GeometryShader* DepthCubeMapGS;
 
+
     ID3D11VertexShader* CascadedShadowMapVS;
     ID3D11GeometryShader* CascadedShadowMapGS;
     ID3D11PixelShader* CascadedShadowMapPS;
 
     D3D11_VIEWPORT ShadowViewport;
+
 
     uint32 ShadowMapWidth = 2048;
     uint32 ShadowMapHeight = 2048;

@@ -17,11 +17,16 @@ public:
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
 
-    const FPointLightInfo& GetPointLightInfo() const;
+    FPointLightInfo& GetPointLightInfo();
     void SetPointLightInfo(const FPointLightInfo& InPointLightInfo);
+
+    
 
     float GetRadius() const;
     void SetRadius(float InRadius);
+
+    bool GetCastShadows() const { return PointLightInfo.CastShadows; }
+    void SetCastShadows(bool InCastShadows) { PointLightInfo.CastShadows = InCastShadows; }
 
     FLinearColor GetLightColor() const;
     void SetLightColor(const FLinearColor& InColor);
