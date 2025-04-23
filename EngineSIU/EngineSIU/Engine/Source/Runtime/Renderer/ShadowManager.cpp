@@ -30,8 +30,8 @@ FShadowManager::~FShadowManager()
 
 
 bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager,
-                               uint32_t InMaxSpotShadows, uint32_t InSpotResolution,
-                               uint32_t InNumCascades, uint32_t InDirResolution)
+    uint32_t InMaxSpotShadows, uint32_t InSpotResolution,
+    uint32_t InMaxPointShadows, uint32_t InPointResolution, uint32_t InNumCascades, uint32_t InDirResolution)
 {
     if (D3DDevice) // 이미 초기화된 경우 방지
     {

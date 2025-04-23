@@ -210,7 +210,7 @@ float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, uint csmIn
 
 
 void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv,
-                 float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld, uint csmIndex)
+                 float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld, uint csmIndex, FDirectionalLightInfo LightInfo)
 
 {
     float LightRadiusUV = LightRadiusWorld / LightInfo.OrthoWidth; // TO FIX!
@@ -233,7 +233,7 @@ void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv
 }
 
 
-float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld, uint csmIndex)
+float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld, uint csmIndex, FDirectionalLightInfo LightInfo)
 {
     float lightRadiusUV = LightRadiusWorld / 2.0; // TO FIX!
     float zReceiverView = N2V(zReceiverNDC, CascadedInvProj[csmIndex]);
@@ -243,7 +243,7 @@ float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray
     float avgBlockerDepthView = 0;
     float numBlockers = 0;
 
-    FindBlocker(avgBlockerDepthView, numBlockers, uv, zReceiverView, DirectionShadowMapArray, CascadedInvProj[csmIndex], LightRadiusWorld, csmIndex);
+    FindBlocker(avgBlockerDepthView, numBlockers, uv, zReceiverView, DirectionShadowMapArray, CascadedInvProj[csmIndex], LightRadiusWorld, csmIndex, LightInfo);
 
 
     if (numBlockers < 1)
@@ -299,7 +299,7 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
     float zReceiverNdc = posLS.z -= bias;
     ShadowFactor = DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(uv, CsmIndex), zReceiverNdc);
 
-    //ShadowFactor = PCSS(uv, zReceiverNdc, DirectionShadowMapArray, CascadedInvViewProj[CsmIndex], LIGHT_RADIUS_WORLD, CsmIndex);
+    //ShadowFactor = PCSS(uv, zReceiverNdc, DirectionShadowMapArray, CascadedInvViewProj[CsmIndex], LIGHT_RADIUS_WORLD, CsmIndex, LightInfo);
     return ShadowFactor;
     
     

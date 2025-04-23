@@ -107,7 +107,7 @@ struct FShadowCubeMapArrayRHI
     }
 };
 
-
+class FEditorViewportClient;
 class FShadowManager
 {
 public:
