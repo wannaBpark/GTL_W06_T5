@@ -6,6 +6,8 @@
 #include "UnrealClient.h" // Depth Stencil View
 #include <d3d11.h>
 
+#include "Components/Light/PointLightComponent.h"
+
 
 // ShadowMap을 생성하기 위한 Render Pass입니다.
 // Depth 값만을 추출하는 Vertex Shader Only 패스
@@ -23,6 +25,12 @@ public:
     FShadowRenderPass();
     virtual ~FShadowRenderPass() override;
     void CreateShader() const;
+    void PrepareCubeMapRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport,
+                                   UPointLightComponent*& PointLight);
+    void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
+    void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
+    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
+    
     void PrepareRenderState(ULightComponentBase* Light);
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager);
     void InitializeShadowManager(class FShadowManager* InShadowManager);
@@ -31,8 +39,6 @@ public:
     void Render(ULightComponentBase* Light);
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
     virtual void ClearRenderArr() override;
-    void SetLightData(const TArray<class UPointLightComponent*>& InPointLights, const TArray<class USpotLightComponent*>& InSpotLights);
-
 
     void RenderPrimitive(OBJ::FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int getselected_sub_mesh_index);
     virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
@@ -55,9 +61,16 @@ private:
 
     ID3D11InputLayout* StaticMeshIL;
     ID3D11VertexShader* DepthOnlyVS;
+    ID3D11PixelShader* DepthOnlyPS;
+    ID3D11SamplerState* Sampler;
+
+    ID3D11VertexShader* DepthCubeMapVS;
+    ID3D11GeometryShader* DepthCubeMapGS;
 
     D3D11_VIEWPORT ShadowViewport;
 
     uint32 ShadowMapWidth = 2048;
     uint32 ShadowMapHeight = 2048;
+
+    FLOAT ClearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 };

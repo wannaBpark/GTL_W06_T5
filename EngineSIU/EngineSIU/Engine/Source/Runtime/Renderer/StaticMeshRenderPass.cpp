@@ -31,6 +31,11 @@
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
+#include "Components/Light/LightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+#include "ShadowRenderPass.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -162,6 +167,8 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     // ShadowRenderPass->InitializeShadowManager();
     
     CreateShader();
+    ShadowRenderPass = new FShadowRenderPass();
+    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
 }
 
 void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
@@ -351,6 +358,11 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
 void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    //if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
+    //{
+    //    ShadowRenderPass->RenderCubeMap(Viewport, PointLight);
+    //    RenderAllStaticMeshesForPointLight(Viewport, PointLight);
+    //}
     
     ShadowManager->BindResourcesForSampling();
 
@@ -384,3 +396,22 @@ void FStaticMeshRenderPass::ClearRenderArr()
     StaticMeshComponents.Empty();
 }
 
+
+void FStaticMeshRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+{
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh()) { continue; }
+
+        OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr) { continue; }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+
+        ShadowRenderPass->UpdateCubeMapConstantBuffer(PointLight, WorldMatrix);
+
+        RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+    }
+}

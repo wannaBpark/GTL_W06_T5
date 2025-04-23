@@ -13,6 +13,10 @@ ULightComponentBase::~ULightComponentBase()
 {
   
 }
+void ULightComponentBase::Initialize()
+{
+    CreateShadowMap();
+}
 
 UObject* ULightComponentBase::Duplicate(UObject* InOuter)
 {
@@ -65,7 +69,7 @@ void ULightComponentBase::UpdateProjectionMatrix()
 {
 }
 
-// TArray<FDepthStencilRHI> ULightComponentBase::GetShadowMap()
+// TArray<FDepthStencilRHI>& ULightComponentBase::GetShadowMap()
 // {
 //     // ShadowMap의 크기가 바뀐 경우 새로 생성합니다.
 //     if (bDirtyFlag)

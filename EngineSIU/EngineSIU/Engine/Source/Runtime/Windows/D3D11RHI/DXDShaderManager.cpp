@@ -11,6 +11,8 @@ FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
 {
     VertexShaders.Empty();
     PixelShaders.Empty();
+    ComputeShaders.Empty();
+    GeometryShaders.Empty();
 }
 
 FDXDShaderManager::~FDXDShaderManager()
@@ -39,6 +41,26 @@ void FDXDShaderManager::ReleaseAllShader()
         }
     }
     PixelShaders.Empty();
+
+    for (auto& [Key, Shader] : ComputeShaders)
+    {
+        if (Shader)
+        {
+            Shader->Release();
+            Shader = nullptr;
+        }
+    }
+    ComputeShaders.Empty();
+
+    for (auto& [Key, Shader] : GeometryShaders)
+    {
+        if (Shader)
+        {
+            Shader->Release();
+            Shader = nullptr;
+        }
+    }
+    GeometryShaders.Empty();
 
 }
 
@@ -72,9 +94,13 @@ void FDXDShaderManager::UpdateShaderIfOutdated(const std::wstring Key, const std
                 : AddPixelShader(Key, FilePath, EntryPoint);
         }
         // Pixel Shader가 아니라면 Compute Shader로 간주
-        else
+        else if (ComputeShaders.Contains(Key))
         {
             AddComputeShader(Key, FilePath, EntryPoint);
+        }
+        else
+        {
+            AddGeometryShader(Key, FilePath, EntryPoint);
         }
         ShaderTimeStamps[Key] = currentTime;
     }
@@ -599,6 +625,56 @@ HRESULT FDXDShaderManager::AddComputeShader(const std::wstring& Key, const std::
     return S_OK;
 }
 
+HRESULT FDXDShaderManager::AddGeometryShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint)
+{
+    if (DXDDevice == nullptr)
+        return S_FALSE;
+    HRESULT hr = S_OK;
+    ID3DBlob* csBlob = nullptr;
+    ID3DBlob* errorBlob = nullptr;
+
+    DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+    shaderFlags |= D3DCOMPILE_DEBUG;
+    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+    hr = D3DCompileFromFile(
+        FileName.c_str(),
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        EntryPoint.c_str(),
+        "gs_5_0",
+        shaderFlags,
+        0,
+        &csBlob,
+        &errorBlob
+    );
+    if (FAILED(hr))
+    {
+        if (errorBlob)
+        {
+            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+            UE_LOG(LogLevel::Error, "%s", (char*)errorBlob->GetBufferPointer());
+            errorBlob->Release();
+        }
+        return hr;
+    }
+    ID3D11GeometryShader* NewComputeShader = nullptr;
+    hr = DXDDevice->CreateGeometryShader(csBlob->GetBufferPointer(), csBlob->GetBufferSize(), nullptr, &NewComputeShader);
+    if (FAILED(hr))
+    {
+        csBlob->Release();
+        return hr;
+    }
+    if (SUCCEEDED(hr) && !GeometryShaders.Contains(Key))
+    {
+        RegisterShaderForReload(Key, FileName, EntryPoint, false, nullptr, nullptr, 0);
+    }
+    GeometryShaders[Key] = NewComputeShader;
+    csBlob->Release();
+    return S_OK;
+}
+
 HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
 {
     UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -741,6 +817,14 @@ ID3D11ComputeShader* FDXDShaderManager::GetComputeShaderByKey(const std::wstring
     if (ComputeShaders.Contains(Key))
     {
         return *ComputeShaders.Find(Key);
+    }
+    return nullptr;
+}
+ID3D11GeometryShader* FDXDShaderManager::GetGeometryShaderByKey(const std::wstring& Key)
+{
+    if (GeometryShaders.Contains(Key))
+    {
+        return *GeometryShaders.Find(Key);
     }
     return nullptr;
 }

@@ -9,7 +9,9 @@ public:
     UPointLightComponent();
     virtual ~UPointLightComponent() override;
 
-    
+    void Initialize();
+    void InitShadowDebugView();
+
     virtual UObject* Duplicate(UObject* InOuter) override;
     
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
@@ -35,10 +37,16 @@ public:
     void UpdateViewMatrix() override;
     void UpdateProjectionMatrix() override;
 
+    
 private:
     FPointLightInfo PointLightInfo;
 
+    TArray<ID3D11Texture2D*> OutputTextures = {};
+    TArray<ID3D11ShaderResourceView*> OutputSRVs = {};
+    ID3D11ShaderResourceView* SliceSRVs[6] = { nullptr };
+
 public:
+    TArray<FDepthStencilRHI> GetShadowMap() override;
 };
 
 

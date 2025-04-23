@@ -2,6 +2,7 @@
 #include "UnrealClient.h"
 #include "Components/SceneComponent.h"
 
+#define NUM_FACES 6
 
 class ULightComponentBase : public USceneComponent
 {
@@ -10,6 +11,7 @@ class ULightComponentBase : public USceneComponent
 public:
     ULightComponentBase();
     virtual ~ULightComponentBase() override;
+    void Initialize();
     virtual UObject* Duplicate(UObject* InOuter) override;
     
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
@@ -32,6 +34,7 @@ public:
     
 protected:
 
+    // PointLight: 6개의 ViewMatrix를 가집니다
     TArray<FMatrix>		ViewMatrices;
     FMatrix		ProjectionMatrix;
     
