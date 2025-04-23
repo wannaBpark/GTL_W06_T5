@@ -526,8 +526,6 @@ PS_OUTPUT gridPS(PS_INPUT_GRID input)
 }
 */
 
-
-
 /////////////////////////////////////////////
 // Icon
 struct PS_INPUT_ICON
@@ -588,15 +586,16 @@ float4 iconPS(PS_INPUT_ICON input) : SV_Target
     return col;
 }
 
-
 /////////////////////////////////////////////
 // Arrow
-PS_INPUT arrowVS(VS_INPUT input)
+PS_INPUT arrowVS(VS_INPUT input, uint instanceID : SV_InstanceID)
 {
     PS_INPUT output;
 
+    ArrowData instanceData = DataArrow[instanceID];
+
     // 정규화된 방향
-    float3 forward = normalize(ArrowDirection);
+    float3 forward = normalize(instanceData.Direction);
 
     // 기본 up 벡터와 forward가 나란할 때를 방지
     float3 up = abs(forward.y) > 0.99 ? float3(0, 0, 1) : float3(0, 1, 0);
@@ -610,10 +609,10 @@ PS_INPUT arrowVS(VS_INPUT input)
     // 회전 행렬 구성 (Row-Major 기준)
     float3x3 rotationMatrix = float3x3(right, up, forward);
 
-    input.position = input.position * ArrowScaleXYZ;
-    input.position.z = input.position.z * ArrowScaleZ;
+    input.position = input.position * instanceData.Scale;
+    input.position.z = input.position.z * instanceData.ScaleZ;
     // 로컬 → 회전 → 위치
-    float3 worldPos = mul(input.position.xyz, rotationMatrix) + ArrowPosition;
+    float3 worldPos = mul(input.position.xyz, rotationMatrix) + instanceData.Position;
 
     float4 pos = float4(worldPos, 1.0);
     pos = mul(pos, ViewMatrix);
