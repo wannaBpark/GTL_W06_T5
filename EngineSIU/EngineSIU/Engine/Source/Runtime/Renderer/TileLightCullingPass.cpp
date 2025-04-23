@@ -62,6 +62,7 @@ void FTileLightCullingPass::PrepareRenderArr()
                 SpotLight->GetDirection();
                 SpotLights.Add(SpotLight);
             }
+            // [주의] : Directional Light에 대한 CasCade Shadow Map을 만들 때에 아래 View,Proj 갱신을 전제
             iter->UpdateViewMatrix();
             iter->UpdateProjectionMatrix();
         }

@@ -288,6 +288,7 @@ struct FPrimitiveCounts
 
 #define MAX_LIGHTS 16
 #define NUM_FACES 6
+#define MAX_CASCADE_NUM 5
 
 enum ELightType {
     POINT_LIGHT = 1,
@@ -316,6 +317,18 @@ struct FPointLightGSBuffer
 {
     FMatrix World;
     FMatrix ViewProj[NUM_FACES]; // 6 : NUM_FACES
+};
+
+struct FCascadeConstantBuffer
+{
+    FMatrix World;
+    FMatrix ViewProj[MAX_CASCADE_NUM];
+    FMatrix InvViewProj[MAX_CASCADE_NUM];
+    FMatrix InvProj[MAX_CASCADE_NUM];
+    FVector4 CascadeSplit;
+
+    float pad1;
+    float pad2;
 };
 
 struct FShadowConstantBuffer

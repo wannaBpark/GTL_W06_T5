@@ -84,6 +84,37 @@ FMatrix JungleMath::CreateOrthoProjectionMatrix(float width, float height, float
     return Projection;
 }
 
+/**
+ * Create an off-center orthographic projection.
+ * @param left     좌표계의 왼쪽(Xmin)
+ * @param right    좌표계의 오른쪽(Xmax)
+ * @param bottom   좌표계의 아래(Ymin)
+ * @param top      좌표계의 위(Ymax)
+ * @param nearPlane  near plane 거리
+ * @param farPlane   far plane 거리
+ */
+FMatrix JungleMath::CreateOrthographicOffCenter( float left, float right, float bottom, float top,
+    float nearPlane, float farPlane)
+{
+    float width = right - left;
+    float height = top - bottom;
+    float invWidth = 2.0f / width;       // = 1 / (width*0.5f)
+    float invHeight = 2.0f / height;      // = 1 / (height*0.5f)
+    float invDepth = 1.0f / (farPlane - nearPlane);
+
+    FMatrix Projection = {};
+
+    Projection.M[0][0] = invWidth;            // X 스케일
+    Projection.M[1][1] = invHeight;           // Y 스케일
+    Projection.M[2][2] = invDepth;            // Z 스케일 (0~1)
+    Projection.M[3][0] = -(right + left) / width;   // X 오프셋
+    Projection.M[3][1] = -(top + bottom) / height; // Y 오프셋
+    Projection.M[3][2] = -nearPlane * invDepth;      // Z 오프셋
+    Projection.M[3][3] = 1.0f;
+
+    return Projection;
+}
+
 FVector JungleMath::FVectorRotate(FVector& origin, const FVector& InRotation)
 {
     FQuat quaternion = JungleMath::EulerToQuaternion(InRotation);

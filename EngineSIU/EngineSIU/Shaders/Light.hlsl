@@ -13,8 +13,10 @@
 
 #define MAX_LIGHT_PER_TILE 1024
 
-#define NEAR_PLANE 1
-#define LIGHT_RADIUS_WORLD 15000
+#define NEAR_PLANE 0.1
+#define LIGHT_RADIUS_WORLD 7
+
+#define MAX_CASCADE_NUM 5
 
 struct FAmbientLightInfo
 {
@@ -121,12 +123,34 @@ cbuffer TileLightCullSettings : register(b8)
     uint Enable25DCulling; // 1이면 2.5D 컬링 사용
 }
 
+cbuffer CascadeConstantBuffer : register(b9)
+{
+    row_major matrix World;
+    row_major matrix CascadedViewProj[MAX_CASCADE_NUM];
+    row_major matrix CascadedInvViewProj[MAX_CASCADE_NUM];
+    row_major matrix CascadedInvProj[MAX_CASCADE_NUM];
+    float4 CascadeSplits;
+    float2 cascadepad;
+};
+
 struct LightPerTiles
 {
     uint NumLights;
     uint Indices[MAX_LIGHT_PER_TILE];
     uint Padding[3];
 };
+
+// 인덱스별 색 지정 함수
+float4 DebugCSMColor(uint idx)
+{
+    if (idx == 0)
+        return float4(1, 0, 0, 1); // 빨강
+    if (idx == 1)
+        return float4(0, 1, 0, 1); // 초록
+    if (idx == 2)
+        return float4(0, 0, 1, 1); // 파랑
+    return float4(1, 1, 1, 1); // 나머지 – 흰색
+}
 
 StructuredBuffer<FPointLightInfo>   gPointLights    : register(t10);
 StructuredBuffer<FSpotLightInfo>    gSpotLights     : register(t11);
@@ -148,6 +172,19 @@ bool InRange(float val, float min, float max)
     return (min <= val && val <= max);
 }
 
+uint GetCascadeIndex(float viewDepth)
+{
+    // viewDepth 는 LightSpace 깊이(z) 또는 NDC 깊이 복원 뷰 깊이
+
+    for (uint i = 0; i < MAX_CASCADE_NUM; ++i)
+    {
+        // splits 배열에는 [0]=near, [N]=far 까지 로그 스플릿 저장됨 ex)0..2..4..46..1000
+        if (viewDepth <= CascadeSplits[i + 1])
+            return i;
+    }
+    return MAX_CASCADE_NUM - 1;
+}
+
 // NdcDepthToViewDepth
 float N2V(float ndcDepth, matrix invProj)
 {
@@ -156,7 +193,8 @@ float N2V(float ndcDepth, matrix invProj)
 }
 
 
-float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV)
+
+float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, uint csmIndex)
 {
     float sum = 0.0f;
     [unroll]
@@ -165,13 +203,15 @@ float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV)
         // TODO (offset, 0)에 배열(slice) 인덱스 넣기
         float2 offset = diskSamples64[i] * filterRadiusUV;
         sum += DirectionShadowMapArray.SampleCmpLevelZero(
-            ShadowSamplerCmp, float3(uv + offset, 0), zReceiverNdc);
+            ShadowSamplerCmp, float3(uv + offset, csmIndex), zReceiverNdc);
     }
     return sum / 64;
 }
 
-void FindBlocker(FDirectionalLightInfo LightInfo, out float avgBlockerDepthView, out float numBlockers, float2 uv,
-                 float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld)
+
+void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv,
+                 float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld, uint csmIndex)
+
 {
     float LightRadiusUV = LightRadiusWorld / LightInfo.OrthoWidth; // TO FIX!
     float searchRadius = LightRadiusUV * (zReceiverView - NEAR_PLANE) / zReceiverView; // TO FIX! NearPlane
@@ -181,7 +221,7 @@ void FindBlocker(FDirectionalLightInfo LightInfo, out float avgBlockerDepthView,
     for (int i = 0; i < 64; ++i)
     {
         // TODO : slice index 받아야 함 (searchRadius , 배열 인덱스)
-        float ShadowMapDepth = DirectionShadowMapArray.SampleLevel(ShadowPointSampler, float3(uv + diskSamples64[i] * searchRadius, 0), 0).r;
+        float ShadowMapDepth = DirectionShadowMapArray.SampleLevel(ShadowPointSampler, float3(uv + diskSamples64[i] * searchRadius, csmIndex), 0).r;
         ShadowMapDepth = N2V(ShadowMapDepth, InvProj);
         if (ShadowMapDepth < zReceiverView)
         {
@@ -192,15 +232,19 @@ void FindBlocker(FDirectionalLightInfo LightInfo, out float avgBlockerDepthView,
     avgBlockerDepthView = (numBlockers > 0) ? (blockerSum / numBlockers) : 0.0f;
 }
 
-float PCSS(FDirectionalLightInfo LightInfo,float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld)
+
+float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld, uint csmIndex)
 {
-    float lightRadiusUV = LightRadiusWorld /LightInfo.OrthoWidth; // TO FIX!
-    float zReceiverView = N2V(zReceiverNDC, ShadowInvProj);
+    float lightRadiusUV = LightRadiusWorld / 2.0; // TO FIX!
+    float zReceiverView = N2V(zReceiverNDC, CascadedInvProj[csmIndex]);
+
 
     // 1. Blocker Search
     float avgBlockerDepthView = 0;
     float numBlockers = 0;
-    FindBlocker(LightInfo, avgBlockerDepthView, numBlockers, uv, zReceiverView, DirectionShadowMapArray, ShadowInvProj, LightRadiusWorld);
+
+    FindBlocker(avgBlockerDepthView, numBlockers, uv, zReceiverView, DirectionShadowMapArray, CascadedInvProj[csmIndex], LightRadiusWorld, csmIndex);
+
 
     if (numBlockers < 1)
     {
@@ -214,7 +258,7 @@ float PCSS(FDirectionalLightInfo LightInfo,float2 uv, float zReceiverNDC, Textur
         float filterRadiusUV = penumbraRatio * lightRadiusUV * NEAR_PLANE / zReceiverView; // TO FIX!!!!
 
         // 3. Filtering
-        return PCF_Filter(uv, zReceiverNDC, filterRadiusUV);
+        return PCF_Filter(uv, zReceiverNDC, filterRadiusUV, csmIndex);
     }
 }
 
@@ -230,8 +274,8 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
     
     float ShadowFactor = 1.0;
     float NdotL = dot(normalize(WorldNormal), LightInfo.Direction);
-    float bias = 0.001f /** (1 - NdotL) + 0.0001f*/;
-
+    float bias = 0.01f;
+    
     // 1. Project World Position to Light Screen Space
     float4 LightScreen = mul(float4(WorldPosition, 1.0f), LightInfo.LightViewProj);
     LightScreen.xyz /= LightScreen.w; // Perspective Divide -> [-1, 1] 범위로 변환
@@ -245,33 +289,20 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
     LightDistance -= bias;
 
 
-    ShadowFactor = PCSS(LightInfo, ShadowMapTexCoord, LightDistance, DirectionShadowMapArray, LightInfo.LightInvProj, LIGHT_RADIUS_WORLD);
+    float4 posCam = mul(float4(WorldPosition, 1), ViewMatrix);
+    float depthCam = posCam.z; 
+    uint CsmIndex = GetCascadeIndex(depthCam);
+    //CsmIndex = 1;
+    float4 posLS = mul(float4(WorldPosition, 1), CascadedViewProj[CsmIndex]);
+    float2 uv = posLS.xy * 0.5f + 0.5f;
+    uv.y = 1 - uv.y;
+    float zReceiverNdc = posLS.z -= bias;
+    ShadowFactor = DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(uv, CsmIndex), zReceiverNdc);
+
+    //ShadowFactor = PCSS(uv, zReceiverNdc, DirectionShadowMapArray, CascadedInvViewProj[CsmIndex], LIGHT_RADIUS_WORLD, CsmIndex);
     return ShadowFactor;
     
     
-    // float Light = 0.f;
-    // float OffsetX = 1.f / ShadowMapWidth;
-    // float OffsetY = 1.f / ShadowMapHeight;
-    // for(int i = -1; i <= 1; i++){
-    //     for(int j = -1; j <= 1; j++){
-    //         float2 SampleCoord =
-    //         {
-    //             ShadowMapTexCoord.x + OffsetX * i,
-    //             ShadowMapTexCoord.y + OffsetY * j
-    //         };
-    //         if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
-    //         {
-    //             // TODO: Cascade용으로 배열 인덱스 넣기
-    //             Light += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(SampleCoord, 0), LightDistance).r;
-    //         }
-    //         else
-    //         {
-    //             Light += 1.f;
-    //         }
-    //     }
-    // }
-    // Light /= 9;
-    // return Light;
 }
 
 int GetMajorFaceIndex(float3 Dir){
@@ -288,6 +319,7 @@ int GetMajorFaceIndex(float3 Dir){
     {
         return Dir.z > 0.0f ? 4 : 5;
     }
+
 }
 
 float CalculatePointShadowFactor(float3 WorldPosition, FPointLightInfo LightInfo, // 라이트 정보 전체 전달
@@ -500,6 +532,9 @@ float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
 
+    float4 posCam = mul(float4(WorldPosition, 1), ViewMatrix);
+    float depthCam = posCam.z / posCam.w;
+    uint csmIndex = GetCascadeIndex(depthCam);
     
     //FinalColor *= GetLightFromShadowMap(Input);
     float Shadow = CalculateDirectionalShadowFactor(WorldPosition, WorldNormal, LightInfo, DirectionShadowMapArray, ShadowSamplerCmp);
@@ -522,7 +557,7 @@ float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Material.SpecularScalar);
     float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * Material.SpecularColor)) * LightInfo.LightColor.rgb;
 #endif
-    return float4(Lit * Shadow * LightInfo.Intensity, 1.0);
+    return float4(Lit * Shadow * LightInfo.Intensity, 1.0) /** DebugCSMColor(csmIndex)*/;
 }
 
 float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, uint TileIndex)
@@ -596,7 +631,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
     }
     [unroll(MAX_DIRECTIONAL_LIGHT)]
-    for (int k = 0; k < 1; k++)
+    for (int k = 0; k < 1; k++) 
     {
         FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
     }
@@ -612,59 +647,3 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 
 
 
-// float GetLightFromShadowMap(float3 WorldPosition)
-// {
-//     //return 0.0f;
-//     // float NdotL = dot(normalize(input.WorldNormal), DirectionalLightDir);
-//     // float bias = 0.001f * (1 - NdotL) + 0.0001f;
-//     float ShadowFactor = 1.0;
-//     float bias = 0.001f;
-//
-//     // 1. Project World Position to Light Screen Space
-//     float4 LightScreen = mul(float4(WorldPosition, 1.0f), ShadowViewProj);
-//     LightScreen.xyz /= LightScreen.w; // Perspective Divide -> [-1, 1] 범위로 변환
-//
-//     // 2. 광원 입장의 Texture 좌표계로 변환
-//     float2 ShadowMapTexCoord = { LightScreen.x, -LightScreen.y }; // NDC 좌표계와 UV 좌표계는 Y축 방향이 반대
-//     ShadowMapTexCoord += 1.0;
-//     ShadowMapTexCoord *= 0.5;
-//
-//     float LightDistance = LightScreen.z;
-//     LightDistance -= bias;
-//
-//     /*
-//     uint width, height, numMips;
-//     ShadowMap.GetDimensions(0, width, height, numMips);
-//     // Texel Size 계산
-//     float dx = 5.0 / (float) width;
-//
-//     // ShadowFactor = PCSS(ShadowMapTexCoord, LightDistance, ShadowMap, ShadowInvProj, LIGHT_RADIUS_WORLD);
-//     return ShadowFactor;
-//     
-//     float Light = 0.f;
-//     float OffsetX = 1.f / ShadowMapWidth;
-//     float OffsetY = 1.f / ShadowMapHeight;
-//     for (int i = -1; i <= 1; i++)
-//     {
-//         for (int j = -1; j <= 1; j++)
-//         {
-//             float2 SampleCoord =
-//             {
-//                 ShadowMapTexCoord.x + OffsetX * i,
-//                 ShadowMapTexCoord.y + OffsetY * j
-//             };
-//             if (InRange(SampleCoord.x, 0.f, 1.f) && InRange(SampleCoord.y, 0.f, 1.f))
-//             {
-//                 Light += ShadowMap.SampleCmpLevelZero(ShadowSampler, SampleCoord, LightDistance).r;
-//             }
-//             else
-//             {
-//                 Light += 1.f;
-//             }
-//         }
-//     }
-//     Light /= 9;
-//     return Light;
-//
-//     return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;*/
-// }

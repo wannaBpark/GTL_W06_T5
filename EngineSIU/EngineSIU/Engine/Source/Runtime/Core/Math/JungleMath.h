@@ -17,6 +17,7 @@ public:
     static FMatrix CreateViewMatrix(FVector eye, FVector target, FVector up);
     static FMatrix CreateProjectionMatrix(float fov, float aspect, float nearPlane, float farPlane);
     static FMatrix CreateOrthoProjectionMatrix(float width, float height, float nearPlane, float farPlane);
+    static FMatrix CreateOrthographicOffCenter(float left, float right, float bottom, float top, float nearPlane, float farPlane);
 
     static FVector FVectorRotate(FVector& origin, const FVector& InRotation);
     static FVector FVectorRotate(FVector& origin, const FRotator& InRotation);

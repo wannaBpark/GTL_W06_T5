@@ -15,7 +15,7 @@ struct FShadowDepthRHI
     TArray<ID3D11DepthStencilView*> ShadowDSVs; // 디렉셔널인경우  cascade
     TArray<ID3D11ShaderResourceView*> ShadowSRVs; // imgui용 각 텍스쳐의 srv
     
-    uint32 ShadowMapResolution = 1024;
+    uint32 ShadowMapResolution = 1024; // 섀도우 맵 해상도 (기본값: 1024x1024)
 
     void Release()
     {
@@ -47,6 +47,9 @@ struct FShadowDepthRHI
         }
     }
 };
+
+class UDirectionalLightComponent;
+class FDXDBufferManager;
 
 // TextureCubeArray 기반 섀도우 맵 리소스 관리 구조체
 struct FShadowCubeMapArrayRHI
@@ -104,6 +107,7 @@ struct FShadowCubeMapArrayRHI
     }
 };
 
+
 class FShadowManager
 {
 public:
@@ -126,10 +130,11 @@ public:
      * @param InDirResolution 방향성 광원 섀도우 맵 해상도
      * @return 초기화 성공 여부
      */
-    bool Initialize(FGraphicsDevice* InGraphics,
+
+    bool Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager,
                     uint32_t InMaxSpotShadows = 128, uint32_t InSpotResolution = 1024,
-                    uint32_t InMaxPointShadows = 128, uint32_t InPointResolution = 512, // << 추가된 파라미터
-                    uint32_t InNumCascades = 1, uint32_t InDirResolution = 2048);
+                    uint32_t InMaxPointShadows = 128,uint32_t InPointResolution = 512, uint32_t InNumCascades = 4, uint32_t InDirResolution = 4096); // NUM Cascades 바인딩 위치가 불명확합니다.
+
 
     /** 생성된 모든 D3D 리소스를 해제합니다. */
     void Release();
@@ -171,6 +176,11 @@ public:
     FShadowDepthRHI* GetSpotShadowDepthRHI() const { return SpotShadowDepthRHI; }
     FShadowCubeMapArrayRHI* GetPointShadowCubeMapRHI() const { return PointShadowCubeMapRHI; } // << 추가
     FShadowDepthRHI* GetDirectionalShadowCascadeDepthRHI() const { return DirectionalShadowCascadeDepthRHI; }
+
+    FMatrix GetCascadeViewProjMatrix(int i) const;
+    uint32 GetNumCasCades() const { return NumCascades; }
+    float GetCascadeSplitDistance(int i) const { return CascadeSplits[i]; }
+
     int32 GetMaxPointLightCount() const { return MaxPointLightShadows; } 
     int32 GetMaxSpotLightCount() const { return MaxSpotLightShadows; }
 
@@ -179,16 +189,24 @@ private:
     // D3D 디바이스 및 컨텍스트
     ID3D11Device* D3DDevice = nullptr;
     ID3D11DeviceContext* D3DContext = nullptr;
+    FDXDBufferManager* BufferManager = nullptr;         // 상수버퍼 바인딩 위함
 
     // 각 라이트 타입별 섀도우 리소스 RHI
     FShadowDepthRHI* SpotShadowDepthRHI = nullptr;
     FShadowCubeMapArrayRHI* PointShadowCubeMapRHI = nullptr; // << 추가
-    FShadowDepthRHI* DirectionalShadowCascadeDepthRHI = nullptr;
+    FShadowDepthRHI* DirectionalShadowCascadeDepthRHI = nullptr; // 방향성 광원 섀도우 맵을 위한 Depth RHI
+    //uint32 MaxDirectionalLightShadows = 1;
+
+
+    uint32 NumCascades = 3;                             // [캐스케이드 개수] : **여기서 초기화**
+    TArray<FMatrix> CascadesViewProjMatrices;   // 캐스케이드 ViewProj 행렬
+    TArray<FMatrix> CascadesInvProjMatrices;    // 캐스케이드 InvProj 행렬
+    TArray<float> CascadeSplits;                  // 캐스케이드 분할 거리 (NearClip ~ FarClip)
 
     // 설정 값
     uint32_t MaxSpotLightShadows = 16;
     uint32_t MaxPointLightShadows = 8; // << 추가
-    uint32_t NumCascades = 1;
+
 
     // 방향성 광원 뷰-프로젝션 행렬 (CSM용)
     TArray<FMatrix> DirectionalLightViewProjMatrices;
@@ -207,6 +225,10 @@ private:
     bool CreateDirectionalShadowResources();
     void ReleaseDirectionalShadowResources();
 
+    /* 캐스케이드 분할 관련 Matrix를 갱신합니다 */
+    void UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight);
+
+    /** 섀도우 샘플링에 사용될 D3D 샘플러 상태(비교 샘플러 등)를 생성합니다. */
     bool CreateSamplers();
     void ReleaseSamplers();
     

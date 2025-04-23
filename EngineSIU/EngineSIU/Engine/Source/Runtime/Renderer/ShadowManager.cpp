@@ -1,4 +1,10 @@
 #include "ShadowManager.h"
+
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Math/JungleMath.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include "D3D11RHI/DXDBufferManager.h"
+
 // --- 생성자 및 소멸자 ---
 
 FShadowManager::FShadowManager()
@@ -22,8 +28,10 @@ FShadowManager::~FShadowManager()
 
 // --- Public 멤버 함수 구현 ---
 
-bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, uint32_t InMaxSpotShadows, uint32_t InSpotResolution, uint32_t InMaxPointShadows,
-    uint32_t InPointResolution, uint32_t InNumCascades, uint32_t InDirResolution)
+
+bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager,
+                               uint32_t InMaxSpotShadows, uint32_t InSpotResolution,
+                               uint32_t InNumCascades, uint32_t InDirResolution)
 {
     if (D3DDevice) // 이미 초기화된 경우 방지
     {
@@ -38,6 +46,7 @@ bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, uint32_t InMaxSpotS
 
     D3DDevice = InGraphics->Device;
     D3DContext = InGraphics->DeviceContext;
+    BufferManager = InBufferManager;
 
     // RHI 구조체 할당
     SpotShadowDepthRHI = new FShadowDepthRHI();
@@ -46,10 +55,11 @@ bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, uint32_t InMaxSpotS
 
     // 설정 값 저장
     MaxSpotLightShadows = InMaxSpotShadows;
-    MaxPointLightShadows = InMaxPointShadows; // << 추가
-    NumCascades = InNumCascades;
+                           
 
-    // 해상도 설정
+    MaxPointLightShadows = InMaxPointShadows; // << 추가
+    //NumCascades = InNumCascades; // 차후 명시적인 바인딩 위해 주석처리 
+
     SpotShadowDepthRHI->ShadowMapResolution = InSpotResolution;
     PointShadowCubeMapRHI->ShadowMapResolution = InPointResolution; // << 추가
     DirectionalShadowCascadeDepthRHI->ShadowMapResolution = InDirResolution;
@@ -81,7 +91,7 @@ bool FShadowManager::Initialize(FGraphicsDevice* InGraphics, uint32_t InMaxSpotS
     }
 
     // 방향성 광원 ViewProj 행렬 배열 크기 설정
-    DirectionalLightViewProjMatrices.SetNum(NumCascades);
+    CascadesViewProjMatrices.SetNum(NumCascades);
 
     // UE_LOG(LogTemp, Log, TEXT("FShadowManager Initialized Successfully."));
     return true;
@@ -96,7 +106,7 @@ void FShadowManager::Release()
     ReleaseSpotShadowResources();
 
     // 배열 클리어
-    DirectionalLightViewProjMatrices.Empty();
+    CascadesViewProjMatrices.Empty();
 
     // D3D 객체 포인터는 외부에서 관리하므로 여기서는 nullptr 처리만 함
     D3DDevice = nullptr;
@@ -159,7 +169,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     // 유효성 검사
     if (!D3DContext || cascadeIndex >= (uint32_t)DirectionalShadowCascadeDepthRHI->ShadowDSVs.Num() || !DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex])
     {
-        // UE_LOG(LogTemp, Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
+         UE_LOG(LogLevel::Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
         return;
     }
 
@@ -199,6 +209,23 @@ void FShadowManager::BindResourcesForSampling(
     if (DirectionalShadowCascadeDepthRHI && DirectionalShadowCascadeDepthRHI->ShadowSRV)
     {
         D3DContext->PSSetShaderResources(directionalShadowSlot, 1, &DirectionalShadowCascadeDepthRHI->ShadowSRV);
+
+        FCascadeConstantBuffer CascadeData = {};
+        CascadeData.World = FMatrix::Identity;
+        for (uint32 i = 0; i < NumCascades; i++)
+        {
+            CascadeData.ViewProj[i] = CascadesViewProjMatrices[i];
+            CascadeData.InvViewProj[i] = FMatrix::Inverse(CascadeData.ViewProj[i]);
+            CascadeData.InvProj[i] = CascadesInvProjMatrices[i];
+        }
+        CascadeData.CascadeSplit = { CascadeSplits[0], CascadeSplits[1], CascadeSplits[2], CascadeSplits[3] };
+            //CascadeData.CascadeSplits[i] = CascadeSplits[i];
+        //CascadeData.CascadeSplits[NumCascades] = CascadeSplits[NumCascades];
+
+        BufferManager->UpdateConstantBuffer(TEXT("FCascadeConstantBuffer"), CascadeData);
+        BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 9, EShaderStage::Pixel);
+        /*ID3D11Buffer* CascadeConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCascadeConstantBuffer"));
+        D3DContext->PSSetConstantBuffers(9,1,&CascadeConstantBuffer);*/
     }
 
     // 샘플러 바인딩
@@ -210,6 +237,16 @@ void FShadowManager::BindResourcesForSampling(
     {
         D3DContext->PSSetSamplers(samplerPointSlot, 1, &ShadowPointSampler);
     }
+}
+
+FMatrix FShadowManager::GetCascadeViewProjMatrix(int i) const
+{
+    if (i < 0 || i >= CascadesViewProjMatrices.Num())
+    {
+        UE_LOG(LogLevel::Warning, TEXT("GetCascadeViewProjMatrix: Invalid cascade index."));
+        return FMatrix::Identity;
+    }
+    return CascadesViewProjMatrices[i];
 }
 
 
@@ -445,7 +482,18 @@ bool FShadowManager::CreateDirectionalShadowResources()
     if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
 
     // 3. 각 캐스케이드용 DSV 생성
-    DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(NumCascades);
+    DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(1);
+
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+    dsvDesc.Texture2DArray.MipSlice = 0;
+    dsvDesc.Texture2DArray.FirstArraySlice = 0;
+    dsvDesc.Texture2DArray.ArraySize = NumCascades;
+
+    hr = D3DDevice->CreateDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &dsvDesc, &DirectionalShadowCascadeDepthRHI->ShadowDSVs[0]);
+    if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
+    /*DirectionalShadowCascadeDepthRHI->ShadowDSVs.SetNum(NumCascades);
     for (uint32_t i = 0; i < NumCascades; ++i)
     {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
@@ -457,9 +505,10 @@ bool FShadowManager::CreateDirectionalShadowResources()
 
         hr = D3DDevice->CreateDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowTexture, &dsvDesc, &DirectionalShadowCascadeDepthRHI->ShadowDSVs[i]);
         if (FAILED(hr)) { ReleaseDirectionalShadowResources(); return false; }
-    }
+    }*/
 
-    DirectionalShadowCascadeDepthRHI->ShadowSRVs.SetNum(NumCascades);
+    // Directional Light의 Shadow Map 개수 = Cascade 개수 (분할 개수)
+    DirectionalShadowCascadeDepthRHI->ShadowSRVs.SetNum(NumCascades); 
     for (uint32_t i = 0; i < NumCascades; ++i)
     {
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -486,6 +535,120 @@ void FShadowManager::ReleaseDirectionalShadowResources()
         delete DirectionalShadowCascadeDepthRHI; // Initialize에서 new 했으므로 delete 필요
         DirectionalShadowCascadeDepthRHI = nullptr;
     }
+}
+
+void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight)
+{    
+    FMatrix InvViewProj = FMatrix::Inverse(Viewport->GetViewMatrix()*Viewport->GetProjectionMatrix());
+
+    CascadesViewProjMatrices.Empty();
+    CascadesInvProjMatrices.Empty();
+	const FMatrix CamView = Viewport->GetViewMatrix();
+    float NearClip = Viewport->GetCameraNearClip();
+    float FarClip = Viewport->GetCameraFarClip();
+	const float FOV = Viewport->GetCameraFOV();          // Degrees
+	const float AspectRatio = Viewport->AspectRatio;
+
+	float halfHFOV = FMath::DegreesToRadians(FOV) * 0.5f;
+	float tanHFOV = FMath::Tan(halfHFOV);
+	float tanVFOV = tanHFOV / AspectRatio;
+	FMatrix InvView = FMatrix::Inverse(CamView);
+
+    //CascadeSplits.Empty();
+    CascadeSplits.SetNum(NumCascades + 1);
+    CascadeSplits[0] = NearClip;
+    CascadeSplits[NumCascades] = FarClip;
+    for (uint32 i = 1; i < NumCascades; ++i)
+    {
+        float p = float(i) / float(NumCascades);
+        float logSplit = NearClip * powf(FarClip / NearClip, p);      // 로그 분포
+        float uniSplit = NearClip + (FarClip - NearClip) * p;         // 균등 분포
+        CascadeSplits[i] = 0.7f * logSplit + 0.3f * uniSplit;         // 혼합 (0.5:0.5)
+    }
+
+	// 4) LightDir, Up
+	const FVector LightDir = DirectionalLight->GetDirection().GetSafeNormal();
+	FVector Up = FVector::UpVector;
+	if (FMath::Abs(FVector::DotProduct(LightDir, FVector::UpVector)) > 0.99f)
+		Up = FVector::ForwardVector;
+
+	CascadesViewProjMatrices.Empty();
+
+    for (uint32 c = 0; c< NumCascades; ++c)
+    {
+		// i 단계의 Near / Far (월드 단위) 계산
+		float splitN = CascadeSplits[c];
+		float splitF = CascadeSplits[c + 1];
+		float zn = (splitN - NearClip) / (FarClip - NearClip);
+        float zf = (splitF - NearClip) / (FarClip - NearClip);
+
+		// 뷰 공간 평면상의 X,Y 절댓값
+		float nx = tanHFOV * splitN;
+		float ny = tanVFOV * splitN;
+		float fx = tanHFOV * splitF;
+		float fy = tanVFOV * splitF;
+
+		// 뷰 공간 8개 코너
+		FVector ViewCorners[8] = {
+			{ -nx,  ny, splitN },
+			{  nx,  ny, splitN },
+			{  nx, -ny, splitN },
+			{ -nx, -ny, splitN },
+			{ -fx,  fy, splitF },
+			{  fx,  fy, splitF },
+			{  fx, -fy, splitF },
+			{ -fx, -fy, splitF }
+		};
+
+		// 월드 공간으로 변환
+		FVector WorldCorners[8];
+		for (int i = 0; i < 8; ++i)
+		{
+			// TransformPosition 은 w=1 가정 + divide 처리
+			WorldCorners[i] = InvView.TransformPosition(ViewCorners[i]);
+		}
+
+        // Light Space AABB
+        FMatrix LightView = DirectionalLight->GetViewMatrix();
+		LightView.M[3][0] = LightView.M[3][1] = LightView.M[3][2] = 0; // translation 제거 - Rot만 필요
+
+        FVector Min(FLT_MAX), Max(-FLT_MAX);
+		for (auto& World : WorldCorners) {
+			Min.X = FMath::Min(Min.X, World.X);  Max.X = FMath::Max(Max.X, World.X);
+			Min.Y = FMath::Min(Min.Y, World.Y);  Max.Y = FMath::Max(Max.Y, World.Y);
+			Min.Z = FMath::Min(Min.Z, World.Z);  Max.Z = FMath::Max(Max.Z, World.Z);
+		}
+		FVector CenterWS = (Min + Max) * 0.5f;
+		float Radius = FMath::Max3(Max.X - Min.X, Max.Y - Min.Y, Max.Z - Min.Z) * 0.5f;
+
+		// 3. Light View 생성
+		FVector Eye = CenterWS - LightDir * Radius;
+		LightView = JungleMath::CreateViewMatrix(Eye, CenterWS, Up);
+
+		// 4. 모든 WorldCorners를 LightView로 변환, LightSpace에서의 Min/Max 구함
+		FVector MinLS(FLT_MAX), MaxLS(-FLT_MAX);
+		for (auto& World : WorldCorners) {
+			FVector LS = LightView.TransformPosition(World);
+			MinLS.X = FMath::Min(MinLS.X, LS.X);  MaxLS.X = FMath::Max(MaxLS.X, LS.X);
+			MinLS.Y = FMath::Min(MinLS.Y, LS.Y);  MaxLS.Y = FMath::Max(MaxLS.Y, LS.Y);
+			MinLS.Z = FMath::Min(MinLS.Z, LS.Z);  MaxLS.Z = FMath::Max(MaxLS.Z, LS.Z);
+		}
+		float Zm = (MaxLS.Z - MinLS.Z) * 0.1f;
+        MinLS.X -= Zm; MinLS.Y -= Zm; MinLS.Z -= Zm;
+        MaxLS.X -= Zm; MaxLS.Y -= Zm; MaxLS.Z -= Zm;
+
+		// 5. LightSpace에서 Ortho 행렬 생성
+		FMatrix LightProj = JungleMath::CreateOrthoProjectionMatrix(
+            MaxLS.X- MinLS.X,
+            MaxLS.Y - MinLS.Y,
+			MinLS.Z, MaxLS.Z
+		);
+
+		// 6. 최종 ViewProj 행렬
+		CascadesViewProjMatrices.Add(LightView * LightProj);
+        CascadesInvProjMatrices.Add(FMatrix::Inverse(LightProj));
+    }
+
 }
 
 bool FShadowManager::CreateSamplers()
