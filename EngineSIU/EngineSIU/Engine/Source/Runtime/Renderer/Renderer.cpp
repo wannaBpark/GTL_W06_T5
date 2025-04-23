@@ -293,73 +293,15 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     {
         TileLightCullingPass->Render(Viewport);
         LightHeatMapRenderPass->SetDebugHeatmapSRV(TileLightCullingPass->GetDebugHeatmapSRV());
+        UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
+                                TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
         UpdateLightBufferPass->SetTileConstantBuffer(TileLightCullingPass->GetTileConstantBuffer());
-        
     }
 
     if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
     {
-        
-        // TMap 또는 std::unordered_map 사용 가능
-        TMap<UPointLightComponent*, uint32> PointLightPtrToCulledIndex;
-        TMap<USpotLightComponent*, uint32> SpotLightPtrToCulledIndex;
-        // 또는 TMap<int32, int32> OriginalIndexToCulledIndex; (원본 인덱스를 키로 사용)
-
-        TArray<UPointLightComponent*> CulledPointLights, TotalPointLights;
-        TArray<USpotLightComponent*> CulledSpotLights, TotalSpotLights;
-        TArray<uint32> CulledPointLightIndexArr = TileLightCullingPass->GetCulledPointLightMaskData();
-        TArray<uint32> CulledSpotLightIndexArr = TileLightCullingPass->GetCulledSpotLightMaskData();
-
-        TotalPointLights = TileLightCullingPass->GetPointLights();
-        // 역방향 매핑 생성 (포인터 기반)
-        CulledPointLights.Reserve(CulledPointLightIndexArr.Num()); // 미리 공간 확보
-        PointLightPtrToCulledIndex.Reserve(CulledPointLightIndexArr.Num());
-        for (int32 CulledIndex = 0; CulledIndex < CulledPointLightIndexArr.Num(); ++CulledIndex)
-        {
-            if (CulledIndex >= ShadowManager->GetMaxPointLightCount())
-            {
-                break; // 최대 포인트 라이트 수를 초과하면 종료
-            }
-            uint32 OriginalIndex = CulledPointLightIndexArr[CulledIndex];
-            if (TotalPointLights.IsValidIndex(OriginalIndex)) // 안전 확인
-            {
-                UPointLightComponent* Light = TotalPointLights[OriginalIndex];
-                CulledPointLights.Add(Light);
-                PointLightPtrToCulledIndex.Add(Light, CulledIndex); // 포인터 -> 컬링된 인덱스 매핑 추가
-            }
-        }
-
-        TotalSpotLights = TileLightCullingPass->GetSpotLights();
-        // 역방향 매핑 생성 (포인터 기반)
-        CulledSpotLights.Reserve(CulledSpotLightIndexArr.Num());
-        SpotLightPtrToCulledIndex.Reserve(CulledSpotLightIndexArr.Num());
-        for (int32 CulledIndex = 0; CulledIndex < CulledSpotLightIndexArr.Num(); ++CulledIndex)
-        {
-            if (CulledIndex >= ShadowManager->GetMaxSpotLightCount())
-            {
-                break; // 최대 스팟 라이트 수를 초과하면 종료
-            }
-            
-            uint32 OriginalIndex = CulledSpotLightIndexArr[CulledIndex];
-            if (TotalSpotLights.IsValidIndex(OriginalIndex)) // 안전 확인
-            {
-                USpotLightComponent* Light = TotalSpotLights[OriginalIndex];
-                CulledSpotLights.Add(Light);
-                SpotLightPtrToCulledIndex.Add(Light, CulledIndex); // 포인터 -> 컬링된 인덱스 매핑 추가
-            }
-        }
-        
-        ShadowRenderPass->SetLightData(CulledPointLights, CulledSpotLights);
+        ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
         ShadowRenderPass->Render(Viewport);
-
-        if (TileLightCullingPass)
-        {
-            UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
-                                            PointLightPtrToCulledIndex, SpotLightPtrToCulledIndex,
-                                            TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
-       
-        }
-        
     }
 
     RenderWorldScene(Viewport);
@@ -390,6 +332,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
     EndRender();
 }
+
 
 void FRenderer::EndRender()
 {
