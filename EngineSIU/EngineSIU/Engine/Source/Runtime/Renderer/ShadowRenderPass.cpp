@@ -15,6 +15,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/Casts.h"
 #include "UObject/UObjectIterator.h"
+#include "Editor/PropertyEditor/ShowFlags.h"
 
 class UEditorEngine;
 class UStaticMeshComponent;
@@ -62,7 +63,7 @@ void FShadowRenderPass::PrepareRenderState()
     
     BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FShadowConstantBuffer"), 11, EShaderStage::Pixel);
-    
+    BufferManager->BindConstantBuffer(TEXT("FIsShadowConstants"), 5, EShaderStage::Pixel);
 }
 
 void FShadowRenderPass::PrepareRenderArr()
@@ -76,6 +77,13 @@ void FShadowRenderPass::PrepareRenderArr()
     }
 }
 
+void FShadowRenderPass::UpdateIsShadowConstant(int32 isShadow) const
+{
+    FIsShadowConstants ShadowData;
+    ShadowData.bIsShadow = isShadow;
+    BufferManager->UpdateConstantBuffer(TEXT("FIsShadowConstants"), ShadowData);
+}
+
 
 void FShadowRenderPass::Render(ULightComponentBase* Light)
 {
@@ -84,6 +92,15 @@ void FShadowRenderPass::Render(ULightComponentBase* Light)
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    if (ShowFlag & EEngineShowFlags::SF_Shadow)
+    {
+        UpdateIsShadowConstant(1);
+    }
+    else
+    {
+        UpdateIsShadowConstant(0);
+    }
 
     PrepareRenderState();
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())

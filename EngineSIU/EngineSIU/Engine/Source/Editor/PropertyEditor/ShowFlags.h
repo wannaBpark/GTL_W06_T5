@@ -15,6 +15,7 @@ namespace EEngineShowFlags
         SF_Fog = 1ULL << 4,
         SF_LightWireframe = 1ULL << 5,
         SF_LightWireframeSelectedOnly = 1ULL << 6,
+        SF_Shadow = 1ULL << 7,
     };
 }
 
