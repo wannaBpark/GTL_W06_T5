@@ -11,6 +11,8 @@
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Components/Light/AmbientLightComponent.h"
+#include "Stats/ProfilerStatsManager.h"
+#include "Stats/GPUTimingManager.h"
 
 void StatOverlay::ToggleStat(const std::string& Command)
 {
@@ -125,6 +127,77 @@ void StatOverlay::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) 
 
     ImGui::PopStyleColor();
     ImGui::End();
+}
+
+void FEngineProfiler::SetGPUTimingManager(FGPUTimingManager* InGPUTimingManager)
+{
+    GPUTimingManager = InGPUTimingManager;
+}
+
+void FEngineProfiler::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height)
+{
+    if (!bShowWindow) return;
+
+    // Example positioning: Top-left corner
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+
+    if (!ImGui::Begin("Engine Profiler", &bShowWindow))
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (ImGui::BeginTable("ProfilerTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+    {
+        ImGui::TableSetupColumn("Scope", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("CPU (ms)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+        ImGui::TableSetupColumn("GPU (ms)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+        ImGui::TableHeadersRow();
+
+        for (const auto& [DisplayName, CPUStatName, GPUStatName] : TrackedScopes)
+        {
+            const double CPUTimeMs = FProfilerStatsManager::GetCpuStatMs(CPUStatName);
+            double GPUTimeMs = GPUTimingManager->GetElapsedTimeMs(TStatId(GPUStatName));
+
+            FString CPUText = (CPUTimeMs >= 0.0) ? FString::Printf(TEXT("%.3f"), CPUTimeMs) : TEXT("---");
+            FString GPUText;
+
+            if (GPUTimeMs == -1.0) GPUText = TEXT("Disjoint");
+            else if (GPUTimeMs == -2.0) GPUText = TEXT("Waiting");
+            else if (GPUTimeMs < 0.0) GPUText = TEXT("---");
+            else GPUText = FString::Printf(TEXT("%.3f"), GPUTimeMs);
+
+            ImGui::TableNextRow();
+
+            // Scope 열
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("%s", *DisplayName);
+
+            // CPU (ms) 열 - 우측 정렬
+            ImGui::TableSetColumnIndex(1);
+            float CPUTextWidth = ImGui::CalcTextSize(*CPUText).x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - CPUTextWidth);
+            ImGui::TextUnformatted(*CPUText);
+
+            // GPU (ms) 열 - 우측 정렬
+            ImGui::TableSetColumnIndex(2);
+            float GPUTextWidth = ImGui::CalcTextSize(*GPUText).x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - GPUTextWidth);
+            ImGui::TextUnformatted(*GPUText);
+        }
+
+        ImGui::EndTable();
+    }
+
+
+
+    ImGui::End();
+}
+
+void FEngineProfiler::RegisterStatScope(const FString& DisplayName, const FName& CPUStatName, const FName& GPUStatName)
+{
+    TrackedScopes.Add({ DisplayName, CPUStatName, GPUStatName });
 }
 
 // 싱글톤 인스턴스 반환

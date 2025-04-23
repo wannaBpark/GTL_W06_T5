@@ -42,6 +42,7 @@ class FSlateRenderPass;
 class FEditorRenderPass;
 class FDepthPrePass;
 class FTileLightCullingPass;
+class FGPUTimingManager;
 
 class FRenderer
 {
@@ -49,26 +50,26 @@ public:
     //==========================================================================
     // 초기화/해제 관련 함수
     //==========================================================================
-    void Initialize(FGraphicsDevice* graphics, FDXDBufferManager* bufferManager);
+    void Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBufferManager, FGPUTimingManager* InGPUTimingManager);
     void Release();
 
     //==========================================================================
     // 렌더 패스 관련 함수
     //==========================================================================
     void Render(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport); // TODO: 추후 RenderSlate로 변경해야함
+    void RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const; // TODO: 추후 RenderSlate로 변경해야함
 
 protected:
     void BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void PrepareRender(FViewportResource* ViewportResource);
-    void PrepareRenderPass();
-    void RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void PrepareRender(FViewportResource* ViewportResource) const;
+    void PrepareRenderPass() const;
+    void RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void EndRender();
-    void ClearRenderArr();
+    void ClearRenderArr() const;
     
     //==========================================================================
     // 버퍼 생성/해제 함수 (템플릿 포함)
@@ -81,15 +82,16 @@ public:
     
     // 상수 버퍼 생성/해제
     void CreateConstantBuffers();
-    void ReleaseConstantBuffer();
+    void ReleaseConstantBuffer() const;
 
-    void CreateCommonShader();
+    void CreateCommonShader() const;
 
 public:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager = nullptr;
     class FShadowManager* ShadowManager = nullptr;
+    FGPUTimingManager* GPUTimingManager = nullptr;
     
     class FShadowRenderPass* ShadowRenderPass;
 

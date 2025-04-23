@@ -1,6 +1,7 @@
 #include "EngineLoop.h"
 #include "ImGuiManager.h"
 #include "UnrealClient.h"
+#include "WindowsPlatformTime.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/EditorEngine.h"
 #include "LevelEditor/SLevelEditor.h"
@@ -40,6 +41,8 @@ int32 FEngineLoop::PreInit()
 
 int32 FEngineLoop::Init(HINSTANCE hInstance)
 {
+    FPlatformTime::InitTiming();
+
     /* must be initialized before window. */
     WindowInit(hInstance);
 
@@ -51,8 +54,32 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 
     UnrealEditor->Initialize();
     GraphicDevice.Initialize(AppWnd);
+
+    if (!GPUTimingManager.Initialize(GraphicDevice.Device, GraphicDevice.DeviceContext))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Failed to initialize GPU Timing Manager!"));
+    }
+    EngineProfiler.SetGPUTimingManager(&GPUTimingManager);
+
+    // @todo Table에 Tree 구조로 넣을 수 있도록 수정
+    EngineProfiler.RegisterStatScope(TEXT("Renderer_Render"), FName(TEXT("Renderer_Render_CPU")), FName(TEXT("Renderer_Render_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- DepthPrePass"), FName(TEXT("DepthPrePass_CPU")), FName(TEXT("DepthPrePass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- TileLightCulling"), FName(TEXT("TileLightCulling_CPU")), FName(TEXT("TileLightCulling_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- ShadowPass"), FName(TEXT("ShadowPass_CPU")), FName(TEXT("ShadowPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- StaticMeshPass"), FName(TEXT("StaticMeshPass_CPU")), FName(TEXT("StaticMeshPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- WorldBillboardPass"), FName(TEXT("WorldBillboardPass_CPU")), FName(TEXT("WorldBillboardPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- UpdateLightBufferPass"), FName(TEXT("UpdateLightBufferPass_CPU")), FName(TEXT("UpdateLightBufferPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- FogPass"), FName(TEXT("FogPass_CPU")), FName(TEXT("FogPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- PostProcessCompositing"), FName(TEXT("PostProcessCompositing_CPU")), FName(TEXT("PostProcessCompositing_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- EditorBillboardPass"), FName(TEXT("EditorBillboardPass_CPU")), FName(TEXT("EditorBillboardPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- EditorRenderPass"), FName(TEXT("EditorRenderPass_CPU")), FName(TEXT("EditorRenderPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- LinePass"), FName(TEXT("LinePass_CPU")), FName(TEXT("LinePass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- GizmoPass"), FName(TEXT("GizmoPass_CPU")), FName(TEXT("GizmoPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("|- CompositingPass"), FName(TEXT("CompositingPass_CPU")), FName(TEXT("CompositingPass_GPU")));
+    EngineProfiler.RegisterStatScope(TEXT("SlatePass"), FName(TEXT("SlatePass_CPU")), FName(TEXT("SlatePass_GPU")));
+
     BufferManager->Initialize(GraphicDevice.Device, GraphicDevice.DeviceContext);
-    Renderer.Initialize(&GraphicDevice, BufferManager);
+    Renderer.Initialize(&GraphicDevice, BufferManager, &GPUTimingManager);
     PrimitiveDrawBatch.Initialize(&GraphicDevice);
     UIMgr->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
     ResourceManager.Initialize(&Renderer, &GraphicDevice);
@@ -102,31 +129,37 @@ void FEngineLoop::Render() const
 void FEngineLoop::Tick()
 {
     LARGE_INTEGER Frequency;
-    const double targetFrameTime = 1000.0 / TargetFPS; // 한 프레임의 목표 시간 (밀리초 단위)
+    const double TargetFrameTime = 1000.0 / TargetFPS; // 한 프레임의 목표 시간 (밀리초 단위)
 
     QueryPerformanceFrequency(&Frequency);
 
-    LARGE_INTEGER startTime, endTime;
-    double elapsedTime = 0.0;
+    LARGE_INTEGER StartTime, EndTime;
+    double ElapsedTime = 0.0;
 
     while (bIsExit == false)
     {
-        QueryPerformanceCounter(&startTime);
-
-        MSG msg;
-        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        FProfilerStatsManager::BeginFrame();    // Clear previous frame stats
+        if (GPUTimingManager.IsInitialized())
         {
-            TranslateMessage(&msg); // 키보드 입력 메시지를 문자메시지로 변경
-            DispatchMessage(&msg);  // 메시지를 WndProc에 전달
+            GPUTimingManager.BeginFrame();      // Start GPU frame timing
+        }
 
-            if (msg.message == WM_QUIT)
+        QueryPerformanceCounter(&StartTime);
+
+        MSG Msg;
+        while (PeekMessage(&Msg, nullptr, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&Msg); // 키보드 입력 메시지를 문자메시지로 변경
+            DispatchMessage(&Msg);  // 메시지를 WndProc에 전달
+
+            if (Msg.message == WM_QUIT)
             {
                 bIsExit = true;
                 break;
             }
         }
 
-        float DeltaTime = elapsedTime / 1000.f;
+        const float DeltaTime = static_cast<float>(ElapsedTime / 1000.f);
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
@@ -135,19 +168,25 @@ void FEngineLoop::Tick()
         UnrealEditor->Render();
 
         Console::GetInstance().Draw();
+        EngineProfiler.Render(GraphicDevice.DeviceContext, GraphicDevice.ScreenWidth, GraphicDevice.ScreenHeight);
 
         UIMgr->EndFrame();
 
         // Pending 처리된 오브젝트 제거
         GUObjectArray.ProcessPendingDestroyObjects();
 
+        if (GPUTimingManager.IsInitialized())
+        {
+            GPUTimingManager.EndFrame();        // End GPU frame timing
+        }
+
         GraphicDevice.SwapBuffer();
         do
         {
             Sleep(0);
-            QueryPerformanceCounter(&endTime);
-            elapsedTime = (endTime.QuadPart - startTime.QuadPart) * 1000.f / Frequency.QuadPart;
-        } while (elapsedTime < targetFrameTime);
+            QueryPerformanceCounter(&EndTime);
+            ElapsedTime = (static_cast<double>(EndTime.QuadPart - StartTime.QuadPart) * 1000.f / static_cast<double>(Frequency.QuadPart));
+        } while (ElapsedTime < TargetFrameTime);
     }
 }
 

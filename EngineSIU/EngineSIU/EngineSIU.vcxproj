@@ -207,6 +207,8 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Misc\Parse.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Serialization\Archive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Serialization\MemoryArchive.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Stats\GPUTimingManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\Stats.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ActorEditor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.cpp" />
@@ -439,6 +441,9 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\Parse.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Serialization\Archive.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Serialization\MemoryArchive.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Stats\GPUTimingManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Stats\StatDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\Stats.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\AmbientLightActor.h" />
