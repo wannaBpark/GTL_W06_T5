@@ -72,7 +72,12 @@ bool FGPUTimingManager::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* p
 
 void FGPUTimingManager::BeginFrame()
 {
-    if (!bInitialized) return;
+    if (!bInitialized)
+    {
+        return;
+    }
+
+    LatestResults.Empty(); // Clear Previous Frame's Results
 
     // Retrieve results from the oldest frame buffer
     RetrieveResults();
@@ -196,10 +201,10 @@ void FGPUTimingManager::RetrieveResults()
             if (statId.GetName() != NAME_None) // Check if StatId is valid
             {
                 LatestResults[statId.GetName()] = { ResultMS, FrameCounter };
-                if (ResultMS >= 0.0) // Only submit valid timings
-                {
-                    FThreadStats::AddGpuTime(statId, ResultMS);
-                }
+                //if (ResultMS >= 0.0) // Only submit valid timings
+                //{
+                //    FThreadStats::AddGpuTime(statId, ResultMS);
+                //}
             }
 
             // Reset the query slot for reuse
