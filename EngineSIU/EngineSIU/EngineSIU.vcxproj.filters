@@ -930,8 +930,8 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DepthOnlyVS.hlsl" />
-    <FxCompile Include="Shaders\CascadedGS.hlsl" />
     <FxCompile Include="Shaders\DepthCubeMapVS.hlsl" />
     <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
+    <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
   </ItemGroup>
 </Project>
