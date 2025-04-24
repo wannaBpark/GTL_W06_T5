@@ -805,6 +805,10 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\GPUTimingManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\ShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -881,6 +885,10 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\StatDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\ShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
@@ -930,8 +938,8 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DepthOnlyVS.hlsl" />
-    <FxCompile Include="Shaders\CascadedGS.hlsl" />
     <FxCompile Include="Shaders\DepthCubeMapVS.hlsl" />
     <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
+    <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
   </ItemGroup>
 </Project>

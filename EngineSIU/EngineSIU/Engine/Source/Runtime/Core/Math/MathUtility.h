@@ -62,6 +62,12 @@ struct FMath
 		return A * A;
 	}
 
+    template <typename T>
+    [[nodiscard]] static FORCEINLINE constexpr T Pow(const T A, const T B)
+    {
+        return pow(A, B);
+    }
+
 	// A의 제곱근을 구합니다.
 	[[nodiscard]] static FORCEINLINE float Sqrt(float A) { return sqrtf(A); }
 	[[nodiscard]] static FORCEINLINE double Sqrt(double A) { return sqrt(A); }
