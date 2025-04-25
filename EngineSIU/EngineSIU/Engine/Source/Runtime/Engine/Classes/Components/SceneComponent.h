@@ -22,7 +22,7 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
-    virtual void DestroyComponent() override;
+    virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
     virtual FVector GetForwardVector();
     virtual FVector GetRightVector();
@@ -36,7 +36,9 @@ public:
     const TArray<USceneComponent*>& GetAttachChildren() const { return AttachChildren; }
 
     void AttachToComponent(USceneComponent* InParent);
-
+    void SetupAttachment(USceneComponent* InParent);
+    void DetachFromComponent(USceneComponent* Target);
+    
 public:
     void SetRelativeLocation(FVector InNewLocation) { RelativeLocation = InNewLocation; }
     void SetRelativeRotation(FRotator InNewRotation) { RelativeRotation = InNewRotation; }
@@ -55,8 +57,6 @@ public:
     FMatrix GetTranslationMatrix() const;
 
     FMatrix GetWorldMatrix() const;
-    
-    void SetupAttachment(USceneComponent* InParent);
 
     void UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps = nullptr);
 

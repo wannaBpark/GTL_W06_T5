@@ -8,7 +8,7 @@ ADirectionalLight::ADirectionalLight()
 
     RootComponent = BillboardComponent;
 
-    BillboardComponent->SetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
+    BillboardComponent->SetTexture(L"Assets/Editor/Icon/S_LightDirectional.PNG");
     BillboardComponent->bIsEditorBillboard = true;
 
     DirectionalLightComponent->AttachToComponent(RootComponent);

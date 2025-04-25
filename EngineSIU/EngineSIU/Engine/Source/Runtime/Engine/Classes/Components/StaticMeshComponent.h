@@ -33,8 +33,16 @@ public:
     void SetStaticMesh(UStaticMesh* value)
     { 
         StaticMesh = value;
-        OverrideMaterials.SetNum(value->GetMaterials().Num());
-        AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
+        if (StaticMesh == nullptr)
+        {
+            OverrideMaterials.SetNum(0);
+            AABB = FBoundingBox(FVector::ZeroVector, FVector::ZeroVector);
+        }
+        else
+        {
+            OverrideMaterials.SetNum(value->GetMaterials().Num());
+            AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
+        }
     }
 
 protected:

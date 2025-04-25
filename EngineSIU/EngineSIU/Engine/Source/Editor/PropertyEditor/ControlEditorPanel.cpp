@@ -393,7 +393,8 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                 if (SpawnedActor)
                 {
                     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-                    Engine->SelectActor(Engine->GetSelectedActor());
+                    Engine->DeselectComponent(Engine->GetSelectedComponent());
+                    Engine->SelectActor(SpawnedActor);
                 }
             }
         }
