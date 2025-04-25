@@ -187,10 +187,18 @@ void FGizmoRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FV
 void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-    if (Engine && !Engine->GetSelectedActor())
+    if (!Engine)
     {
         return;
     }
+
+    USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+    AActor* SelectedActor = Engine->GetSelectedActor();
+    if (SelectedComponent == nullptr && SelectedActor == nullptr)
+    {
+        return;
+    }
+    
     if (!GizmoComp->GetStaticMesh())
     {
         return;

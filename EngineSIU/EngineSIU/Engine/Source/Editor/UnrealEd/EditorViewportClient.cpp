@@ -52,7 +52,10 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
-    UpdateEditorCameraMovement(DeltaTime);
+    if (GEngine->ActiveWorld->WorldType == EWorldType::Editor)
+    {
+        UpdateEditorCameraMovement(DeltaTime);
+    }
     UpdateViewMatrix();
     UpdateProjectionMatrix();
     GizmoActor->Tick(DeltaTime);
@@ -243,10 +246,37 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
         {
         case VK_DELETE:
         {
-            if (AActor* SelectedActor = EdEngine->GetSelectedActor())
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            if (Engine)
             {
-                EdEngine->DeselectActor(SelectedActor);
-                GEngine->ActiveWorld->DestroyActor(SelectedActor);
+                USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+                AActor* SelectedActor = Engine->GetSelectedActor();
+
+                if (SelectedComponent)
+                {
+                    AActor* Owner = SelectedComponent->GetOwner();
+
+                    if (Owner && Owner->GetRootComponent() != SelectedComponent)
+                    {
+                        UE_LOG(LogLevel::Display, "Delete Component - %s", *SelectedComponent->GetName());
+                        Engine->DeselectComponent(SelectedComponent);
+                        SelectedComponent->DestroyComponent();
+                    }
+                    else if (SelectedActor)
+                    {
+                        UE_LOG(LogLevel::Display, "Delete Component - %s", *SelectedActor->GetName());
+                        Engine->DeselectActor(SelectedActor);
+                        Engine->DeselectComponent(SelectedComponent);
+                        Engine->ActiveWorld->DestroyActor(SelectedActor);
+                    }
+                }
+                else if (SelectedActor)
+                {
+                    UE_LOG(LogLevel::Display, "Delete Component - %s", *SelectedActor->GetName());
+                    Engine->DeselectActor(SelectedActor);
+                    Engine->DeselectComponent(SelectedComponent);
+                    Engine->ActiveWorld->DestroyActor(SelectedActor);
+                }
             }
             break;
         }

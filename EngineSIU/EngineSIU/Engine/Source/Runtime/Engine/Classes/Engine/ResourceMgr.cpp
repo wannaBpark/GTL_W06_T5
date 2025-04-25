@@ -26,6 +26,7 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
 
     LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/font.dds");
     LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
+
     LoadTextureFromFile(device->Device, L"Assets/Texture/ocean_sky.jpg");
     LoadTextureFromFile(device->Device, L"Assets/Texture/font.png");
     LoadTextureFromFile(device->Device, L"Assets/Texture/emart.png");
@@ -33,11 +34,13 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, L"Assets/Texture/UUID_Font.png");
     LoadTextureFromFile(device->Device, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
     LoadTextureFromFile(device->Device, L"Assets/Texture/spotLight.png");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/SpotLight_64x.png");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/PointLight_64x.png");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/DirectionalLight_64x.png");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/AtmosphericFog_64.png");
+
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_Actor.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightSpot.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightPoint.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightDirectional.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
     LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
 
 }

@@ -3,6 +3,9 @@
 #include "Math/Rotator.h"
 #include "UObject/ObjectMacros.h"
 
+struct FHitResult;
+struct FOverlapInfo;
+
 class USceneComponent : public UActorComponent
 {
     DECLARE_CLASS(USceneComponent, UActorComponent)
@@ -19,7 +22,7 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
-    virtual void DestroyComponent() override;
+    virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
     virtual FVector GetForwardVector();
     virtual FVector GetRightVector();
@@ -33,7 +36,9 @@ public:
     const TArray<USceneComponent*>& GetAttachChildren() const { return AttachChildren; }
 
     void AttachToComponent(USceneComponent* InParent);
-
+    void SetupAttachment(USceneComponent* InParent);
+    void DetachFromComponent(USceneComponent* Target);
+    
 public:
     void SetRelativeLocation(FVector InNewLocation) { RelativeLocation = InNewLocation; }
     void SetRelativeRotation(FRotator InNewRotation) { RelativeRotation = InNewRotation; }
@@ -52,8 +57,11 @@ public:
     FMatrix GetTranslationMatrix() const;
 
     FMatrix GetWorldMatrix() const;
-    
-    void SetupAttachment(USceneComponent* InParent);
+
+    void UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps = nullptr);
+
+    bool MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
+    bool MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
 
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
@@ -74,4 +82,8 @@ protected:
 
     UPROPERTY
     (TArray<USceneComponent*>, AttachChildren);
+
+    virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps);
+
+    virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
 };

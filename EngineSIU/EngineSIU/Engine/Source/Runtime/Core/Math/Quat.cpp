@@ -146,3 +146,9 @@ FMatrix FQuat::ToMatrix() const
 
     return RotationMatrix;
 }
+
+bool FQuat::Equals(const FQuat& Q, float Tolerance) const
+{
+    return (FMath::Abs(X - Q.X) <= Tolerance && FMath::Abs(Y - Q.Y) <= Tolerance && FMath::Abs(Z - Q.Z) <= Tolerance && FMath::Abs(W - Q.W) <= Tolerance)
+        || (FMath::Abs(X + Q.X) <= Tolerance && FMath::Abs(Y + Q.Y) <= Tolerance && FMath::Abs(Z + Q.Z) <= Tolerance && FMath::Abs(W + Q.W) <= Tolerance);
+}

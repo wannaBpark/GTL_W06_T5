@@ -1,9 +1,21 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
+#include "Components/SceneComponent.h"
+#include "GameFramework/Actor.h"
 #include "UnrealEd/EditorPanel.h"
 #include "Math/Rotator.h"
+#include "UObject/Casts.h"
 
+class UAmbientLightComponent;
+class UDirectionalLightComponent;
+class UPointLightComponent;
+class USpotLightComponent;
+class ULightComponentBase;
+class UProjectileMovementComponent;
+class UTextComponent;
+class UHeightFogComponent;
+class AEditorPlayer;
 class UStaticMeshComponent;
 
 // 헬퍼 함수 예시
@@ -37,13 +49,35 @@ private:
     static void RGBToHSV(float R, float G, float B, float& H, float& S, float& V);
     static void HSVToRGB(float H, float S, float V, float& R, float& G, float& B);
 
+    void RenderForSceneComponent(USceneComponent* SceneComponent, AEditorPlayer* Player) const;
+    void RenderForActor(AActor* SelectedActor, USceneComponent* TargetComponent) const;
+    
     /* Static Mesh Settings */
-    static void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
+    void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const;
+
+    void RenderForAmbientLightComponent(UAmbientLightComponent* AmbientLightComponent) const;
+    void RenderForDirectionalLightComponent(UDirectionalLightComponent* DirectionalLightComponent) const;
+    void RenderForPointLightComponent(UPointLightComponent* PointlightComponent) const;
+    void RenderForSpotLightComponent(USpotLightComponent* SpotLightComponent) const;
+
+    void RenderForLightCommon(ULightComponentBase* LightComponent) const;
+
+    
+    void RenderForProjectileMovementComponent(UProjectileMovementComponent* ProjectileComp) const;
+    void RenderForTextComponent(UTextComponent* TextComponent) const;
     
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
     void RenderMaterialView(UMaterial* Material);
     void RenderCreateMaterialView();
+
+    void RenderForExponentialHeightFogComponent(UHeightFogComponent* FogComponent) const;
+
+    template<typename T>
+        requires std::derived_from<T, UActorComponent>
+    T* GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent);
+
+    
 private:
     float Width = 0, Height = 0;
     FVector Location = FVector(0, 0, 0);
@@ -57,3 +91,19 @@ private:
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
 };
+
+template <typename T> requires std::derived_from<T, UActorComponent>
+T* PropertyEditorPanel::GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent)
+{
+    T* ResultComp = nullptr;
+    if (SelectedComponent != nullptr)
+    {
+        ResultComp = Cast<T>(SelectedComponent);
+    }
+    else if (SelectedActor != nullptr)
+    {
+        ResultComp = SelectedActor->GetComponentByClass<T>();
+    }
+        
+    return ResultComp;
+}

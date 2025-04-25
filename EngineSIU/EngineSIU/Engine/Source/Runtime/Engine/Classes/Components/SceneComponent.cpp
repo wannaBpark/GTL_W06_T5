@@ -3,6 +3,8 @@
 #include "Math/JungleMath.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
+#include "Engine/HitResult.h""
+#include "GameFramework/Actor.h"
 
 USceneComponent::USceneComponent()
     : RelativeLocation(FVector(0.f, 0.f, 0.f))
@@ -71,14 +73,54 @@ int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDi
     return nIntersections;
 }
 
-void USceneComponent::DestroyComponent()
+void USceneComponent::DestroyComponent(bool bPromoteChildren)
 {
+    TArray<USceneComponent*> ChildrenCopy = AttachChildren;
+    for (auto& Child : ChildrenCopy)
+    {
+        if (Child == nullptr)
+        {
+            continue;
+        }
+
+        if (bPromoteChildren)
+        {
+            Child->DestroyComponent(bPromoteChildren);
+        }
+        else
+        {
+            AActor* Owner = GetOwner();
+            if (AttachParent)
+            {
+                Child->DetachFromComponent(this);
+                // 자식 컴포넌트들을 부모에 어태치
+                Child->SetupAttachment(AttachParent);
+            }
+            else if (Owner != nullptr)
+            {
+                if (Owner->GetRootComponent())
+                {
+                    Child->DetachFromComponent(this);
+                    // 부모가 nullptr인 경우 Owner의 Root에라도 어태치
+                    Child->SetupAttachment(Owner->GetRootComponent());
+                }
+                else
+                {
+                    // 루트 컴포넌트도 없는 경우, 아무거나 하나를 루트로 지정해줌
+                    Owner->SetRootComponent(Child);       
+                }
+            }
+        }
+    }
+
+    AttachChildren.Empty();
+
     if (AttachParent)
     {
-        AttachParent->AttachChildren.Remove(this);
-        AttachParent = nullptr;
+        DetachFromComponent(AttachParent);
     }
-    Super::DestroyComponent();
+
+    Super::DestroyComponent(bPromoteChildren);
 }
 
 FVector USceneComponent::GetForwardVector()
@@ -243,4 +285,68 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
         // TODO: .AddUnique의 실행 위치를 RegisterComponent로 바꾸거나 해야할 듯
         InParent->AttachChildren.AddUnique(this);
     }
+}
+
+void USceneComponent::DetachFromComponent(USceneComponent* Target)
+{
+    // TODO: Detachment Rule 필요
+
+    if (!Target || !Target->AttachChildren.Contains(this))
+    {
+        return;
+    }
+
+    Target->AttachChildren.Remove(this);
+}
+
+void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps)
+{
+    UpdateOverlapsImpl(PendingOverlaps);
+}
+
+bool USceneComponent::MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit)
+{
+    return MoveComponentImpl(Delta, NewRotation, bSweep, OutHit);
+}
+
+bool USceneComponent::MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit)
+{
+    return MoveComponentImpl(Delta, NewRotation.ToQuaternion(), bSweep, OutHit);
+}
+
+void USceneComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps)
+{
+    TArray<USceneComponent*> AttachedChildren(AttachChildren);
+    for (USceneComponent* ChildComponent : AttachedChildren)
+    {
+        if (ChildComponent)
+        {
+            ChildComponent->UpdateOverlaps(PendingOverlaps);
+        }
+    }
+}
+
+bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit)
+{
+    if (!this)
+    {
+        if (OutHit)
+        {
+            *OutHit = FHitResult();
+        }
+        return false;
+    }
+
+    if (OutHit)
+    {
+        *OutHit = FHitResult(1.f);
+    }
+
+    if (Delta.IsZero() && NewRotation.Equals(GetWorldRotation().ToQuaternion()))
+    {
+        return true;
+    }
+
+    // TODO: 구현
+    return true;
 }

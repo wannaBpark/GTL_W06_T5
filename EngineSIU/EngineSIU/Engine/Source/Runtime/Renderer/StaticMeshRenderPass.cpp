@@ -21,21 +21,12 @@
 #include "Components/StaticMeshComponent.h"
 
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Components/Light/LightComponent.h"
 #include "Engine/EditorEngine.h"
 
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
-#include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "ShadowRenderPass.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -354,9 +345,23 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
         UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
 
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+        AActor* SelectedActor = Engine->GetSelectedActor();
+
+        USceneComponent* TargetComponent = nullptr;
+
+        if (SelectedComponent != nullptr)
+        {
+            TargetComponent = SelectedComponent;
+        }
+        else if (SelectedActor != nullptr)
+        {
+            TargetComponent = SelectedActor->GetRootComponent();
+        }
+
         FMatrix WorldMatrix = Comp->GetWorldMatrix();
         FVector4 UUIDColor = Comp->EncodeUUID() / 255.0f;
-        const bool bIsSelected = (Engine && Engine->GetSelectedActor() == Comp->GetOwner());
+        const bool bIsSelected = (Engine && TargetComponent == Comp);
 
         UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
 
