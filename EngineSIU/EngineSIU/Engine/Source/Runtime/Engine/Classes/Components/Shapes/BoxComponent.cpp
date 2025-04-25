@@ -1,6 +1,9 @@
 #include "BoxComponent.h"
-
 #include "UObject/Casts.h"
+#include "Math/CollisionMath.h"
+#include "Math/ShapeInfo.h"
+#include "Components/Shapes/SphereComponent.h"
+#include "Components/Shapes//CapsuleComponent.h"
 
 UObject* UBoxComponent::Duplicate(UObject* InOuter)
 {
@@ -28,3 +31,28 @@ void UBoxComponent::SetProperties(const TMap<FString, FString>& InProperties)
         BoxExtent.InitFromString(*TempStr);
     }
 }
+
+bool UBoxComponent::CheckOverlap(const UPrimitiveComponent* Other) const
+{
+    if (const UBoxComponent* Box = Cast<UBoxComponent>(Other))
+    {
+        return FCollisionMath::IntersectBoxBox(this->GetWorldAABB(), Box->GetWorldAABB());
+    }
+    else if (const USphereComponent* Sphere = Cast<USphereComponent>(Other))
+    {
+        return FCollisionMath::IntersectBoxSphere(this->GetWorldAABB(), Sphere->GetWorldLocation(), Sphere->GetRadius());
+    }
+    else if (const UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Other))
+    {
+        return FCollisionMath::IntersectBoxCapsule(this->GetWorldAABB(), Capsule->ToFCapsule());
+    }
+    return false;
+}
+
+FBox UBoxComponent::GetWorldAABB() const
+{
+    FVector Center = GetWorldLocation();
+    return FBox{ Center - BoxExtent, Center + BoxExtent };
+}
+
+

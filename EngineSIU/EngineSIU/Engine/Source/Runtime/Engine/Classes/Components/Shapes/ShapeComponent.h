@@ -20,6 +20,9 @@ public:
     bool IsDrawOnlyIfSelected() const { return bDrawOnlyIfSelected; }
     void SetDrawOnlyIfSelected(bool bInDrawOnlyIfSelected) { bDrawOnlyIfSelected = bInDrawOnlyIfSelected; }
 
+public:
+    virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override { return false; }
+
 private:
     FColor ShapeColor;
     bool bDrawOnlyIfSelected;

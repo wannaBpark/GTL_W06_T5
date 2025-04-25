@@ -47,6 +47,6 @@ public:
     const TArray<FOverlapInfo>& GetOverlapInfos() const { return OverlapInfos; }
     bool IsOverlappingActor(const AActor* Other) const;
     void UpdateOverlaps();
-    bool CheckOverlap(const UPrimitiveComponent* Other) const;
+    virtual bool CheckOverlap(const UPrimitiveComponent* Other) const { return false;}
 };
 

@@ -1,6 +1,9 @@
 #pragma once
-
 #include "ShapeComponent.h"
+
+struct FCollisionMath;
+class UBoxComponent;
+class UCapsuleComponent;
 
 class USphereComponent : public UShapeComponent
 {
@@ -14,6 +17,9 @@ public:
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
 
+public:
+    virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
+    float GetRadius() const { return SphereRadius; }
 private:
     float SphereRadius;
 

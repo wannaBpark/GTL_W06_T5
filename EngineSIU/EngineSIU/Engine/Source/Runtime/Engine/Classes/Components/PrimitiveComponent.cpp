@@ -114,7 +114,7 @@ void UPrimitiveComponent::UpdateOverlaps()
 {
     OverlapInfos.Empty();
 
-    for (const UPrimitiveComponent Other : TObjectRange<UPrimitiveComponent>())
+    for (UPrimitiveComponent* Other : TObjectRange<UPrimitiveComponent>())
     {
         if (Other == this) continue;
 
@@ -123,11 +123,6 @@ void UPrimitiveComponent::UpdateOverlaps()
             OverlapInfos.Add(FOverlapInfo(Other, Other->GetOwner()));
         }
     }
-}
-
-bool CheckOverlap( UPrimitiveComponent* Other)
-{
-
 }
 
 

@@ -1,6 +1,9 @@
 #include "CapsuleComponent.h"
-
 #include "UObject/Casts.h"
+#include "Math/ShapeInfo.h"
+#include "Math/CollisionMath.h"
+#include "Components/Shapes/BoxComponent.h"
+#include "Components/Shapes/SphereComponent.h"
 
 UObject* UCapsuleComponent::Duplicate(UObject* InOuter)
 {
@@ -34,4 +37,26 @@ void UCapsuleComponent::GetProperties(TMap<FString, FString>& OutProperties) con
     Super::GetProperties(OutProperties);
     OutProperties.Add(TEXT("CapsuleHalfHeight"), FString::SanitizeFloat(CapsuleHalfHeight));
     OutProperties.Add(TEXT("CapsuleRadius"), FString::SanitizeFloat(CapsuleRadius));
+}
+
+bool UCapsuleComponent::CheckOverlap(const UPrimitiveComponent* Other) const
+{
+    if (const UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Other))
+    {
+        return FCollisionMath::IntersectCapsuleCapsule(this->ToFCapsule(), Capsule->ToFCapsule());
+    }
+    else if (const USphereComponent* Sphere = Cast<USphereComponent>(Other))
+    {
+        return FCollisionMath::IntersectCapsuleSphere(this->ToFCapsule(), Sphere->GetWorldLocation(), Sphere->GetRadius());
+    }
+    else if (const UBoxComponent* Box = Cast<UBoxComponent>(Other))
+    {
+        return FCollisionMath::IntersectBoxCapsule(Box->GetWorldAABB(), this->ToFCapsule());
+    }
+    return false;
+}
+
+FCapsule UCapsuleComponent::ToFCapsule() const
+{
+    return FCapsule(GetStartPoint(), GetEndPoint(), CapsuleRadius);
 }

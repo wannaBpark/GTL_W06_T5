@@ -809,6 +809,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\OverlapInfo.h" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\CollisionMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -889,6 +891,8 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\CollisionMath.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\ShapeInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
