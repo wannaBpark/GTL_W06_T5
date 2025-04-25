@@ -151,4 +151,13 @@ public:
 			Delegate(std::forward<ParamTypes>(Params)...);  // NOLINT(bugprone-use-after-move)
 		}
 	}
+
+    template<typename T>
+    FDelegateHandle AddDynamic(T* InObject, ReturnType(T::* InFunc)(ParamTypes...))
+    {
+        return AddLambda([InObject, InFunc](ParamTypes... Params)
+            {
+                return (InObject->*InFunc)(std::forward<ParamTypes>(Params)...);
+            });
+    }
 };
