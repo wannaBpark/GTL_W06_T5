@@ -255,8 +255,7 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, uint32 Msg, WPARAM wParam, L
     case WM_SIZE:
         if (wParam != SIZE_MINIMIZED)
         {
-            auto LevelEditor = GEngineLoop.GetLevelEditor();
-            if (LevelEditor)
+            if (auto LevelEditor = GEngineLoop.GetLevelEditor())
             {
                 FEngineLoop::GraphicDevice.Resize(hWnd);
                 // FEngineLoop::Renderer.DepthPrePass->ResizeDepthStencil();
