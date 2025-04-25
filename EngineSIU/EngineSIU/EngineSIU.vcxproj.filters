@@ -936,5 +936,7 @@
     <FxCompile Include="Shaders\DepthCubeMapVS.hlsl" />
     <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
     <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
+    <FxCompile Include="Shaders\LightPBR.hlsl" />
+    <FxCompile Include="Shaders\StaticMeshPixelShaderWorldTangent.hlsl" />
   </ItemGroup>
 </Project>

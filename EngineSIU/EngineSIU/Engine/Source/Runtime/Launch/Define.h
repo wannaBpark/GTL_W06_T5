@@ -23,6 +23,7 @@
 #define GOURAUD "LIGHTING_MODEL_GOURAUD"
 #define LAMBERT "LIGHTING_MODEL_LAMBERT"
 #define PHONG "LIGHTING_MODEL_BLINN_PHONG"
+#define PBR "LIGHTING_MODEL_PBR"
 
 // Material Subset
 struct FMaterialSubset

@@ -434,14 +434,16 @@ void ControlEditorPanel::CreateFlagButton()
     }
     ImGui::SameLine();
     const char* ViewModeNames[] = { 
-        "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", 
+        "Lit_Gouraud", "Lit_Lambert", "Lit_Blinn-Phong", "Lit_PBR",
         "Unlit", "Wireframe",
-        "Scene Depth", "World Normal", "Light Heat Map"
+        "Scene Depth", "World Normal", "World Tangent","Light Heat Map"
     };
     constexpr uint32 ViewModeCount = std::size(ViewModeNames);
+    
     const int RawViewMode = static_cast<int>(ActiveViewport->GetViewMode());
     const int SafeIndex = (RawViewMode >= 0) ? (RawViewMode % ViewModeCount) : 0;
     FString ViewModeControl = ViewModeNames[SafeIndex];
+    
     const ImVec2 ViewModeTextSize = ImGui::CalcTextSize(GetData(ViewModeControl));
     if (ImGui::Button(GetData(ViewModeControl), ImVec2(30 + ViewModeTextSize.x, 32)))
     {

@@ -63,6 +63,11 @@ void FStaticMeshRenderPass::CreateShader()
     {
         return;
     }
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderWorldTangent", L"Shaders/StaticMeshPixelShaderWorldTangent.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        return;
+    }
     // End Debug Shaders
 
 #pragma region UberShader
@@ -99,6 +104,16 @@ void FStaticMeshRenderPass::CreateShader()
         return;
     }
     
+    D3D_SHADER_MACRO DefinesPBR[] =
+    {
+        { PBR, "1" },
+        { nullptr, nullptr }
+    };
+    hr = ShaderManager->AddPixelShader(L"PBR_StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", DefinesPBR);
+    if (FAILED(hr))
+    {
+        return;
+    }
 #pragma endregion UberShader
 }
 
@@ -133,6 +148,12 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
         PixelShader = ShaderManager->GetPixelShaderByKey(L"PHONG_StaticMeshPixelShader");
         UpdateLitUnlitConstant(1);
         break;
+    case EViewModeIndex::VMI_LIT_PBR:
+        VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+        InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"PBR_StaticMeshPixelShader");
+        UpdateLitUnlitConstant(1);
+        break;
     case EViewModeIndex::VMI_Wireframe:
     case EViewModeIndex::VMI_Unlit:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
@@ -150,6 +171,12 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
         PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderWorldNormal");
+        UpdateLitUnlitConstant(0);
+        break;
+    case EViewModeIndex::VMI_WorldTangent:
+        VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+        InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderWorldTangent");
         UpdateLitUnlitConstant(0);
         break;
     // HeatMap ViewMode 등
@@ -175,14 +202,8 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
-
-    // ShadowRenderPass = new FShadowRenderPass();
-    // ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-    // ShadowRenderPass->InitializeShadowManager();
     
     CreateShader();
-    //ShadowRenderPass = new FShadowRenderPass();
-    //ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
 }
 
 void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
