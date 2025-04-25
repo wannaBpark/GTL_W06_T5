@@ -1,4 +1,6 @@
 #include "Actor.h"
+
+#include "Components/PrimitiveComponent.h"
 #include "World/World.h"
 
 
@@ -116,6 +118,22 @@ void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
         }
     }
     UninitializeComponents();
+}
+
+bool AActor::IsOverlappingActor(const AActor* Other) const
+{
+    for (UActorComponent* OwnedComp : OwnedComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(OwnedComp))
+        {
+            if ((PrimComp->GetOverlapInfos().Num() > 0) && PrimComp->IsOverlappingActor(Other))
+            {
+                // found one, finished
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool AActor::Destroy()

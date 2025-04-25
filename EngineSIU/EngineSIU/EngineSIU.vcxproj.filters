@@ -800,6 +800,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CapsuleComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\BoxComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\HitResult.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -884,6 +885,8 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CapsuleComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\BoxComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\HitResult.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
@@ -919,6 +922,7 @@
     <None Include="Shaders\TileLightCullingComputeShader.hlsl" />
     <None Include="Shaders\VertexBillBoardShader.hlsl" />
     <None Include="Shaders\ComputeDefine.hlsl" />
+    <None Include="Shaders\StaticMeshPixelShaderWorldTangent.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\EditorShaderConstants.hlsli" />
@@ -937,6 +941,5 @@
     <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
     <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
     <FxCompile Include="Shaders\LightPBR.hlsl" />
-    <FxCompile Include="Shaders\StaticMeshPixelShaderWorldTangent.hlsl" />
   </ItemGroup>
 </Project>

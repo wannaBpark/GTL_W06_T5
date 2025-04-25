@@ -132,3 +132,26 @@ void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperti
     const FString* AABBmaxStr = InProperties.Find(TEXT("AABB_max"));
     if (AABBmaxStr) AABB.max.InitFromString(*AABBmaxStr); 
 }
+
+bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const
+{
+    if (Other)
+    {
+        for (int32 OverlapIdx=0; OverlapIdx<OverlappingComponents.Num(); ++OverlapIdx)
+        {
+            // UPrimitiveComponent const* const PrimComp = OverlappingComponents[OverlapIdx].OverlapInfo.Component.Get();
+            UPrimitiveComponent const* const PrimComp = OverlappingComponents[OverlapIdx].OverlapInfo.Component;
+            if ( PrimComp && (PrimComp->GetOwner() == Other) )
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+const TArray<FOverlapInfo>& UPrimitiveComponent::GetOverlapInfos() const
+{
+    return OverlappingComponents;
+}
