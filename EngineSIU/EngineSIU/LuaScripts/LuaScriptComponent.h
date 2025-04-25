@@ -2,6 +2,7 @@
 #include "Runtime/CoreUObject/UObject/ObjectMacros.h"
 #include "Components/ActorComponent.h"
 #include <sol/sol.hpp>
+#include <filesystem>
 
 class ULuaScriptComponent : public UActorComponent
 {
@@ -41,4 +42,8 @@ private:
 
     sol::state LuaState;
     bool bScriptValid = false;
+
+    std::filesystem::file_time_type LastWriteTime;
+    bool CheckFileModified();
+    void ReloadScript();
 };
