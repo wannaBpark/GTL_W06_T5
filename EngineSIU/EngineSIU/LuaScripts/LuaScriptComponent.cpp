@@ -1,6 +1,45 @@
 #include "LuaScriptComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "LuaBindingHelpers.h"
+#include "World/World.h"
+#include <Windows.h>
+#include <Shlwapi.h>
+
+#pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Shell32.lib")
+
+
+static inline bool CopyTemplateToActorScript(
+    const std::wstring& templateName,
+    const std::wstring& sceneName,
+    const std::wstring& actorName,
+    FString& outScriptPath,
+    FString& outScriptName
+)
+{
+    LPCWSTR luaDir = L"LuaScripts";
+
+    // 원본 템플릿 절대 경로
+    wchar_t src[MAX_PATH] = { 0 };
+    PathCombineW(src, luaDir, templateName.c_str());
+    if (!PathFileExistsW(src))
+        return false;
+
+    // 대상 파일명: Scene_Actor.lua
+    std::wstring destName = sceneName + L"_" + actorName + L".lua";
+    outScriptName = FString(destName.c_str());
+
+    wchar_t dst[MAX_PATH] = { 0 };
+    PathCombineW(dst, luaDir, destName.c_str());
+
+    // 복제 (덮어쓰기 허용)
+    if (!CopyFileW(src, dst, FALSE))
+        return false;
+
+    outScriptPath = FString(dst);
+    return true;
+}
+
 
 ULuaScriptComponent::ULuaScriptComponent()
 {
@@ -13,9 +52,9 @@ ULuaScriptComponent::~ULuaScriptComponent()
 
 void ULuaScriptComponent::BeginPlay()
 {
+    Super::BeginPlay();
     InitializeLuaState();
     CallLuaFunction("BeginPlay");
-    Super::BeginPlay();
     // GetOwner()->SetActorTickInPIE(true); // Lua 스크립트 대상 - PIE의 tick 호출 대상
 
 }
@@ -26,8 +65,22 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     CallLuaFunction("EndPlay");
 }
 
+void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
+{
+    ScriptPath = InScriptPath;
+    bScriptValid = false;
+}
+
 void ULuaScriptComponent::InitializeLuaState()
 {
+    CopyTemplateToActorScript(
+        L"template.lua",
+        GetWorld()->GetName().ToWideString(),
+        GetOwner()->GetName().ToWideString(),
+        ScriptPath,
+        DisplayName
+        ) ;
+
     LuaState.open_libraries();
 
     BindEngineAPI();
@@ -43,6 +96,7 @@ void ULuaScriptComponent::InitializeLuaState()
 
 void ULuaScriptComponent::BindEngineAPI()
 {
+    LuaBindingHelpers::BindPrint(LuaState);    // 0) Print 바인딩
     LuaBindingHelpers::BindUE_LOG(LuaState);    // 1) UE_LOG 바인딩
     LuaBindingHelpers::BindFVector(LuaState);   // 2) FVector 바인딩
 
@@ -62,7 +116,7 @@ void ULuaScriptComponent::BindEngineAPI()
         "GetLocation", &AActor::GetActorLocation,
         "SetLocation", &AActor::SetActorLocation
     );
-
+    
     // 프로퍼티 바인딩
     LuaState["actor"] = GetOwner();
     LuaState["script"] = this;
@@ -91,3 +145,4 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
         CallLuaFunction("Tick");
     }
 }
+

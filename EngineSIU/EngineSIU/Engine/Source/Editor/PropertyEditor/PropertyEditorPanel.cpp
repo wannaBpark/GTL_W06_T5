@@ -122,25 +122,35 @@ void PropertyEditorPanel::Render()
             Engine->SelectActor(NewActor);
         }
 
-        // Add Lua Script
-        if (ImGui::Button("Create Script"))
+        FString BasePath = FString(L"LuaScripts\\");
+        FString LuaDisplayPath;
+        if (PickedActor->GetComponentByClass<ULuaScriptComponent>())
         {
-            // Lua Script Component 생성 및 추가
-            ULuaScriptComponent* NewScript = PickedActor->AddComponent<ULuaScriptComponent>();
-            // 기본 스크립트 경로 설정
-            NewScript->ScriptPath = TEXT("LuaScripts\\template.lua");
-        }
-
-        if (ImGui::Button("Edit Script"))
-        {
-            // 예: PickedActor에서 스크립트 경로를 받아옴
-            if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
+            LuaDisplayPath = PickedActor->GetComponentByClass<ULuaScriptComponent>()->GetDisplayName();
+            if (ImGui::Button("Edit Script"))
             {
-                std::wstring luaFilePath = ScriptComp->ScriptPath.ToWideString();
-                LPCTSTR filePath = luaFilePath.c_str();
-                OpenLuaScriptFile(filePath);
+                // 예: PickedActor에서 스크립트 경로를 받아옴
+                if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
+                {
+                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();
+                    LPCTSTR filePath = ws.c_str();
+                    OpenLuaScriptFile(filePath);
+                }
             }
         }
+        else
+        {
+            // Add Lua Script
+            if (ImGui::Button("Create Script"))
+            {
+                // Lua Script Component 생성 및 추가
+                ULuaScriptComponent* NewScript = PickedActor->AddComponent<ULuaScriptComponent>();
+            }
+        }
+        ImGui::InputText("Script File", GetData(LuaDisplayPath), IM_ARRAYSIZE(*LuaDisplayPath),
+            ImGuiInputTextFlags_ReadOnly);
+
+        
     }
 
     //// TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기

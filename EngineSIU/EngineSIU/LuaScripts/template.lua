@@ -1,9 +1,8 @@
 function BeginPlay()
-    print("Lua BeginPlay function called!")
-    -- UE_LOG("Error", "actor:beginplay")
-    -- print("[BeginPlay] " .. actor.UUID)
-    -- actor.Location = actor.Location
-    -- actor:PrintLocation()
+    local currentPos = actor:GetLocation()
+    currentPos.X = currentPos.X + 100
+    actor:SetLocation(currentPos)
+    -- UE_LOG("Error", "actor:SetLocation")
 end
 
 function EndPlay()
@@ -12,7 +11,7 @@ function EndPlay()
 end
 
 function OnOverlap(OtherActor)
-    OtherActor:PrintLocation();
+    -- OtherActor:PrintLocation();
 end
 
 function Tick(dt)
@@ -22,6 +21,7 @@ function Tick(dt)
     -- actor:SetLocation(newPos)
     -- actor:SetLocation(FVector(200, 0, 0))
     UE_LOG("Error", "actor:SetLocation")
+
     -- actor.Location = FVector(0, 0, 0)
     -- actor.Location.X = actor.Location.X + dt
 end

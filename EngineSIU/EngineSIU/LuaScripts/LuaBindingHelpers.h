@@ -2,6 +2,8 @@
 #include <sol/sol.hpp>
 #include "Runtime/Core/Math/Vector.h"
 #include "Runtime/Engine/UserInterface/Console.h"
+#include "EngineLoop.h"
+#include "Engine/Engine.h"
 
 namespace LuaBindingHelpers
 {
@@ -58,6 +60,21 @@ namespace LuaBindingHelpers
                 {
                     UE_LOG(LogLevel::Display, TEXT("%s"), *Converted);
                 }
+            }
+        );
+    }
+
+    // Lua print 함수 바인딩 (콘솔 + 화면)
+    inline void BindPrint(sol::state& Lua)
+    {
+        Lua.set_function("print",
+            [](const std::string& Msg)
+            {
+                // 로그에 출력
+                UE_LOG(LogLevel::Error, TEXT("%s"), Msg.c_str());
+                // 화면에 출력
+                OutputDebugStringA(Msg.c_str()); // 디버그 창에 출력
+                MessageBoxA(NULL, Msg.c_str(), "Lua Display", MB_OK); // 팝업 창으로 표시
             }
         );
     }
