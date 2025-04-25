@@ -796,6 +796,10 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\StaticMeshRenderData.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FObjLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPassBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CapsuleComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\BoxComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -876,6 +880,10 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\StaticMeshAsset.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FObjLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPassBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CapsuleComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\BoxComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
