@@ -128,7 +128,7 @@ void PropertyEditorPanel::Render()
             // Lua Script Component 생성 및 추가
             ULuaScriptComponent* NewScript = PickedActor->AddComponent<ULuaScriptComponent>();
             // 기본 스크립트 경로 설정
-            NewScript->ScriptPath = TEXT("LuaScripts/template.lua");
+            NewScript->ScriptPath = TEXT("LuaScripts\\template.lua");
         }
 
         if (ImGui::Button("Edit Script"))
@@ -137,9 +137,7 @@ void PropertyEditorPanel::Render()
             if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
             {
                 std::wstring luaFilePath = ScriptComp->ScriptPath.ToWideString();
-                // std::wstring → const wchar_t* (LPCTSTR)
-                //LPCTSTR filePath = luaFilePath.c_str();
-                LPCTSTR filePath = L"LuaScripts/template.lua";
+                LPCTSTR filePath = luaFilePath.c_str();
                 OpenLuaScriptFile(filePath);
             }
         }
