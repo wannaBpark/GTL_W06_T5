@@ -137,7 +137,7 @@ bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const
 {
     if (Other)
     {
-        for (int32 OverlapIdx=0; OverlapIdx<OverlappingComponents.Num(); ++OverlapIdx)
+        for (int32 OverlapIdx = 0; OverlapIdx < OverlappingComponents.Num(); ++OverlapIdx)
         {
             // UPrimitiveComponent const* const PrimComp = OverlappingComponents[OverlapIdx].OverlapInfo.Component.Get();
             UPrimitiveComponent const* const PrimComp = OverlappingComponents[OverlapIdx].OverlapInfo.Component;
@@ -154,4 +154,12 @@ bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const
 const TArray<FOverlapInfo>& UPrimitiveComponent::GetOverlapInfos() const
 {
     return OverlappingComponents;
+}
+
+void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps)
+{
+    const AActor* const MyActor = GetOwner();
+    
+
+    
 }

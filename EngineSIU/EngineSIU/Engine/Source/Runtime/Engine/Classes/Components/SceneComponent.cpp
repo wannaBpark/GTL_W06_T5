@@ -3,6 +3,7 @@
 #include "Math/JungleMath.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
+#include "Engine/HitResult.h""
 
 USceneComponent::USceneComponent()
     : RelativeLocation(FVector(0.f, 0.f, 0.f))
@@ -243,4 +244,56 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
         // TODO: .AddUnique의 실행 위치를 RegisterComponent로 바꾸거나 해야할 듯
         InParent->AttachChildren.AddUnique(this);
     }
+}
+
+void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps)
+{
+    UpdateOverlapsImpl(PendingOverlaps);
+}
+
+bool USceneComponent::MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit)
+{
+    return MoveComponentImpl(Delta, NewRotation, bSweep, OutHit);
+}
+
+bool USceneComponent::MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit)
+{
+    return MoveComponentImpl(Delta, NewRotation.ToQuaternion(), bSweep, OutHit);
+}
+
+void USceneComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps)
+{
+    TArray<USceneComponent*> AttachedChildren(AttachChildren);
+    for (USceneComponent* ChildComponent : AttachedChildren)
+    {
+        if (ChildComponent)
+        {
+            ChildComponent->UpdateOverlaps(PendingOverlaps);
+        }
+    }
+}
+
+bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit)
+{
+    if (!this)
+    {
+        if (OutHit)
+        {
+            *OutHit = FHitResult();
+        }
+        return false;
+    }
+
+    if (OutHit)
+    {
+        *OutHit = FHitResult(1.f);
+    }
+
+    if (Delta.IsZero() && NewRotation.Equals(GetWorldRotation().ToQuaternion()))
+    {
+        return true;
+    }
+
+    // TODO: 구현
+    return true;
 }

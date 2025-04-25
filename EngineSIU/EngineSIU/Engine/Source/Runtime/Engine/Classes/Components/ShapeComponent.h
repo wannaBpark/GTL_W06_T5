@@ -9,6 +9,6 @@ class UShapeComponent : public UPrimitiveComponent
 public:
     UShapeComponent();
     
-    FColor ShapeColor;
-    bool bDrawOnlyIfSelected;
+    FColor ShapeColor = FColor(180, 180, 180, 255);
+    bool bDrawOnlyIfSelected = true;
 };

@@ -36,6 +36,8 @@ public:
 protected:
     TArray<FOverlapInfo> OverlappingComponents;
 
+    virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps) override;
+
 private:
     FString m_Type;
 
@@ -47,6 +49,7 @@ public:
         m_Type = _Type;
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
+    
     FBoundingBox GetBoundingBox() const { return AABB; }
 };
 

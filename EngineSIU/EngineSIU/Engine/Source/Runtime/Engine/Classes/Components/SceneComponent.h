@@ -3,6 +3,9 @@
 #include "Math/Rotator.h"
 #include "UObject/ObjectMacros.h"
 
+struct FHitResult;
+struct FOverlapInfo;
+
 class USceneComponent : public UActorComponent
 {
     DECLARE_CLASS(USceneComponent, UActorComponent)
@@ -55,6 +58,11 @@ public:
     
     void SetupAttachment(USceneComponent* InParent);
 
+    void UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps = nullptr);
+
+    bool MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
+    bool MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
+
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
     UPROPERTY
@@ -74,4 +82,8 @@ protected:
 
     UPROPERTY
     (TArray<USceneComponent*>, AttachChildren);
+
+    virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps);
+
+    virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
 };

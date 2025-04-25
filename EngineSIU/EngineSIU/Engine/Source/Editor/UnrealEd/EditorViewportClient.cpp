@@ -52,7 +52,10 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
-    UpdateEditorCameraMovement(DeltaTime);
+    if (GEngine->ActiveWorld->WorldType == EWorldType::Editor)
+    {
+        UpdateEditorCameraMovement(DeltaTime);
+    }
     UpdateViewMatrix();
     UpdateProjectionMatrix();
     GizmoActor->Tick(DeltaTime);

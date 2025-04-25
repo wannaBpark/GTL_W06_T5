@@ -21,21 +21,12 @@
 #include "Components/StaticMeshComponent.h"
 
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Components/Light/LightComponent.h"
 #include "Engine/EditorEngine.h"
 
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
-#include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "ShadowRenderPass.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
