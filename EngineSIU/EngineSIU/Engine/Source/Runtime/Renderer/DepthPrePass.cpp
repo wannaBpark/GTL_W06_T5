@@ -57,8 +57,8 @@ void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClie
     Graphics->DeviceContext->OMSetRenderTargets(1, &nullRTV, DepthStencilView); // ← 깊이 전용
     */
     
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
     
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(InputLayout);

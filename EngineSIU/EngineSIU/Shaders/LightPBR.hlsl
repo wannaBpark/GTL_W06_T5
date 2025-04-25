@@ -162,8 +162,7 @@ StructuredBuffer<FSpotLightInfo> gSpotLights   : register(t11);
 StructuredBuffer<uint> PerTilePointLightIndexBuffer : register(t12);
 StructuredBuffer<uint> PerTileSpotLightIndexBuffer  : register(t13);
 
-
-
+// Begin Shadow
 SamplerComparisonState ShadowSamplerCmp : register(s10);
 SamplerState ShadowPointSampler : register(s11);
 
@@ -388,6 +387,8 @@ float CalculateSpotShadowFactor(float3 WorldPosition, FSpotLightInfo LightInfo, 
 
     return ShadowFactor;
 }
+// End Shadow
+
 
 float GetDistanceAttenuation(float Distance, float Radius)
 {
@@ -395,52 +396,125 @@ float GetDistanceAttenuation(float Distance, float Radius)
     float  DistSqr = Distance * Distance;
     float  RadiusMask = saturate(1.0 - DistSqr * InvRadius * InvRadius);
     RadiusMask *= RadiusMask;
-    
+
     return RadiusMask / (DistSqr + 1.0);
 }
 
 float GetSpotLightAttenuation(float Distance, float Radius, float3 LightDir, float3 SpotDir, float InnerRadius, float OuterRadius)
 {
     float DistAtten = GetDistanceAttenuation(Distance, Radius);
-    
+
     float  CosTheta = dot(SpotDir, -LightDir);
     float  SpotMask = saturate((CosTheta - cos(OuterRadius)) / (cos(InnerRadius) - cos(OuterRadius)));
     SpotMask *= SpotMask;
-    
+
     return DistAtten * SpotMask;
 }
 
-float CalculateDiffuse(float3 WorldNormal, float3 LightDir)
+////////
+/// Diffuse
+////////
+#define PI 3.14159265359
+
+inline float SchlickWeight(float u) // (1‑u)^5
 {
-    return max(dot(WorldNormal, LightDir), 0.0);
+    float m = saturate(1.0 - u);
+    return m * m * m * m * m;
 }
 
-float CalculateSpecular(float3 WorldNormal, float3 ToLightDir, float3 ViewDir, float Shininess, float SpecularStrength = 0.5)
+float DisneyDiffuse(float3 N, float3 L, float3 V, float Roughness)
 {
-#ifdef LIGHTING_MODEL_GOURAUD
-    float3 ReflectDir = reflect(-ToLightDir, WorldNormal);
-    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0), Shininess);
-#else
-    float3 HalfDir = normalize(ToLightDir + ViewDir); // Blinn-Phong
-    float Spec = pow(max(dot(WorldNormal, HalfDir), 0.0), Shininess);
-#endif
-    return Spec * SpecularStrength; 
+    float3 H = normalize(L + V);
+    float  NdotL = saturate(dot(N, L));
+    float  NdotV = saturate(dot(N, V));
+    float  LdotH2 = saturate(dot(L, H)) * saturate(dot(L, H));
+
+    float  Fd90 = 0.5 + 2.0 * Roughness * LdotH2; // grazing boost
+    float  Fd = (1.0 + (Fd90 - 1.0) * SchlickWeight(NdotL)) * (1.0 + (Fd90 - 1.0) * SchlickWeight(NdotV));
+
+    return (Fd * NdotL / PI);
 }
 
-float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+float LambertDiffuse(float3 N, float3 L)
+{
+    return saturate(dot(N, L)) / PI;
+}
+
+////////
+/// Specular
+////////
+float  D_GGX(float NdotH, float alpha)
+{
+    float a2 = alpha * alpha;
+    float d = (NdotH * NdotH) * (a2 - 1.0) + 1.0;
+    return a2 / (PI * d * d);                 // Trowbridge‑Reitz
+}
+
+float  G_Smith(float NdotV, float NdotL, float alpha)
+{
+    float k = alpha * 0.5 + 0.0001;           // Schlick‑GGX (≈α/2)
+    float gV = NdotV / (NdotV * (1.0 - k) + k);
+    float gL = NdotL / (NdotL * (1.0 - k) + k);
+    return gV * gL;
+}
+
+float3 F_Schlick(float3 F0, float LdotH)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - LdotH, 5.0);
+}
+
+float3 CookTorranceSpecular(
+    float3  F0,        // base reflectance (metallic → albedo)
+    float   Roughness, // 0 = mirror, 1 = diffuse
+    float3  N, float3  V, float3  L)
+{
+    float3  H = normalize(V + L);
+    float   NdotL = saturate(dot(N, L));
+    float   NdotV = saturate(dot(N, V));
+    float   NdotH = saturate(dot(N, H));
+    float   LdotH = saturate(dot(L, H));
+
+    float   alpha = max(0.001, Roughness * Roughness);
+
+    float   D = D_GGX(NdotH, alpha);
+    float   G = G_Smith(NdotV, NdotL, alpha);
+    float3  F = F_Schlick(F0, LdotH);
+
+    return (D * G * F) * (NdotL / (4.0 * NdotV * NdotL + 1e-5));
+}
+
+float3 BRDF(float3 L, float3 V, float3 N, float3 BaseColor, float Metallic, float Roughness)
+{
+    float3 F0 = lerp(0.04, BaseColor, Metallic);
+
+    float KdScale = 1.0 - Metallic;
+    float3 Kd = BaseColor * KdScale;
+
+    float3 Diffuse = DisneyDiffuse(N, L, V, Roughness) * Kd;
+    float3 Specular = CookTorranceSpecular(F0, Roughness, N, V, L);
+
+    return Diffuse + Specular;
+}
+
+
+
+////////
+/// Calculate Light
+////////
+float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 BaseColor, float Metallic, float Roughness)
 {
     FPointLightInfo LightInfo = gPointLights[Index];
-    //FPointLightInfo LightInfo = PointLights[Index];
-    
+    // FPointLightInfo LightInfo = PointLights[Index];
+
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
-    
+
     float Attenuation = GetDistanceAttenuation(Distance, LightInfo.Radius);
     if (Attenuation <= 0.0)
     {
-        return float4(0.f, 0.f, 0.f, 0.f);
+        return float3(0.0, 0.0, 0.0);
     }
-    
+
     // --- 그림자 계산
     float Shadow = 1.0;
     if (LightInfo.CastShadows && IsShadow)
@@ -453,29 +527,23 @@ float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wo
             return float3(0.0, 0.0, 0.0);
         }
     }
-    
-    float3 LightDir = normalize(ToLight);
-    float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
 
-    float3 Lit = (DiffuseFactor * DiffuseColor);
-#ifndef LIGHTING_MODEL_LAMBERT
-    float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
-    Lit += SpecularFactor * SpecularColor;
-#endif
-    
-    return Lit * Attenuation * LightInfo.Intensity * LightInfo.LightColor * Shadow;
+    float3 L = normalize(ToLight);
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    float3 BRDF_Term = BRDF(L, V, WorldNormal, BaseColor, Metallic, Roughness);
+
+    return BRDF_Term * LightInfo.LightColor * LightInfo.Intensity * Attenuation * Shadow;
 }
 
-float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 BaseColor, float Metallic, float Roughness)
 {
     FSpotLightInfo LightInfo = gSpotLights[Index];
     // FSpotLightInfo LightInfo = SpotLights[Index];
-    
+
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
     float3 LightDir = normalize(ToLight);
-    
+
     float SpotlightFactor = GetSpotLightAttenuation(Distance, LightInfo.Radius, LightDir, normalize(LightInfo.Direction), LightInfo.InnerRad, LightInfo.OuterRad);
     if (SpotlightFactor <= 0.0)
     {
@@ -495,25 +563,16 @@ float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
         }
     }
 
-    float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
-    
-    float3 Lit = DiffuseFactor * DiffuseColor;
-#ifndef LIGHTING_MODEL_LAMBERT
-    float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
-    Lit += SpecularFactor * SpecularColor;
-#endif
-    
-    return Lit * SpotlightFactor * LightInfo.Intensity * LightInfo.LightColor * Shadow;
+    float3 L = normalize(ToLight);
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    float3 BRDF_Term = BRDF(L, V, WorldNormal, BaseColor, Metallic, Roughness);
+
+    return BRDF_Term * LightInfo.LightColor * LightInfo.Intensity * SpotlightFactor * Shadow;
 }
 
-float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 BaseColor, float Metallic, float Roughness)
 {
     FDirectionalLightInfo LightInfo = Directional[nIndex];
-    
-    float3 LightDir = normalize(-LightInfo.Direction);
-    float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
 
     float4 posCam = mul(float4(WorldPosition, 1), ViewMatrix);
     float depthCam = posCam.z / posCam.w;
@@ -531,15 +590,14 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
         }
     }
 
-    float3 Lit = DiffuseFactor * DiffuseColor;
-#ifndef LIGHTING_MODEL_LAMBERT
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
-    Lit += SpecularFactor * SpecularColor;
-#endif
-    return Lit * LightInfo.Intensity * LightInfo.LightColor * Shadow; /** DebugCSMColor(csmIndex)*/;
+    float3 L = normalize(-LightInfo.Direction);
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    float3 BRDF_Term = BRDF(L, V, WorldNormal, BaseColor, Metallic, Roughness);
+
+    return BRDF_Term * LightInfo.LightColor * LightInfo.Intensity * Shadow;
 }
 
-float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess, uint TileIndex)
+float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float Metallic, float Roughness, uint TileIndex)
 {
     float3 FinalColor = float3(0.0, 0.0, 0.0);
 
@@ -558,7 +616,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
                 int GlobalPointLightIndex = Bucket * 32 + bit;
                 if (GlobalPointLightIndex < MAX_LIGHT_PER_TILE)
                 {
-                    FinalColor += PointLight(GlobalPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+                    FinalColor += PointLight(GlobalPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, Metallic, Roughness);
                 }
             }
             if (SpotMask & (1u << bit))
@@ -566,7 +624,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
                 int GlobalSpotLightIndex = Bucket * 32 + bit;
                 if (GlobalSpotLightIndex < MAX_LIGHT_PER_TILE)
                 {
-                    FinalColor += SpotLight(GlobalSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+                    FinalColor += SpotLight(GlobalSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, Metallic, Roughness);
                 }
             }
         }
@@ -580,7 +638,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     [unroll(MAX_DIRECTIONAL_LIGHT)]
     for (int k = 0; k < 1; k++)
     {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, Metallic, Roughness);
     }
     [unroll(MAX_AMBIENT_LIGHT)]
     for (int l = 0; l < AmbientLightsCount; l++) 
@@ -591,7 +649,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     return float4(FinalColor, 1.0);
 }
 
-float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float Metallic, float Roughness)
 {
     float3 FinalColor = float3(0.0, 0.0, 0.0);
 
@@ -599,18 +657,18 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     [unroll(MAX_POINT_LIGHT)]
     for (int i = 0; i < PointLightsCount; i++)
     {
-        FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, Metallic, Roughness);
     }
 
     [unroll(MAX_SPOT_LIGHT)]
     for (int j = 0; j < SpotLightsCount; j++)
     {
-        FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, Metallic, Roughness);
     }
     [unroll(MAX_DIRECTIONAL_LIGHT)]
     for (int k = 0; k < 1; k++) 
     {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, Metallic, Roughness);
     }
     [unroll(MAX_AMBIENT_LIGHT)]
     for (int l = 0; l < AmbientLightsCount; l++)
@@ -620,6 +678,3 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     return float4(FinalColor, 1.0);
 }
-
-
-
