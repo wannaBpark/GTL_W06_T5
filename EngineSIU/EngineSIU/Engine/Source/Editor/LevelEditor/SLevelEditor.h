@@ -2,10 +2,11 @@
 #include <sstream>
 #include "Define.h"
 #include "Container/Map.h"
+#include "Engine/EditorEngine.h"
+#include "World/World.h"
 
 class SSplitterH;
 class SSplitterV;
-class UWorld;
 class FEditorViewportClient;
 
 
@@ -82,5 +83,20 @@ private:
             }
         }
         return DefaultValue;
+    }
+
+public:
+    template<typename TFunc>
+    auto EditorOnlyInputHandler(TFunc&& InFunc)
+    {
+        return [Func = std::forward<TFunc>(InFunc)](auto&&... Args)
+            {
+                if (!GEngine || !GEngine->ActiveWorld || GEngine->ActiveWorld->WorldType != EWorldType::Editor)
+                {
+                    return;
+                }
+
+                Func(std::forward<decltype(Args)>(Args)...);
+            };
     }
 };
