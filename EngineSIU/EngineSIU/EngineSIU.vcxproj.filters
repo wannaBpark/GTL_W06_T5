@@ -809,6 +809,12 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Pawn.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerController.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -889,6 +895,12 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Pawn.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerController.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
