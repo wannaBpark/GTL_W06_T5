@@ -111,6 +111,22 @@ void UWorld::Tick(float DeltaTime)
     {
         Actor->BeginPlay();
     }
+
+    for (AActor* Actor : GetActiveLevel()->Actors)
+    {
+        Actor->UpdateOverlaps();
+    }
+
+    for (AActor* Actor : GetActiveLevel()->Actors)
+    {
+        for (AActor* Other : GetActiveLevel()->Actors)
+        {
+            if (Actor != Other)
+            {
+                Actor->IsOverlappingActor(Other);
+            }
+        }
+    }
     PendingBeginPlayActors.Empty();
 }
 

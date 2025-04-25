@@ -1,4 +1,5 @@
 #include "Actor.h"
+#include "Components/PrimitiveComponent.h"
 #include "World/World.h"
 
 
@@ -278,6 +279,33 @@ bool AActor::SetActorScale(const FVector& NewScale)
         return true;
     }
     return false;
+}
+
+bool AActor::IsOverlappingActor(const AActor* Other) const
+{
+    for (UActorComponent* OwnedComp : OwnedComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(OwnedComp))
+        {
+            //if ((PrimComp->GetOverlapInfos().Num() > 0) && PrimComp->IsOverlappingActor(Other))
+            //{
+            //    // found one, finished
+            //    return true;
+            //}
+        }
+    }
+    return false;
+}
+
+void AActor::UpdateOverlaps() const
+{
+    for (UActorComponent* Comp : OwnedComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
+        {
+            PrimComp->UpdateOverlaps();
+        }
+    }
 }
 
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)

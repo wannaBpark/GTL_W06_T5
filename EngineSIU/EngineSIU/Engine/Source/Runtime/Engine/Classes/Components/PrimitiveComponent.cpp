@@ -1,7 +1,6 @@
 #include "PrimitiveComponent.h"
-
 #include "UObject/Casts.h"
-
+#include "UObject/UObjectIterator.h"
 
 UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 {
@@ -100,6 +99,37 @@ bool UPrimitiveComponent::IntersectRayTriangle(const FVector& rayOrigin, const F
 
     return false;
 }
+
+bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const
+{
+    for (const FOverlapInfo& Info : OverlapInfos)
+    {
+        if (Info.OtherActor == Other)
+            return true;
+    }
+    return false;
+}
+
+void UPrimitiveComponent::UpdateOverlaps()
+{
+    OverlapInfos.Empty();
+
+    for (const UPrimitiveComponent Other : TObjectRange<UPrimitiveComponent>())
+    {
+        if (Other == this) continue;
+
+        if (CheckOverlap(Other))
+        {
+            OverlapInfos.Add(FOverlapInfo(Other, Other->GetOwner()));
+        }
+    }
+}
+
+bool CheckOverlap( UPrimitiveComponent* Other)
+{
+
+}
+
 
 void UPrimitiveComponent::GetProperties(TMap<FString, FString>& OutProperties) const
 {

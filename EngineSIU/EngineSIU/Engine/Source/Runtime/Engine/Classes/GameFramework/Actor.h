@@ -90,6 +90,10 @@ public:
     bool SetActorRotation(const FRotator& NewRotation);
     bool SetActorScale(const FVector& NewScale);
 
+public:
+    bool IsOverlappingActor(const AActor* Other) const;
+    void UpdateOverlaps() const;
+
 protected:
     UPROPERTY
     (USceneComponent*, RootComponent, = nullptr)
