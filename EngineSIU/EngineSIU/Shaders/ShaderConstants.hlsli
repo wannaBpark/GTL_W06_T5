@@ -1,11 +1,11 @@
 struct FMaterialConstants
 {
     float3 DiffuseColor;
-    float TransparencyScalar;
+    float Transparency;
     float3 AmbientColor;
     float DensityScalar;
     float3 SpecularColor;
-    float SpecularScalar;
+    float Shininess;
     float3 EmmisiveColor;
     float MaterialPad0;
 };

@@ -1,16 +1,6 @@
 
 #include "ShaderRegisters.hlsl"
 
-SamplerState DiffuseSampler : register(s0);
-SamplerState NormalSampler : register(s1);
-//SamplerComparisonState ShadowSampler : register(s2);
-//SamplerState ShadowPointSampler : register(s3);
-
-Texture2D DiffuseTexture : register(t0);
-Texture2D NormalTexture : register(t1);
-Texture2D ShadowMap : register(t2);
-TextureCube PointShadowMap : register(t3);
-
 cbuffer MaterialConstants : register(b1)
 {
     FMaterial Material;
@@ -34,35 +24,59 @@ cbuffer TextureConstants : register(b4)
     float2 TexturePad0;
 }
 
-cbuffer ShadowFlagConstants : register(b5)
-{
-    bool IsShadow;
-    float3 shadowFlagPad0;
-}
-
+#ifdef LIGHTING_MODEL_PBR
+#include "LightPBR.hlsl"
+#else
 #include "Light.hlsl"
+#endif
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {
-    float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
-
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
-    if (Material.TextureFlag & (1 << 1))
+    if (Material.TextureFlag & TEXTURE_FLAG_DIFFUSE)
     {
-        DiffuseColor = DiffuseTexture.Sample(DiffuseSampler, Input.UV).rgb;
-        DiffuseColor = SRGBToLinear(DiffuseColor);
+        DiffuseColor = MaterialTextures[TEXTURE_SLOT_DIFFUSE].Sample(MaterialSamplers[TEXTURE_SLOT_DIFFUSE], Input.UV).rgb;
     }
 
     // Normal
-    float3 WorldNormal = Input.WorldNormal;
-    if (Material.TextureFlag & (1 << 2))
+    float3 WorldNormal = normalize(Input.WorldNormal);
+    if (Material.TextureFlag & TEXTURE_FLAG_NORMAL)
     {
-        float3 Normal = NormalTexture.Sample(NormalSampler, Input.UV).rgb;
+        float3 Tangent = normalize(Input.WorldTangent.xyz);
+        float Sign = Input.WorldTangent.w;
+        float3 BiTangent = cross(WorldNormal, Tangent) * Sign;
+
+        float3x3 TBN = float3x3(Tangent, BiTangent, WorldNormal);
+        
+        float3 Normal = MaterialTextures[TEXTURE_SLOT_NORMAL].Sample(MaterialSamplers[TEXTURE_SLOT_NORMAL], Input.UV).rgb;
         Normal = normalize(2.f * Normal - 1.f);
-        WorldNormal = mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld);
+        WorldNormal = normalize(mul(Normal, TBN));
     }
-    WorldNormal = normalize(WorldNormal);
+
+#ifndef LIGHTING_MODEL_PBR
+    // Specular Color
+    float3 SpecularColor = Material.SpecularColor;
+    if (Material.TextureFlag & TEXTURE_FLAG_SPECULAR)
+    {
+        SpecularColor = MaterialTextures[TEXTURE_SLOT_SPECULAR].Sample(MaterialSamplers[TEXTURE_SLOT_SPECULAR], Input.UV).rgb;
+    }
+
+    // Specular Exponent or Glossiness
+    float Shininess = Material.Shininess;
+    if (Material.TextureFlag & TEXTURE_FLAG_SHININESS)
+    {
+        Shininess = MaterialTextures[TEXTURE_SLOT_SHININESS].Sample(MaterialSamplers[TEXTURE_SLOT_SHININESS], Input.UV).r;
+        Shininess = 1000 * Shininess * Shininess; // y = 1000 * x ^ 2
+    }
+#endif
+
+    // Emissive Color
+    float3 EmissiveColor = Material.EmissiveColor;
+    if (Material.TextureFlag & TEXTURE_FLAG_EMISSIVE)
+    {
+        EmissiveColor = MaterialTextures[TEXTURE_SLOT_EMISSIVE].Sample(MaterialSamplers[TEXTURE_SLOT_EMISSIVE], Input.UV).rgb;
+    }
 
     // Begin for Tile based light culled result
     // 현재 픽셀이 속한 타일 계산 (input.position = 화면 픽셀좌표계)
@@ -71,16 +85,21 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     uint TilesX = ScreenSize.x / TileSize.x; // 한 행에 존재하는 타일 수
     uint FlatTileIndex = TileCoord.x + TileCoord.y * TilesX;
     // End for Tile based light culled result
-
+    
     // Lighting
+    float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
     if (IsLit)
     {
+        float3 LitColor = float3(0, 0, 0);
 #ifdef LIGHTING_MODEL_GOURAUD
-        FinalColor = float4(Input.Color.rgb * DiffuseColor, 1.0);
+        LitColor = Input.Color.rgb;
+#elif defined(LIGHTING_MODEL_PBR)
+        LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, Metallic, Roughness);
 #else
-        float3 LitColor = Lighting(Input.WorldPosition, WorldNormal, Input.WorldViewPosition, DiffuseColor, FlatTileIndex).rgb;
-        FinalColor = float4(LitColor, 1);
+        LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, SpecularColor, Shininess, FlatTileIndex);
 #endif
+        LitColor += EmissiveColor * 5.f; // 5는 임의의 값
+        FinalColor = float4(LitColor, 1);
     }
     else
     {
@@ -91,9 +110,6 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
-
-    // Shadow
-    //FinalColor *= GetLightFromShadowMap(Input);
 
     return FinalColor;
 }

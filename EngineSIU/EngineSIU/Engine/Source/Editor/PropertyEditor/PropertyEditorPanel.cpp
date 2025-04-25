@@ -12,7 +12,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextComponent.h"
 #include "Engine/EditorEngine.h"
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 #include "UnrealEd/ImGuiWidget.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
@@ -667,7 +667,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
                 if (ImGui::Selectable(GetData(Asset.Value.AssetName.ToString()), false))
                 {
                     FString MeshName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
-                    UStaticMesh* StaticMesh = FManagerOBJ::GetStaticMesh(MeshName.ToWideString());
+                    UStaticMesh* StaticMesh = FObjManager::GetStaticMesh(MeshName.ToWideString());
                     if (StaticMesh)
                     {
                         StaticMeshComp->SetStaticMesh(StaticMesh);
@@ -786,10 +786,10 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
 
     static ImGuiSelectableFlags BaseFlag = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_None | ImGuiColorEditFlags_NoAlpha;
 
-    const FVector MatDiffuseColor = Material->GetMaterialInfo().Diffuse;
-    const FVector MatSpecularColor = Material->GetMaterialInfo().Specular;
-    const FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
-    const FVector MatEmissiveColor = Material->GetMaterialInfo().Emissive;
+    const FVector MatDiffuseColor = Material->GetMaterialInfo().DiffuseColor;
+    const FVector MatSpecularColor = Material->GetMaterialInfo().SpecularColor;
+    const FVector MatAmbientColor = Material->GetMaterialInfo().AmbientColor;
+    const FVector MatEmissiveColor = Material->GetMaterialInfo().EmissiveColor;
 
     const float DiffuseR = MatDiffuseColor.X;
     const float DiffuseG = MatDiffuseColor.Y;
@@ -867,16 +867,16 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     ImGui::SetNextItemWidth(160);
     // 메테리얼 이름 목록을 const char* 배열로 변환
     std::vector<const char*> MaterialChars;
-    for (const auto& Material : FManagerOBJ::GetMaterials()) {
+    for (const auto& Material : FObjManager::GetMaterials()) {
         MaterialChars.push_back(*Material.Value->GetMaterialInfo().MaterialName);
     }
 
     //// 드롭다운 표시 (currentMaterialIndex가 범위를 벗어나지 않도록 확인)
-    //if (currentMaterialIndex >= FManagerOBJ::GetMaterialNum())
+    //if (currentMaterialIndex >= FManagerGetMaterialNum())
     //    currentMaterialIndex = 0;
 
-    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, MaterialChars.data(), FManagerOBJ::GetMaterialNum())) {
-        UMaterial* Material = FManagerOBJ::GetMaterial(MaterialChars[CurMaterialIndex]);
+    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, MaterialChars.data(), FObjManager::GetMaterialNum())) {
+        UMaterial* Material = FObjManager::GetMaterial(MaterialChars[CurMaterialIndex]);
         SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, Material);
     }
 
@@ -905,10 +905,10 @@ void PropertyEditorPanel::RenderCreateMaterialView()
         tempMaterialInfo.MaterialName = MaterialName;
     }
 
-    const FVector MatDiffuseColor = tempMaterialInfo.Diffuse;
-    const FVector MatSpecularColor = tempMaterialInfo.Specular;
-    const FVector MatAmbientColor = tempMaterialInfo.Ambient;
-    const FVector MatEmissiveColor = tempMaterialInfo.Emissive;
+    const FVector MatDiffuseColor = tempMaterialInfo.DiffuseColor;
+    const FVector MatSpecularColor = tempMaterialInfo.SpecularColor;
+    const FVector MatAmbientColor = tempMaterialInfo.AmbientColor;
+    const FVector MatEmissiveColor = tempMaterialInfo.EmissiveColor;
 
     const float DiffuseR = MatDiffuseColor.X;
     const float DiffuseG = MatDiffuseColor.Y;
@@ -924,7 +924,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     if (ImGui::ColorEdit4("Diffuse##Color", reinterpret_cast<float*>(&DiffuseColorPick), BaseFlag))
     {
         const FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
-        tempMaterialInfo.Diffuse = NewColor;
+        tempMaterialInfo.DiffuseColor = NewColor;
     }
 
     const float SpecularR = MatSpecularColor.X;
@@ -938,7 +938,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     if (ImGui::ColorEdit4("Specular##Color", reinterpret_cast<float*>(&SpecularColorPick), BaseFlag))
     {
         const FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
-        tempMaterialInfo.Specular = NewColor;
+        tempMaterialInfo.SpecularColor = NewColor;
     }
 
     const float AmbientR = MatAmbientColor.X;
@@ -952,7 +952,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     if (ImGui::ColorEdit4("Ambient##Color", reinterpret_cast<float*>(&AmbientColorPick), BaseFlag))
     {
         const FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
-        tempMaterialInfo.Ambient = NewColor;
+        tempMaterialInfo.AmbientColor = NewColor;
     }
 
     const float EmissiveR = MatEmissiveColor.X;
@@ -966,13 +966,13 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     if (ImGui::ColorEdit4("Emissive##Color", reinterpret_cast<float*>(&EmissiveColorPick), BaseFlag))
     {
         const FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
-        tempMaterialInfo.Emissive = NewColor;
+        tempMaterialInfo.EmissiveColor = NewColor;
     }
     ImGui::Unindent();
 
     ImGui::NewLine();
     if (ImGui::Button("Create Material")) {
-        FManagerOBJ::CreateMaterial(tempMaterialInfo);
+        FObjManager::CreateMaterial(tempMaterialInfo);
     }
 
     ImGui::NewLine();

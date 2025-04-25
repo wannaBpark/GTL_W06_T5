@@ -24,16 +24,6 @@
 #define LAMBERT "LIGHTING_MODEL_LAMBERT"
 #define PHONG "LIGHTING_MODEL_BLINN_PHONG"
 
-struct FStaticMeshVertex
-{
-    float X, Y, Z;    // Position
-    float R, G, B, A; // Color
-    float NormalX, NormalY, NormalZ;
-    float TangentX, TangentY, TangentZ;
-    float U = 0, V = 0;
-    uint32 MaterialIndex;
-};
-
 // Material Subset
 struct FMaterialSubset
 {
@@ -78,63 +68,66 @@ struct FObjInfo
     TArray<FMaterialSubset> MaterialSubsets;
 };
 
+enum class EMaterialTextureFlags : uint16
+{
+    MTF_Diffuse      = 1 << 0,
+    MTF_Specular     = 1 << 1,
+    MTF_Normal       = 1 << 2,
+    MTF_Emissive     = 1 << 3,
+    MTF_Alpha        = 1 << 4,
+    MTF_Ambient      = 1 << 5,
+    MTF_Shininess    = 1 << 6,
+    MTF_Metallic     = 1 << 7,
+    MTF_Roughness    = 1 << 8,
+    MTF_MAX,
+};
+
+enum class EMaterialTextureSlots : uint8
+{
+    MTS_Diffuse      = 0,
+    MTS_Specular     = 1,
+    MTS_Normal       = 2,
+    MTS_Emissive     = 3,
+    MTS_Alpha        = 4,
+    MTS_Ambient      = 5,
+    MTS_Shininess    = 6,
+    MTS_Metallic     = 7,
+    MTS_Roughness    = 8,
+    MTS_MAX,
+};
+
+struct FTextureInfo
+{
+    FString TextureName;
+    FWString TexturePath;
+    bool bIsSRGB;
+};
+
 struct FObjMaterialInfo
 {
-    FString MaterialName;  // newmtl : Material Name.
+    FString MaterialName;  // newmtl: Material Name.
 
     uint32 TextureFlag = 0;
 
     bool bTransparent = false; // Has alpha channel?
 
-    FVector Diffuse = FVector(0.7f, 0.7f, 0.7f);  // Kd : Diffuse (Vector4)
-    FVector Specular = FVector(0.5f, 0.5f, 0.5f);  // Ks : Specular (Vector) 
-    FVector Ambient = FVector(0.01f, 0.01f, 0.01f);   // Ka : Ambient (Vector)
-    FVector Emissive = FVector::ZeroVector;  // Ke : Emissive (Vector)
+    FVector DiffuseColor = FVector(0.7f, 0.7f, 0.7f);      // Kd: Diffuse Color
+    FVector SpecularColor = FVector(0.5f, 0.5f, 0.5f);     // Ks: Specular Color
+    FVector AmbientColor = FVector(0.01f, 0.01f, 0.01f);   // Ka: Ambient Color
+    FVector EmissiveColor = FVector::ZeroVector;                   // Ke: Emissive Color
 
-    float SpecularScalar = 64.f; // Ns : Specular Power (Float)
-    float DensityScalar;  // Ni : Optical Density (Float)
-    float TransparencyScalar; // d or Tr  : Transparency of surface (Float)
-    float BumpMultiplier;     // -bm : Bump Mulitplier ex) normalMap.xy *= BumpMultiplier; 
-    uint32 IlluminanceModel; // illum: illumination Model between 0 and 10. (UINT)
+    float SpecularExponent = 250.f;                                // Ns: Specular Power
+    float IOR = 1.5f;                                              // Ni: Index of Refraction
+    float Transparency = 0.f;                                      // d or Tr: Transparency of surface
+    float BumpMultiplier = 1.f;                                    // -bm: Bump Multiplier
+    uint32 IlluminanceModel;                                       // illum: illumination Model between 0 and 10.
 
+    float Metallic = 0.0f;                                         // Pm: Metallic
+    float Roughness = 0.5f;                                        // Pr: Roughness
+    
     /* Texture */
-    FString DiffuseTextureName;  // map_Kd : Diffuse texture
-    FWString DiffuseTexturePath;
-
-    FString AmbientTextureName;  // map_Ka : Ambient texture
-    FWString AmbientTexturePath;
-
-    FString SpecularTextureName; // map_Ks : Specular texture
-    FWString SpecularTexturePath;
-
-    FString BumpTextureName;     // map_Bump : Bump texture
-    FWString BumpTexturePath;
-
-    FString AlphaTextureName;    // map_d : Alpha texture
-    FWString AlphaTexturePath;
+    TArray<FTextureInfo> TextureInfos;
 };
-
-// Cooked Data
-namespace OBJ
-{
-    struct FStaticMeshRenderData
-    {
-        FWString ObjectName;
-        FString DisplayName;
-
-        TArray<FStaticMeshVertex> Vertices;
-        TArray<UINT> Indices;
-
-        ID3D11Buffer* VertexBuffer;
-        ID3D11Buffer* IndexBuffer;
-
-        TArray<FObjMaterialInfo> Materials;
-        TArray<FMaterialSubset> MaterialSubsets;
-
-        FVector BoundingBoxMin;
-        FVector BoundingBoxMax;
-    };
-}
 
 struct FVertexTexture
 {
@@ -300,17 +293,18 @@ enum ELightType {
 
 struct FMaterialConstants
 {
+    uint32 TextureFlag;
     FVector DiffuseColor;
-    float TransparencyScalar;
 
     FVector SpecularColor;
-    float SpecularScalar;
+    float Shininess;
 
     FVector EmissiveColor;
-    float DensityScalar;
+    float Transparency;
 
-    FVector AmbientColor;
-    uint32 TextureFlag;
+    float Metallic;
+    float Roughness;
+    FVector2D MaterialPadding;
 };
 
 struct FPointLightGSBuffer

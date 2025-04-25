@@ -6,6 +6,7 @@
 #include "Define.h"
 #include "Components/Light/PointLightComponent.h"
 
+struct FStaticMeshRenderData;
 class FShadowManager;
 class FDXDShaderManager;
 class UWorld;
@@ -41,7 +42,7 @@ public:
   
     void UpdateLitUnlitConstant(int32 isLit) const;
 
-    void RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const;
+    void RenderPrimitive(FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const;
     
     void RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const;
 
@@ -51,19 +52,21 @@ public:
     void CreateShader();
     void ReleaseShader();
 
-    void ChangeViewMode(EViewModeIndex ViewModeIndex);
+    void ChangeViewMode(EViewModeIndex ViewMode);
     
 protected:
 
 
     TArray<UStaticMeshComponent*> StaticMeshComponents;
 
+    /*
     ID3D11VertexShader* VertexShader;
     ID3D11InputLayout* InputLayout;
     
     ID3D11PixelShader* PixelShader;
     ID3D11PixelShader* DebugDepthShader;
     ID3D11PixelShader* DebugWorldNormalShader;
+    */
 
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
