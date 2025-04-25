@@ -450,7 +450,7 @@ void ControlEditorPanel::CreateFlagButton()
 
     if (ImGui::BeginPopup("ViewModeControl"))
     {
-        for (int i = 0; i < IM_ARRAYSIZE(ViewModeNames); i++)
+        for (int i = 1; i < IM_ARRAYSIZE(ViewModeNames); i++)
         {
             bool bIsSelected = (static_cast<int>(ActiveViewport->GetViewMode()) == i);
             if (ImGui::Selectable(ViewModeNames[i], bIsSelected))
