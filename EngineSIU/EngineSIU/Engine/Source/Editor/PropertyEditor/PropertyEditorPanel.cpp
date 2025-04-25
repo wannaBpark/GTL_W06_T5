@@ -31,7 +31,7 @@
 #include "Renderer/ShadowManager.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
-#include "LuaScriptComponent.h"
+#include "LuaScripts/LuaScriptComponent.h"
 
 void PropertyEditorPanel::Render()
 {

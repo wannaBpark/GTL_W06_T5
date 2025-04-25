@@ -11,7 +11,7 @@ public:
     ULuaScriptComponent();
     ~ULuaScriptComponent();
 
-    FString ScriptPath;
+    FString ScriptPath = FString(L"LuaScripts\\template.lua");
 
     TMap<FString, sol::object> ExposedProperties;
 

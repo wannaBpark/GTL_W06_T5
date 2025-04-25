@@ -1,5 +1,6 @@
 #include "LuaScriptComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "LuaBindingHelpers.h"
 
 ULuaScriptComponent::ULuaScriptComponent()
 {
@@ -12,10 +13,11 @@ ULuaScriptComponent::~ULuaScriptComponent()
 
 void ULuaScriptComponent::BeginPlay()
 {
-    Super::BeginPlay();
-
     InitializeLuaState();
     CallLuaFunction("BeginPlay");
+    Super::BeginPlay();
+    // GetOwner()->SetActorTickInPIE(true); // Lua 스크립트 대상 - PIE의 tick 호출 대상
+
 }
 
 void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -34,14 +36,29 @@ void ULuaScriptComponent::InitializeLuaState()
         LuaState.script_file((*ScriptPath));
         bScriptValid = true;
     }
-    catch (const sol::error& e) {
-        UE_LOG(LogLevel::Error, TEXT("Lua Initialization error"));
+    catch (const sol::error& err) {
+        UE_LOG(LogLevel::Error, TEXT("Lua Initialization error: %s"), err.what());
     }
 }
 
 void ULuaScriptComponent::BindEngineAPI()
 {
+    LuaBindingHelpers::BindUE_LOG(LuaState);    // 1) UE_LOG 바인딩
+    LuaBindingHelpers::BindFVector(LuaState);   // 2) FVector 바인딩
+
+    /*bool bHasFVector = LuaState["FVector"].valid();
+    bool bHasUELOG =   LuaState["UE_LOG"].valid();
+    UE_LOG(LogLevel::Error, TEXT("LuaBindings – FVector valid=%s, UE_LOG valid=%s"),
+        bHasFVector ? TEXT("true") : TEXT("false"),
+        bHasUELOG ? TEXT("true") : TEXT("false"));*/
+
+    // 2) AActor 바인딩 및 Location Property
     auto ActorType = LuaState.new_usertype<AActor>("Actor",
+        sol::constructors<>(),
+        "Location", sol::property(
+            &AActor::GetActorLocation,
+            &AActor::SetActorLocation
+        ),
         "GetLocation", &AActor::GetActorLocation,
         "SetLocation", &AActor::SetActorLocation
     );
@@ -60,7 +77,7 @@ void ULuaScriptComponent::CallLuaFunction(const FString& FunctionName)
         auto result = func();
         if (!result.valid()) {
             sol::error err = result;
-            UE_LOG(LogLevel::Error, TEXT("Lua Function Error: %s"), err);
+            UE_LOG(LogLevel::Error, TEXT("Lua Function Error: %s"), err.what());
         }
     }
 }
@@ -71,5 +88,6 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
 
     if (bScriptValid && LuaState["Tick"].valid()) {
         LuaState["Tick"](DeltaTime);
+        CallLuaFunction("Tick");
     }
 }
