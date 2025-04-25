@@ -373,7 +373,6 @@ void SLevelEditor::Tick(float DeltaTime)
 
 void SLevelEditor::Release()
 {
-    SaveConfig();
     delete VSplitter;
     delete HSplitter;
 }
@@ -445,6 +444,21 @@ bool SLevelEditor::IsMultiViewport() const
 void SLevelEditor::LoadConfig()
 {
     auto Config = ReadIniFile(IniFilePath);
+
+    int32 WindowX = FMath::Max(GetValueFromConfig(Config, "WindowX", 0), 0);
+    int32 WindowY = FMath::Max(GetValueFromConfig(Config, "WindowY", 0), 0);
+    int32 WindowWidth = GetValueFromConfig(Config, "WindowWidth", EditorWidth);
+    int32 WindowHeight = GetValueFromConfig(Config, "WindowHeight", EditorHeight);
+    if (WindowWidth > 100 && WindowHeight > 100)
+    {
+        MoveWindow(GEngineLoop.AppWnd, WindowX, WindowY, WindowWidth, WindowHeight, true);
+    }
+    bool Zoomed = GetValueFromConfig(Config, "Zoomed", false);
+    if (Zoomed)
+    {
+        ShowWindow(GEngineLoop.AppWnd, SW_MAXIMIZE);
+    }
+    
     FEditorViewportClient::Pivot.X = GetValueFromConfig(Config, "OrthoPivotX", 0.0f);
     FEditorViewportClient::Pivot.Y = GetValueFromConfig(Config, "OrthoPivotY", 0.0f);
     FEditorViewportClient::Pivot.Z = GetValueFromConfig(Config, "OrthoPivotZ", 0.0f);
@@ -494,6 +508,15 @@ void SLevelEditor::SaveConfig()
         ViewportClients[i]->SaveConfig(config);
     }
     ActiveViewportClient->SaveConfig(config);
+
+    RECT WndRect = {};
+    GetWindowRect(GEngineLoop.AppWnd, &WndRect);
+    config["WindowX"] = std::to_string(WndRect.left);
+    config["WindowY"] = std::to_string(WndRect.top);
+    config["WindowWidth"] = std::to_string(WndRect.right - WndRect.left);
+    config["WindowHeight"] = std::to_string(WndRect.bottom - WndRect.top);
+    config["Zoomed"] = std::to_string(IsZoomed(GEngineLoop.AppWnd));
+    
     config["bMultiView"] = std::to_string(bMultiViewportMode);
     config["ActiveViewportIndex"] = std::to_string(ActiveViewportClient->ViewportIndex);
     config["ScreenWidth"] = std::to_string(EditorWidth);

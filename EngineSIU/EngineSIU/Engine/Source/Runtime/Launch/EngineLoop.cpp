@@ -247,6 +247,10 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, uint32 Msg, WPARAM wParam, L
     {
     case WM_DESTROY:
         PostQuitMessage(0);
+        if (auto LevelEditor = GEngineLoop.GetLevelEditor())
+        {
+            LevelEditor->SaveConfig();
+        }
         break;
     case WM_SIZE:
         if (wParam != SIZE_MINIMIZED)
