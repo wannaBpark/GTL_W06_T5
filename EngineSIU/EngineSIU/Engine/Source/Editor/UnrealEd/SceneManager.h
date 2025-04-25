@@ -51,7 +51,7 @@ private:
     static NS_SceneManagerData::FSceneData WorldToSceneData(const UWorld& InWorld);
 
     
-    static bool LoadWorldFromData(const NS_SceneManagerData::FSceneData& sceneData, UWorld* targetWorld);
+    static bool LoadWorldFromData(const NS_SceneManagerData::FSceneData& sceneData, const FString& SceneName, UWorld* targetWorld);
 
 private:
     // TODO: IFileManager::Get().CreateFileReader() & Writer() 만들면 여기에 추가
