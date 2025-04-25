@@ -1,6 +1,5 @@
 #include "Engine.h"
 
-#include "EditorEngine.h"
 #include "UnrealEd/SceneManager.h"
 #include "UObject/Casts.h"
 #include "World/World.h"
@@ -41,5 +40,6 @@ void UEngine::LoadLevel(const FString& FileName) const
 
 void UEngine::SaveLevel(const FString& FileName) const
 {
+    ActiveWorld->GetActiveLevel()->SetLevelName(FString(std::filesystem::path(GetData(FileName)).stem()));
     SceneManager::SaveSceneToJsonFile(*FileName, *ActiveWorld);
 }

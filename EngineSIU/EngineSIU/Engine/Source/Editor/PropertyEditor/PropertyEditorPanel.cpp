@@ -1,31 +1,31 @@
 #include "PropertyEditorPanel.h"
 
-#include <algorithm>
+#include <filesystem>
+#include <shellapi.h>
+
+#include "Math/JungleMath.h"
 
 #include "World/World.h"
 #include "Actors/Player.h"
-#include "Components/Light/LightComponent.h"
+
+#include "Engine/EditorEngine.h"
+#include "Engine/FLoaderOBJ.h"
+#include "Engine/AssetManager.h"
+
+#include "UnrealEd/ImGuiWidget.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "UObject/UObjectIterator.h"
+#include "Renderer/ShadowManager.h"
+
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Components/Light/AmbientLightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextComponent.h"
-#include "Engine/EditorEngine.h"
-#include "Engine/FLoaderOBJ.h"
-#include "UnrealEd/ImGuiWidget.h"
-#include "UObject/Casts.h"
-#include "UObject/ObjectFactory.h"
-#include "Engine/Engine.h"
 #include "Components/HeightFogComponent.h"
 #include "Components/ProjectileMovementComponent.h"
-#include "GameFramework/Actor.h"
-#include "Engine/AssetManager.h"
-#include "LevelEditor/SLevelEditor.h"
-#include "Math/JungleMath.h"
-#include "Renderer/ShadowManager.h"
-#include "UnrealEd/EditorViewportClient.h"
-#include "UObject/UObjectIterator.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -59,108 +59,10 @@ void PropertyEditorPanel::Render()
     {
         return;
     }
-
-    AEditorPlayer* Player = Engine->GetEditorPlayer();
+    
     AActor* PickedActor = Engine->GetSelectedActor();
 
-    if (PickedActor)
-    {
-        ImGui::SetItemDefaultFocus();
-        // TreeNode 배경색을 변경 (기본 상태)
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-        if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
-        {
-            Location = PickedActor->GetActorLocation();
-            Rotation = PickedActor->GetActorRotation();
-            Scale = PickedActor->GetActorScale();
-
-            FImGuiWidget::DrawVec3Control("Location", Location, 0, 85);
-            ImGui::Spacing();
-
-            FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
-            ImGui::Spacing();
-
-            FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
-            ImGui::Spacing();
-
-            PickedActor->SetActorLocation(Location);
-            PickedActor->SetActorRotation(Rotation);
-            PickedActor->SetActorScale(Scale);
-
-            std::string coordiButtonLabel;
-            if (Player->GetCoordMode() == ECoordMode::CDM_WORLD)
-            {
-                coordiButtonLabel = "World";
-            }
-            else if (Player->GetCoordMode() == ECoordMode::CDM_LOCAL)
-            {
-                coordiButtonLabel = "Local";
-            }
-
-            if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
-            {
-                Player->AddCoordiMode();
-            }
-
-            ImGui::TreePop(); // 트리 닫기
-        }
-
-        ImGui::PopStyleColor();
-    }
-
-    if (PickedActor)
-    {
-        if (ImGui::Button("Duplicate"))
-        {
-            AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
-            Engine->SelectActor(NewActor);
-        }
-    }
-
-    //// TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    //if (PickedActor)
-    //    if (ULightComponent* lightObj = PickedActor->GetComponentByClass<ULightComponent>())
-    //    {
-    //        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-
-    //        if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
-    //        {
-    //            /*  DrawColorProperty("Ambient Color",
-    //                  [&]() { return lightObj->GetAmbientColor(); },
-    //                  [&](FVector4 c) { lightObj->SetAmbientColor(c); });
-    //              */
-    //            DrawColorProperty("Base Color",
-    //                [&]() { return lightObj->GetDiffuseColor(); },
-    //                [&](FLinearColor c) { lightObj->SetDiffuseColor(c); });
-
-    //            float Intensity = lightObj->GetIntensity();
-    //            if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 100.0f, "%1.f"))
-    //                lightObj->SetIntensity(Intensity);
-
-    //             /*  
-    //            float falloff = lightObj->GetFalloff();
-    //            if (ImGui::SliderFloat("Falloff", &falloff, 0.1f, 10.0f, "%.2f")) {
-    //                lightObj->SetFalloff(falloff);
-    //            }
-
-    //            TODO : For SpotLight
-    //            */
-
-    //            float attenuation = lightObj->GetAttenuation();
-    //            if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 10000.f, "%.1f")) {
-    //                lightObj->SetAttenuation(attenuation);
-    //            }
-
-    //            float AttenuationRadius = lightObj->GetAttenuationRadius();
-    //            if (ImGui::SliderFloat("Attenuation Radius", &AttenuationRadius, 0.01f, 10000.f, "%.1f")) {
-    //                lightObj->SetAttenuationRadius(AttenuationRadius);
-    //            }
-
-    //            ImGui::TreePop();
-    //        }
-
-    //        ImGui::PopStyleColor();
-    //    }
+    RenderForActor(PickedActor);
 
     if (PickedActor)
     {
@@ -642,6 +544,134 @@ void PropertyEditorPanel::HSVToRGB(const float H, const float S, const float V, 
     else { R = C;  G = 0.0f; B = X; }
 
     R += M;  G += M;  B += M;
+}
+
+void PropertyEditorPanel::RenderForActor(AActor* InActor)
+{
+    if (!InActor)
+    {
+        return;
+    }
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    if (!Engine)
+    {
+        return;
+    }
+    
+    AEditorPlayer* Player = Engine->GetEditorPlayer();
+    
+    ImGui::SetItemDefaultFocus();
+    // TreeNode 배경색을 변경 (기본 상태)
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        Location = InActor->GetActorLocation();
+        Rotation = InActor->GetActorRotation();
+        Scale = InActor->GetActorScale();
+
+        FImGuiWidget::DrawVec3Control("Location", Location, 0, 85);
+        ImGui::Spacing();
+
+        FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
+        ImGui::Spacing();
+
+        FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
+        ImGui::Spacing();
+
+        InActor->SetActorLocation(Location);
+        InActor->SetActorRotation(Rotation);
+        InActor->SetActorScale(Scale);
+
+        std::string coordiButtonLabel;
+        if (Player->GetCoordMode() == ECoordMode::CDM_WORLD)
+        {
+            coordiButtonLabel = "World";
+        }
+        else if (Player->GetCoordMode() == ECoordMode::CDM_LOCAL)
+        {
+            coordiButtonLabel = "Local";
+        }
+
+        if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
+        {
+            Player->AddCoordiMode();
+        }
+
+        ImGui::TreePop(); // 트리 닫기
+    }
+
+    ImGui::PopStyleColor();
+    
+
+    if (ImGui::Button("Duplicate"))
+    {
+        AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
+        Engine->SelectActor(NewActor);
+    }
+
+    FString SceneName = Engine->ActiveWorld->GetActiveLevel()->GetLevelName();
+    FString Directory = FString("Scripts");
+    FString LuaScriptFilePath = Directory + "/" + SceneName + "/" + InActor->GetClass()->GetName() + ".lua";
+    std::filesystem::path filePath = std::filesystem::path(GetData(LuaScriptFilePath));
+    FString LuaScriptFileName = FString(filePath.filename());
+    
+    
+    if (std::filesystem::exists(GetData(LuaScriptFilePath)))
+    {
+        if (ImGui::Button("Edit Script"))
+        {
+            std::filesystem::path AbsPath = std::filesystem::absolute(filePath);
+            LPCTSTR LuaFilePath = AbsPath.c_str();
+
+            // ShellExecute() -> Windows 확장자 연결(Association)에 따라 파일 열기
+            HINSTANCE HInstance = ShellExecute(
+                nullptr,            // 부모 윈도우 핸들 (NULL 사용 가능)
+                L"open",      // 동작(Verb). "open"이면 등록된 기본 프로그램으로 열기
+                LuaFilePath,     // 열고자 하는 파일 경로
+                nullptr,            // 명령줄 인자 (필요 없다면 NULL)
+                nullptr,            // 작업 디렉터리 (필요 없다면 NULL)
+                SW_SHOWNORMAL    // 열리는 창의 상태
+            );
+
+            // ShellExecute는 성공 시 32보다 큰 값을 반환합니다.
+            // 실패 시 32 이하의 값이 반환되므로 간단히 체크 가능
+            if ((INT_PTR)HInstance <= 32) {
+                MessageBox(nullptr, L"파일 열기에 실패했습니다.", L"Error", MB_OK | MB_ICONERROR);
+            }
+        }
+    }
+    else
+    {
+        if (ImGui::Button("Create Script"))
+        {
+            try
+            {
+                std::filesystem::path Dir = filePath.parent_path();
+                if (!std::filesystem::exists(Dir))
+                {
+                    std::filesystem::create_directories(Dir);
+                }
+
+                std::ofstream file(filePath);
+                if (file.is_open())
+                {
+                    // 생성 완료
+                    file.close();
+                }
+                else
+                {
+                    // TODO: Error Check
+                    MessageBoxA(nullptr, "Failed to Create Script File for writing: ", "Error", MB_OK | MB_ICONERROR);
+                }
+            }
+            catch (const std::filesystem::filesystem_error& e) 
+            {
+                // TODO: Error Check
+                MessageBoxA(nullptr, "Failed to Create Script File for writing: ", "Error", MB_OK | MB_ICONERROR);
+            }
+        }
+    }
+    ImGui::InputText("Script Name", GetData(LuaScriptFileName), LuaScriptFileName.Len() + 1, ImGuiInputTextFlags_ReadOnly);
 }
 
 void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp)

@@ -131,7 +131,7 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
         return ;
     }
 
-    LoadWorldFromData(SceneData, &OutWorld);
+    LoadWorldFromData(SceneData, FString(FilePath.stem()), &OutWorld);
 }
 
 bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, const UWorld& InWorld)
@@ -227,14 +227,16 @@ FSceneData SceneManager::WorldToSceneData(const UWorld& InWorld)
     return sceneData;
 }
 
-bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* targetWorld)
+bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const FString& SceneName, UWorld* targetWorld)
 {
-        if (targetWorld == nullptr)
+    if (targetWorld == nullptr)
     {
         UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Target World is null!"));
         return false;
     }
 
+    targetWorld->GetActiveLevel()->SetLevelName(SceneName);
+    
     // 임시 맵: 저장된 ID와 새로 생성된 객체 포인터를 매핑
     TMap<FString, AActor*> SpawnedActorsMap;
     //TMap<FString, UActorComponent*> SpawnedComponentsMap;
