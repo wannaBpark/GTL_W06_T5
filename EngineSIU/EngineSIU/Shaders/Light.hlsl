@@ -520,10 +520,15 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     uint csmIndex = GetCascadeIndex(depthCam); // 시각적 디버깅용
     
     // --- 그림자 계산
-    float Shadow = CalculateDirectionalShadowFactor(WorldPosition, WorldNormal, LightInfo, DirectionShadowMapArray, ShadowSamplerCmp);
-    if(!IsShadow || Shadow <= 0.0)
+    float Shadow = 1.0;
+    if (IsShadow)
     {
-        Shadow = float3(1.0f, 1.0f, 1.0f);
+        Shadow = CalculateDirectionalShadowFactor(WorldPosition, WorldNormal, LightInfo, DirectionShadowMapArray, ShadowSamplerCmp);
+        // 그림자 계수가 0 이하면 더 이상 계산 불필요
+        if (Shadow <= 0.0)
+        {
+            return float4(0.0, 0.0, 0.0, 0.0);
+        }
     }
 
     float3 Lit = DiffuseFactor * DiffuseColor;

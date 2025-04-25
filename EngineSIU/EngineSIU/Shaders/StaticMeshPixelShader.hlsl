@@ -78,6 +78,22 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         EmissiveColor = MaterialTextures[TEXTURE_SLOT_EMISSIVE].Sample(MaterialSamplers[TEXTURE_SLOT_EMISSIVE], Input.UV).rgb;
     }
 
+#ifdef LIGHTING_MODEL_PBR
+    // Metallic
+    float Metallic = Material.Metallic;
+    if (Material.TextureFlag & TEXTURE_FLAG_METALLIC)
+    {
+        Metallic = MaterialTextures[TEXTURE_SLOT_METALLIC].Sample(MaterialSamplers[TEXTURE_SLOT_METALLIC], Input.UV).r;
+    }
+
+    // Roughness
+    float Roughness = Material.Roughness;
+    if (Material.TextureFlag & TEXTURE_FLAG_ROUGHNESS)
+    {
+        Roughness = MaterialTextures[TEXTURE_SLOT_ROUGHNESS].Sample(MaterialSamplers[TEXTURE_SLOT_ROUGHNESS], Input.UV).r;
+    }
+#endif
+
     // Begin for Tile based light culled result
     // 현재 픽셀이 속한 타일 계산 (input.position = 화면 픽셀좌표계)
     uint2 PixelCoord = uint2(Input.Position.xy);
