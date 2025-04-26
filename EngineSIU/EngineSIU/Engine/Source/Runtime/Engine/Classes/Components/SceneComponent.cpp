@@ -247,7 +247,7 @@ FVector USceneComponent::GetWorldLocation() const
 
 FRotator USceneComponent::GetWorldRotation() const
 {
-    FMatrix WorldMatrix = GetWorldMatrix();
+    FMatrix WorldMatrix = GetWorldMatrix().GetMatrixWithoutScale();
     FQuat Quat = WorldMatrix.ToQuat();
     return FRotator(Quat);
 }
