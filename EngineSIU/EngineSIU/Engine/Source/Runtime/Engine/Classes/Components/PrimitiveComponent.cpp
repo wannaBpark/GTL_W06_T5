@@ -1,7 +1,8 @@
 #include "PrimitiveComponent.h"
 #include "UObject/Casts.h"
 #include "UObject/UObjectIterator.h"
-
+#include "Shapes/ShapeComponent.h"
+#include "Classes/GameFramework/Actor.h"
 UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
@@ -114,9 +115,11 @@ void UPrimitiveComponent::UpdateOverlaps()
 {
     OverlapInfos.Empty();
 
+    AActor* Owner = GetOwner();
     for (UPrimitiveComponent* Other : TObjectRange<UPrimitiveComponent>())
     {
-        if (Other == this) continue;
+        if (Other == this || !Cast<UShapeComponent>(Other)) continue;
+        if (Owner == Other->GetOwner()) continue;
 
         if (CheckOverlap(Other))
         {

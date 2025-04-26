@@ -5,6 +5,11 @@
 #include "Components/Shapes/BoxComponent.h"
 #include "Components/Shapes/SphereComponent.h"
 
+UCapsuleComponent::UCapsuleComponent()
+{
+    CapsuleHalfHeight = 1;
+    CapsuleRadius = 0.5;
+}
 UObject* UCapsuleComponent::Duplicate(UObject* InOuter)
 {
     UCapsuleComponent* NewComponent = Cast<UCapsuleComponent>(Super::Duplicate(InOuter));

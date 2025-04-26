@@ -5,6 +5,11 @@
 #include "Components/Shapes/SphereComponent.h"
 #include "Components/Shapes//CapsuleComponent.h"
 
+UBoxComponent::UBoxComponent()
+{
+    BoxExtent = FVector(0.5,0.5,0.5);
+}
+
 UObject* UBoxComponent::Duplicate(UObject* InOuter)
 {
     UBoxComponent* NewComponent = Cast<UBoxComponent>(Super::Duplicate(InOuter));
