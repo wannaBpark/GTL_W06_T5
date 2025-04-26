@@ -23,7 +23,7 @@ public:
 public:
     virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
 
-    FBox GetWorldAABB() const;
+    FBox GetWorldBox() const;
   
 private:
     FVector BoxExtent = FVector::ZeroVector;

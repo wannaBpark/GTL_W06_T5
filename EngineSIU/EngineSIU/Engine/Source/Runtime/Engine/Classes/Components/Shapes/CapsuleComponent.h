@@ -48,7 +48,8 @@ public:
         InRadius = FMath::Clamp(InRadius, 0.f, CapsuleHalfHeight);
         CapsuleRadius = InRadius;
     }
-    
+
+
 private:
     float CapsuleHalfHeight = 1;
     float CapsuleRadius = 1;

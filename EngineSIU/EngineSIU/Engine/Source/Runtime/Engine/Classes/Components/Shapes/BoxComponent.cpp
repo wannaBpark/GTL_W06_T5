@@ -41,23 +41,27 @@ bool UBoxComponent::CheckOverlap(const UPrimitiveComponent* Other) const
 {
     if (const UBoxComponent* Box = Cast<UBoxComponent>(Other))
     {
-        return FCollisionMath::IntersectBoxBox(this->GetWorldAABB(), Box->GetWorldAABB());
+        return FCollisionMath::IntersectBoxBox(this->GetWorldBox(), Box->GetWorldBox());
     }
     else if (const USphereComponent* Sphere = Cast<USphereComponent>(Other))
     {
-        return FCollisionMath::IntersectBoxSphere(this->GetWorldAABB(), Sphere->GetWorldLocation(), Sphere->GetRadius());
+        return FCollisionMath::IntersectBoxSphere(this->GetWorldBox(), Sphere->GetWorldLocation(), Sphere->GetRadius());
     }
     else if (const UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Other))
     {
-        return FCollisionMath::IntersectBoxCapsule(this->GetWorldAABB(), Capsule->ToFCapsule());
+        return FCollisionMath::IntersectBoxCapsule(this->GetWorldBox(), Capsule->ToFCapsule());
     }
     return false;
 }
 
-FBox UBoxComponent::GetWorldAABB() const
+FBox UBoxComponent::GetWorldBox() const
 {
-    FVector Center = GetWorldLocation();
-    return FBox{ Center - BoxExtent, Center + BoxExtent };
+    FBox Box;
+    Box.Center = GetWorldLocation();
+    Box.Extent = BoxExtent;
+    Box.Rotation = GetWorldRotation().ToQuaternion();
+    return Box;
 }
+
 
 

@@ -144,7 +144,7 @@ FVector USceneComponent::GetRightVector()
 	return Right;
 }
 
-FVector USceneComponent::GetUpVector()
+FVector USceneComponent::GetUpVector() const
 {
 	FVector Up = FVector(0.f, 0.f, 1.0f);
 	Up = JungleMath::FVectorRotate(Up, RelativeRotation);

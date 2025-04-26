@@ -23,7 +23,7 @@ public:
 
     virtual FVector GetForwardVector();
     virtual FVector GetRightVector();
-    virtual FVector GetUpVector();
+    virtual FVector GetUpVector() const;
     
     void AddLocation(FVector InAddValue);
     void AddRotation(FVector InAddValue);

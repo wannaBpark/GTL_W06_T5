@@ -35,17 +35,18 @@ bool USphereComponent::CheckOverlap(const UPrimitiveComponent* Other) const
     {
         // Sphere vs Box
         return FCollisionMath::IntersectBoxSphere(
-            Box->GetWorldAABB(), this->GetWorldLocation(), SphereRadius
+            Box->GetWorldBox(), this->GetWorldLocation(), SphereRadius
         );
     }
     else if (const UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Other))
     {
         // Sphere vs Capsule
         return FCollisionMath::IntersectCapsuleSphere(
-            FCapsule(Capsule->GetStartPoint(), Capsule->GetEndPoint(), Capsule->GetCapsuleRadius()),
+            Capsule->ToFCapsule(),
             this->GetWorldLocation(),
             SphereRadius
         );
+
     }
 
     return false;

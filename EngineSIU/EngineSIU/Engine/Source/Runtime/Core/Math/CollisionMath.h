@@ -20,5 +20,7 @@ private:
     static void ClosestPointsBetweenSegments(const FVector& P1, const FVector& Q1,
         const FVector& P2, const FVector& Q2,
         FVector& OutP, FVector& OutQ);
+    static bool TestAxis(const FVector& Axis, const FBox& A, const FBox& B, const FVector& D);
+    static FVector ClosestPointOnOBB(const FBox& Box, const FVector& Point);
 };
 

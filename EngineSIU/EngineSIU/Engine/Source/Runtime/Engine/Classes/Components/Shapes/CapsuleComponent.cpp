@@ -56,12 +56,19 @@ bool UCapsuleComponent::CheckOverlap(const UPrimitiveComponent* Other) const
     }
     else if (const UBoxComponent* Box = Cast<UBoxComponent>(Other))
     {
-        return FCollisionMath::IntersectBoxCapsule(Box->GetWorldAABB(), this->ToFCapsule());
+        return FCollisionMath::IntersectBoxCapsule(Box->GetWorldBox(), this->ToFCapsule());
     }
     return false;
 }
 
+
 FCapsule UCapsuleComponent::ToFCapsule() const
 {
-    return FCapsule(GetStartPoint(), GetEndPoint(), CapsuleRadius);
+    FVector Center = GetWorldLocation();
+    FVector Up = GetUpVector(); 
+    float HalfHeight = CapsuleHalfHeight;
+    float Radius = CapsuleRadius;
+    FQuat Rotation = GetWorldRotation().ToQuaternion();
+
+    return FCapsule(Center, Up, HalfHeight, Radius, Rotation);
 }
