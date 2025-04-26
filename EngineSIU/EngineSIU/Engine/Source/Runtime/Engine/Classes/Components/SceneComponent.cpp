@@ -158,16 +158,15 @@ void USceneComponent::AddLocation(const FVector& InAddValue)
 
 }
 
-void USceneComponent::AddRotation(const FVector& InAddValue)
+void USceneComponent::AddRotation(const FRotator& InAddValue)
 {
 	RelativeRotation = RelativeRotation + InAddValue;
-
+    RelativeRotation.Normalize();
 }
 
 void USceneComponent::AddScale(const FVector& InAddValue)
 {
 	RelativeScale3D = RelativeScale3D + InAddValue;
-
 }
 
 void USceneComponent::AttachToComponent(USceneComponent* InParent)
@@ -224,6 +223,7 @@ void USceneComponent::SetWorldRotation(const FQuat& InQuat)
     }
     FQuat NewRelativeRotation = FQuat(NewRelativeMatrix);
     RelativeRotation = FRotator(NewRelativeRotation);
+    RelativeRotation.Normalize();   
 }
 
 void USceneComponent::SetWorldScale3D(const FVector& InScale)
@@ -336,6 +336,7 @@ void USceneComponent::SetRelativeRotation(const FQuat& InQuat)
     FQuat NormalizedQuat = InQuat.Normalize();
 
     RelativeRotation = NormalizedQuat.Rotator();
+    RelativeRotation.Normalize();
 }
 
 void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps)

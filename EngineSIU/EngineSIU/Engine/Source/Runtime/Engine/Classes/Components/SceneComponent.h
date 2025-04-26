@@ -29,7 +29,7 @@ public:
     virtual FVector GetUpVector();
     
     void AddLocation(const FVector& InAddValue);
-    void AddRotation(const FVector& InAddValue);
+    void AddRotation(const FRotator& InAddValue);
     void AddScale(const FVector& InAddValue);
 
     USceneComponent* GetAttachParent() const { return AttachParent; }

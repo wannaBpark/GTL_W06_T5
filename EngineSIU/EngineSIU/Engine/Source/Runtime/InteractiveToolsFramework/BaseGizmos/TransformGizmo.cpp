@@ -120,7 +120,7 @@ void ATransformGizmo::Tick(float DeltaTime)
         }
         else if (Engine->GetEditorPlayer()->GetCoordMode() == ECoordMode::CDM_WORLD)
         {
-            SetActorRotation(FVector(0.0f, 0.0f, 0.0f));
+            SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
         }
     }
 }

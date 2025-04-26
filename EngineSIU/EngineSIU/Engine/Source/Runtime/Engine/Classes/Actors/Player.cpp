@@ -329,10 +329,6 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
     FVector CameraUp = ViewTransform->GetUpVector();
 
     FQuat CurrentRotation = Component->GetWorldRotation().ToQuaternion();
-    if (CoordMode == CDM_LOCAL)
-    {
-        CurrentRotation = Component->GetRelativeRotation().ToQuaternion();
-    }
 
     FQuat RotationDelta = FQuat();
 
@@ -374,14 +370,9 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
         
         RotationDelta = FQuat(Axis, RotationAmount);
     }
-    if (CoordMode == CDM_LOCAL)
-    {
-        Component->SetRelativeRotation(RotationDelta * CurrentRotation); // 곱 순서는 delta * current 가 맞음.
-    }
-    else if (CoordMode == CDM_WORLD)
-    {
-        Component->SetWorldRotation(RotationDelta * CurrentRotation); // 곱 순서는 delta * current 가 맞음.
-    }
+
+    // 쿼터니언의 곱 순서는 delta * current 가 맞음.
+    Component->SetWorldRotation(RotationDelta * CurrentRotation); 
 }
 
 void AEditorPlayer::ControlScale(USceneComponent* Component, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY)

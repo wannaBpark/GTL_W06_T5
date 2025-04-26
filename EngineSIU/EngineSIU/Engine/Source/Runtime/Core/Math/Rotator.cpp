@@ -28,7 +28,7 @@ FRotator& FRotator::operator+=(const FRotator& Other)
 
 FRotator FRotator::operator-(const FRotator& Other) const
 {
-    return { Pitch - Other.Pitch, Yaw - Other.Yaw, Roll - Other.Roll };
+    return FRotator(Pitch - Other.Pitch, Yaw - Other.Yaw, Roll - Other.Roll);
 }
 
 FRotator& FRotator::operator-=(const FRotator& Other)
@@ -39,7 +39,7 @@ FRotator& FRotator::operator-=(const FRotator& Other)
 
 FRotator FRotator::operator*(float Scalar) const
 {
-    return { Pitch * Scalar, Yaw * Scalar, Roll * Scalar };
+    return FRotator(Pitch * Scalar, Yaw * Scalar, Roll * Scalar);
 }
 
 FRotator& FRotator::operator*=(float Scalar)
@@ -50,12 +50,12 @@ FRotator& FRotator::operator*=(float Scalar)
 
 FRotator FRotator::operator/(const FRotator& Other) const
 {
-    return { Pitch / Other.Pitch, Yaw / Other.Yaw, Roll / Other.Roll };
+    return FRotator(Pitch / Other.Pitch, Yaw / Other.Yaw, Roll / Other.Roll);
 }
 
 FRotator FRotator::operator/(float Scalar) const
 {
-    return { Pitch / Scalar, Yaw / Scalar, Roll / Scalar };
+    return FRotator(Pitch / Scalar, Yaw / Scalar, Roll / Scalar);
 }
 
 FRotator& FRotator::operator/=(float Scalar)
@@ -66,7 +66,7 @@ FRotator& FRotator::operator/=(float Scalar)
 
 FRotator FRotator::operator-() const
 {
-    return { -Pitch, -Yaw, -Roll };
+    return FRotator(-Pitch, -Yaw, -Roll);
 }
 
 bool FRotator::operator==(const FRotator& Other) const
@@ -169,7 +169,7 @@ float FRotator::ClampAxis(float Angle)
 
 FRotator FRotator::GetNormalized() const
 {
-    return { FMath::UnwindDegrees(Pitch), FMath::UnwindDegrees(Yaw), FMath::UnwindDegrees(Roll) };
+    return FRotator(FMath::UnwindDegrees(Pitch), FMath::UnwindDegrees(Yaw), FMath::UnwindDegrees(Roll));
 }
 
 void FRotator::Normalize()
