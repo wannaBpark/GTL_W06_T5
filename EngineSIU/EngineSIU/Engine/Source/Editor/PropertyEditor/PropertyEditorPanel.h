@@ -44,7 +44,6 @@ public:
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
-
 private:
     static void RGBToHSV(float R, float G, float B, float& H, float& S, float& V);
     static void HSVToRGB(float H, float S, float V, float& R, float& G, float& B);

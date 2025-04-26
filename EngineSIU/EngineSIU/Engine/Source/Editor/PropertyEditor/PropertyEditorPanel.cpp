@@ -1,6 +1,10 @@
 #include "PropertyEditorPanel.h"
 
 #include <algorithm>
+#include <string>
+//#include <windows.h>
+//#include <tchar.h>
+
 
 #include "World/World.h"
 #include "Actors/Player.h"
@@ -24,6 +28,8 @@
 #include "Renderer/ShadowManager.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
+#include "LuaScripts/LuaScriptComponent.h"
+#include "LuaScripts/LuaScriptFileUtils.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -73,8 +79,44 @@ void PropertyEditorPanel::Render()
 
     if (TargetComponent != nullptr)
     {
+        if (ImGui::Button("Duplicate"))
+        {
+            AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
+            Engine->SelectActor(NewActor);
+        }
+
+        FString BasePath = FString(L"LuaScripts\\");
+        FString LuaDisplayPath;
+        if (PickedActor->GetComponentByClass<ULuaScriptComponent>())
+        {
+            LuaDisplayPath = PickedActor->GetComponentByClass<ULuaScriptComponent>()->GetDisplayName();
+            if (ImGui::Button("Edit Script"))
+            {
+                // 예: PickedActor에서 스크립트 경로를 받아옴
+                if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
+                {
+                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();
+                    LuaScriptFileUtils::OpenLuaScriptFile(ws.c_str());
+                }
+            }
+        }
+        else
+        {
+            // Add Lua Script
+            if (ImGui::Button("Create Script"))
+            {
+                // Lua Script Component 생성 및 추가
+                ULuaScriptComponent* NewScript = PickedActor->AddComponent<ULuaScriptComponent>();
+                LuaDisplayPath = NewScript->GetDisplayName();
+            }
+        }
+        ImGui::InputText("Script File", GetData(LuaDisplayPath), IM_ARRAYSIZE(*LuaDisplayPath),
+            ImGuiInputTextFlags_ReadOnly);
+
+        
         AEditorPlayer* Player = Engine->GetEditorPlayer();
         RenderForSceneComponent(TargetComponent, Player);
+
     }
     if (SelectedActor)
     {
