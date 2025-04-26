@@ -55,12 +55,15 @@ public:
     void InputKey(EKeys::Type Key, EInputEvent EventType);
 
     /** 축 이벤트 수신 */
-    void InputAxis(EKeys::Type Key, float Delta, float DeltaTime);
+    void InputAxis(EKeys::Type Key);
 
     // SetupInputComponent 시, 매핑 데이터를 InputComponent 에 복사
     void AddActionMappingsTo(TArray<FInputActionKeyMapping>& Out) const;
     void AddAxisMappingsTo(TArray<FInputAxisKeyMapping>& Out) const;
-
+    
+    // 현재 눌려 있는 키 집합
+    UPROPERTY
+    (TSet<EKeys::Type>, PressedKeys, = {})
 protected:
     /** 매 프레임 입력 상태 초기화 */
     void FlushPressedKeys();
@@ -73,9 +76,7 @@ private:
     UPROPERTY
     (TArray<FInputAxisKeyMapping>, AxisMappings, = {})
 
-    // 현재 눌려 있는 키 집합
-    UPROPERTY
-    (TSet<EKeys::Type>, PressedKeys, = {})
+
     
 
 };

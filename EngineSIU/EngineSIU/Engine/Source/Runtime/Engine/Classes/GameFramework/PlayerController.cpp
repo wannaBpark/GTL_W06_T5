@@ -17,6 +17,16 @@ void APlayerController::BeginPlay()
 void APlayerController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    // 입력 처리
+    if (PlayerInput)
+    {
+        for (const auto& Key : PlayerInput->PressedKeys)
+        {
+            // 키에 대응하는 InputAxis 호출
+            InputAxis(Key);
+        }
+    }
 }
 
 void APlayerController::SetupInputComponent()
@@ -80,9 +90,9 @@ void APlayerController::InputKey(EKeys::Type Key, EInputEvent EventType)
     PlayerInput->InputKey(Key, EventType);
 }
 
-void APlayerController::InputAxis(EKeys::Type Key, float Delta, float DeltaTime)
+void APlayerController::InputAxis(EKeys::Type Key)
 {
-    PlayerInput->InputAxis(Key, Delta, DeltaTime);
+    PlayerInput->InputAxis(Key);
 }
 
 void APlayerController::SetupInputBindings()

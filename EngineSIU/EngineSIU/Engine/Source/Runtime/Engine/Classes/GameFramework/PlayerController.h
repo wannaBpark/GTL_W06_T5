@@ -26,7 +26,7 @@ public:
     const TArray<UInputComponent*>& GetInputComponentStack() const { return InputComponentStack; }
 
     void InputKey(EKeys::Type Key, EInputEvent EventType);
-    void InputAxis(EKeys::Type Key, float Delta, float DeltaTime);
+    void InputAxis(EKeys::Type Key);
 
     UPROPERTY
     (UCameraComponent*, PlayerCameraManager, = nullptr)
