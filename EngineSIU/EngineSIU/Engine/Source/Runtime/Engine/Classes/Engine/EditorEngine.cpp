@@ -135,8 +135,9 @@ void UEditorEngine::EndPIE()
         PIEWorld = nullptr;
 
         // TODO: PIE에서 EditorWorld로 돌아올 때, 기존 선택된 Picking이 유지되어야 함. 현재는 에러를 막기위해 임시조치.
-        SelectActor(nullptr);
-        SelectComponent(nullptr);
+        
+        DeselectActor(GetSelectedActor());
+        DeselectComponent(GetSelectedComponent());
     }
     // 다시 EditorWorld로 돌아옴.
     ActiveWorld = EditorWorld;
