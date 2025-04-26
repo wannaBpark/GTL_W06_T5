@@ -83,4 +83,6 @@ private:
     UStaticMeshComponent* SelectedStaticMeshComp = nullptr;
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
+
+    const FString TemplateFilePath = FString("Contents/Template/LuaTemplate.lua");
 };

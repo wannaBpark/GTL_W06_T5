@@ -295,9 +295,15 @@ void PropertyEditorPanel::RenderForActor(AActor* InActor, USceneComponent* Targe
                     std::filesystem::create_directories(Dir);
                 }
 
+                std::ifstream luaTemplateFile(TemplateFilePath.ToWideString());
+
                 std::ofstream file(filePath);
                 if (file.is_open())
                 {
+                    if (luaTemplateFile.is_open())
+                    {
+                        file << luaTemplateFile.rdbuf();
+                    }
                     // 생성 완료
                     file.close();
                 }
