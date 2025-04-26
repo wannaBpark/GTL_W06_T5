@@ -18,12 +18,17 @@ public:
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
 
-    void SetRadius(float InRadius) { SphereRadius = InRadius; }
-    float GetRadius() const { return SphereRadius; }
-
+<<<<<<< HEAD
 public:
     virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
     float GetRadius() const { return SphereRadius; }
+private:
+    float SphereRadius;
+=======
+    void SetRadius(float InRadius) { SphereRadius = InRadius; }
+    float GetRadius() const { return SphereRadius; }
+>>>>>>> origin/feature/Add-Collision-Gizmo
+
 private:
     float SphereRadius = 0;
 };

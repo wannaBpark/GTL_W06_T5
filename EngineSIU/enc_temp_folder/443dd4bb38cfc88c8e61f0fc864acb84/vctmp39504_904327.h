@@ -16,15 +16,18 @@ public:
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
 
-    FVector GetBoxExtent() const { return BoxExtent; }
-    void SetBoxExtent(FVector InExtent) { BoxExtent = InExtent; }
-    
+<<<<<<< HEAD
    
 public:
     virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
 
     FBox GetWorldAABB() const;
   
+=======
+    FVector GetBoxExtent() const { return BoxExtent; }
+    void SetBoxExtent(FVector InExtent) { BoxExtent = InExtent; }
+    
+>>>>>>> origin/feature/Add-Collision-Gizmo
 private:
     FVector BoxExtent = FVector::ZeroVector;
 };

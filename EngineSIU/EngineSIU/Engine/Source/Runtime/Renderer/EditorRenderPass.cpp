@@ -6,13 +6,14 @@
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EditorEngine.h"
 #include <D3D11RHI/DXDShaderManager.h>
 
-#include <d3dcompiler.h>
-
 #include "UnrealClient.h"
 #include "Engine/Source/Runtime/Engine/World/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "Components/Shapes/BoxComponent.h"
+#include "Components/Shapes/CapsuleComponent.h"
+#include "Components/Shapes/SphereComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Classes/Actors/Player.h"
 #include "Engine/Classes/Components/Light/LightComponent.h"
@@ -20,10 +21,8 @@
 #include "Engine/Classes/Components/Light/SpotLightComponent.h"
 #include "Engine/Classes/Components/Light/PointLightComponent.h"
 #include "Engine/Classes/Components/HeightFogComponent.h"
-#include "Engine/Classes/Components/Light/AmbientLightComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "PropertyEditor/ShowFlags.h"
-
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -34,11 +33,6 @@ void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
     CreateShaders();
     CreateBuffers();
     CreateConstantBuffers();
-}
-
-void FEditorRenderPass::Release()
-{
-    ReleaseShaders();
 }
 
 void FEditorRenderPass::CreateShaders()
@@ -55,69 +49,52 @@ void FEditorRenderPass::CreateShaders()
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    auto AddShaderSet = [&](const std::wstring& keyPrefix, const std::string& vsEntry, const std::string& psEntry,
-        D3D11_INPUT_ELEMENT_DESC* layout, uint32_t layoutSize,
-        D3D11_PRIMITIVE_TOPOLOGY topology, FShaderResource& target)
+    auto AddShaderSet = [this](const std::wstring& keyPrefix, const std::string& vsEntry, const std::string& psEntry, D3D11_INPUT_ELEMENT_DESC* layout, uint32_t layoutSize)
         {
             ShaderManager->AddVertexShaderAndInputLayout(keyPrefix + L"VS", L"Shaders/EditorShader.hlsl", vsEntry, layout, layoutSize);
             ShaderManager->AddPixelShader(keyPrefix + L"PS", L"Shaders/EditorShader.hlsl", psEntry);
-            target.Vertex = ShaderManager->GetVertexShaderByKey(keyPrefix + L"VS");
-            target.Pixel = ShaderManager->GetPixelShaderByKey(keyPrefix + L"PS");
-            target.Layout = ShaderManager->GetInputLayoutByKey(keyPrefix + L"VS");
-            target.Topology = topology;
         };
 
-    // Sphere
-    AddShaderSet(L"Sphere", "sphereVS", "spherePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly),
-        D3D11_PRIMITIVE_TOPOLOGY_LINELIST, Resources.Shaders.Sphere);
+    auto AddShaderSetWithoutLayout = [this](const std::wstring& keyPrefix, const std::string& vsEntry, const std::string& psEntry)
+    {
+        ShaderManager->AddVertexShader(keyPrefix + L"VS", L"Shaders/EditorShader.hlsl", vsEntry);
+        ShaderManager->AddPixelShader(keyPrefix + L"PS", L"Shaders/EditorShader.hlsl", psEntry);
+    };
+    
 
     // Cone
-    AddShaderSet(L"Cone", "coneVS", "conePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly),
-        D3D11_PRIMITIVE_TOPOLOGY_LINELIST, Resources.Shaders.Cone);
+    AddShaderSetWithoutLayout(L"Cone", "ConeVS", "ConePS");
 
-    // Icons (layout 없음)
-    AddShaderSet(L"Icon", "iconVS", "iconPS", layoutPosOnly, ARRAYSIZE(layoutPosOnly),
-        D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, Resources.Shaders.Icon);
-    Resources.Shaders.Icon.Layout = nullptr;
-
+    // Icons
+    AddShaderSetWithoutLayout(L"Icon", "IconVS", "IconPS");
+    
     // Arrow (기즈모 layout 재사용)
-    ShaderManager->AddVertexShaderAndInputLayout(L"ArrowVS", L"Shaders/EditorShader.hlsl", "arrowVS", layoutGizmo, ARRAYSIZE(layoutGizmo));
-    ShaderManager->AddPixelShader(L"ArrowPS", L"Shaders/EditorShader.hlsl", "arrowPS");
-    Resources.Shaders.Arrow.Vertex = ShaderManager->GetVertexShaderByKey(L"ArrowVS");
-    Resources.Shaders.Arrow.Pixel = ShaderManager->GetPixelShaderByKey(L"ArrowPS");
-    Resources.Shaders.Arrow.Layout = ShaderManager->GetInputLayoutByKey(L"ArrowVS");
-    Resources.Shaders.Arrow.Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-}
-
-void FEditorRenderPass::PrepareShader(FShaderResource ShaderResource) const
-{
-    Graphics->DeviceContext->VSSetShader(ShaderResource.Vertex, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(ShaderResource.Pixel, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(ShaderResource.Layout);
-    Graphics->DeviceContext->IASetPrimitiveTopology(ShaderResource.Topology);
-}
-
-void FEditorRenderPass::ReleaseShaders()
-{
-
-
+    AddShaderSet(L"Arrow", "ArrowVS", "ArrowPS", layoutGizmo, ARRAYSIZE(layoutGizmo));
+    
+    AddShaderSet(L"Sphere", "SphereVS", "SpherePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly));
+    AddShaderSet(L"Box", "BoxVS", "BoxPS", layoutPosOnly, ARRAYSIZE(layoutPosOnly));
+    AddShaderSet(L"Capsule", "CapsuleVS", "CapsulePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly));
 }
 
 void FEditorRenderPass::CreateBuffers()
 {
+    FVertexInfo OutVertexInfo;
+    FIndexInfo OutIndexInfo;
+    
     ////////////////////////////////////
     // Box 버퍼 생성
-    TArray<FVector> CubeFrameVertices;
-    CubeFrameVertices.Add({ -1.f, -1.f, -1.f }); // 0
-    CubeFrameVertices.Add({ -1.f, 1.f, -1.f }); // 1
-    CubeFrameVertices.Add({ 1.f, -1.f, -1.f }); // 2
-    CubeFrameVertices.Add({ 1.f, 1.f, -1.f }); // 3
-    CubeFrameVertices.Add({ -1.f, -1.f, 1.f }); // 4
-    CubeFrameVertices.Add({ 1.f, -1.f, 1.f }); // 5
-    CubeFrameVertices.Add({ -1.f, 1.f, 1.f }); // 6
-    CubeFrameVertices.Add({ 1.f, 1.f, 1.f }); // 7
+    const TArray<FVector> CubeFrameVertices = {
+        { -1.f, -1.f, -1.f }, // 0
+        { -1.f, 1.f, -1.f }, // 1
+        { 1.f, -1.f, -1.f }, // 2
+        { 1.f, 1.f, -1.f }, // 3
+        { -1.f, -1.f, 1.f }, // 4
+        { 1.f, -1.f, 1.f }, // 5
+        { -1.f, 1.f, 1.f }, // 6
+        { 1.f, 1.f, 1.f }, // 7
+    };
 
-    TArray<uint32> CubeFrameIndices = {
+    const TArray<uint32> CubeFrameIndices = {
         // Bottom face
         0, 1, 1, 3, 3, 2, 2, 0,
         // Top face
@@ -126,40 +103,16 @@ void FEditorRenderPass::CreateBuffers()
         0, 4, 1, 6, 2, 5, 3, 7
     };
 
-    // 버텍스 버퍼 생성
-    D3D11_BUFFER_DESC bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
-    bufferDesc.ByteWidth = sizeof(FVector) * CubeFrameVertices.Num();
-    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDesc.CPUAccessFlags = 0;
 
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = CubeFrameVertices.GetData();
+    BufferManager->CreateVertexBuffer<FVector>(TEXT("CubeVertexBuffer"), CubeFrameVertices, OutVertexInfo, D3D11_USAGE_IMMUTABLE, 0);
+    BufferManager->CreateIndexBuffer<uint32>(TEXT("CubeIndexBuffer"), CubeFrameIndices, OutIndexInfo, D3D11_USAGE_IMMUTABLE, 0);
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Box.Vertex);
-    if (FAILED(hr))
-    {
-        return;
-    }
-
-    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bufferDesc.ByteWidth = sizeof(uint32) * CubeFrameIndices.Num();
-
-    initData.pSysMem = CubeFrameIndices.GetData();
-
-    hr = Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Box.Index);
-    if (FAILED(hr))
-    {
-        return;
-    }
-
-    Resources.Primitives.Box.NumVertices = CubeFrameVertices.Num();
-    Resources.Primitives.Box.VertexStride = sizeof(FVector);
-    Resources.Primitives.Box.NumIndices = CubeFrameIndices.Num();
-
+    Resources.Primitives.Box.VertexInfo = OutVertexInfo;
+    Resources.Primitives.Box.IndexInfo = OutIndexInfo;
+    
     ////////////////////////////////////
     // Sphere 버퍼 생성
-    FVector SphereFrameVertices[] =
+    const TArray<FVector> SphereFrameVertices =
     {
         {1.0, 0.0, 0},
         {0.9795299412524945, 0.20129852008866006, 0},
@@ -259,7 +212,7 @@ void FEditorRenderPass::CreateBuffers()
         {0, 1, 0}
     };
 
-    uint32 SphereFrameIndices[] =
+    const TArray<uint32> SphereFrameIndices =
     {
         0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10,
         11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20,
@@ -272,63 +225,143 @@ void FEditorRenderPass::CreateBuffers()
         81, 81, 82, 82, 83, 83, 84, 84, 85, 85, 86, 86, 87, 87, 88, 88, 89, 89, 90, 90,
         91, 91, 92, 92, 93, 93, 94, 94, 95
     };
+    
+    BufferManager->CreateVertexBuffer<FVector>(TEXT("SphereVertexBuffer"), SphereFrameVertices, OutVertexInfo, D3D11_USAGE_IMMUTABLE, 0);
+    BufferManager->CreateIndexBuffer<uint32>(TEXT("SphereIndexBuffer"), SphereFrameIndices, OutIndexInfo);
 
-    // 버텍스 버퍼 생성
-    bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
-    bufferDesc.ByteWidth = sizeof(SphereFrameVertices);
-    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDesc.CPUAccessFlags = 0;
+    Resources.Primitives.Sphere.VertexInfo = OutVertexInfo;
+    Resources.Primitives.Sphere.IndexInfo = OutIndexInfo;
 
-    initData = {};
-    initData.pSysMem = SphereFrameVertices;
-
-    hr = Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Sphere.Vertex);
-    if (FAILED(hr))
+    TArray<FVector> CapsuleFrameVertices =
     {
-        return;
+        
+    };
+    TArray<uint32> CapsuleFrameIndices =
+    {
+    };
+
+    
+    const int segments = 16;      // 수평 방향 세분화
+    const int stacks = 8;         // 반구의 수직 방향 세분화
+    const float halfHeight = 0.5f;
+
+    // -------------------- 상단 반구 --------------------
+    for (int y = 0; y <= stacks; ++y)
+    {
+        float v = float(y) / stacks;
+        float theta = (PI / 2.0f) * v;
+
+        float zPos = cosf(theta);  // 기존 y -> z
+        float r = sinf(theta);     // 반지름
+
+        for (int i = 0; i < segments; ++i)
+        {
+            float u = float(i) / segments;
+            float phi = u * 2.0f * PI;
+
+            float x = r * cosf(phi);
+            float y = r * sinf(phi); // 기존 z -> y
+
+            CapsuleFrameVertices.Add({ FVector(x, y, zPos + halfHeight) });
+        }
     }
 
-    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bufferDesc.ByteWidth = sizeof(SphereFrameIndices);
-
-    initData.pSysMem = SphereFrameIndices;
-
-    hr = Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Sphere.Index);
-    if (FAILED(hr))
+    // 상단 반구 인덱스
+    UINT topStart = 0;
+    for (int y = 0; y < stacks; ++y)
     {
-        return;
+        for (int i = 0; i < segments; ++i)
+        {
+            int cur = topStart + y * segments + i;
+            int next = topStart + y * segments + (i + 1) % segments;
+            int below = cur + segments;
+
+            CapsuleFrameIndices.Add(cur); CapsuleFrameIndices.Add(next);   // 가로
+            CapsuleFrameIndices.Add(cur); CapsuleFrameIndices.Add(below);  // 세로
+        }
     }
 
-    Resources.Primitives.Sphere.NumVertices = ARRAYSIZE(SphereFrameVertices);
-    Resources.Primitives.Sphere.VertexStride = sizeof(FVector);
-    Resources.Primitives.Sphere.NumIndices = ARRAYSIZE(SphereFrameIndices);
+    // -------------------- 원통 --------------------
+    UINT cylStart = (UINT)CapsuleFrameVertices.Num();
+    for (int i = 0; i < segments; ++i)
+    {
+        float angle = (2.0f * PI * i) / segments;
+        float x = cosf(angle);
+        float y = sinf(angle);
+
+        CapsuleFrameVertices.Add({ FVector(x, y, +halfHeight) }); // 위쪽 링
+        CapsuleFrameVertices.Add({ FVector(x, y, -halfHeight) }); // 아래쪽 링
+    }
+
+    for (int i = 0; i < segments; ++i)
+    {
+        UINT top = cylStart + i * 2;
+        UINT bottom = top + 1;
+
+        UINT nextTop = cylStart + ((i + 1) % segments) * 2;
+        UINT nextBottom = nextTop + 1;
+
+        CapsuleFrameIndices.Add(top); CapsuleFrameIndices.Add(bottom);         // 세로
+        CapsuleFrameIndices.Add(top); CapsuleFrameIndices.Add(nextTop);        // 상단 링
+        CapsuleFrameIndices.Add(bottom); CapsuleFrameIndices.Add(nextBottom);  // 하단 링
+    }
+
+    // -------------------- 하단 반구 --------------------
+    UINT bottomStart = (UINT)CapsuleFrameVertices.Num();
+    for (int y = 0; y <= stacks; ++y)
+    {
+        float v = float(y) / stacks;
+        float theta = (PI / 2.0f) * v;
+
+        float zPos = -cosf(theta); // 반전
+        float r = sinf(theta);
+
+        for (int i = 0; i < segments; ++i)
+        {
+            float u = float(i) / segments;
+            float phi = u * 2.0f * PI;
+
+            float x = r * cosf(phi);
+            float y = r * sinf(phi);
+
+            CapsuleFrameVertices.Add({ FVector(x, y, zPos - halfHeight) });
+        }
+    }
+
+    for (int y = 0; y < stacks; ++y)
+    {
+        for (int i = 0; i < segments; ++i)
+        {
+            int cur = bottomStart + y * segments + i;
+            int next = bottomStart + y * segments + (i + 1) % segments;
+            int below = cur + segments;
+
+            CapsuleFrameIndices.Add(cur); CapsuleFrameIndices.Add(next);   // 가로
+            CapsuleFrameIndices.Add(cur); CapsuleFrameIndices.Add(below);  // 세로
+        }
+    }
+    
+
+    BufferManager->CreateVertexBuffer<FVector>(TEXT("CapsuleVertexBuffer"), CapsuleFrameVertices, OutVertexInfo, D3D11_USAGE_IMMUTABLE, 0);
+    BufferManager->CreateIndexBuffer<uint32>(TEXT("CapsuleIndexBuffer"), CapsuleFrameIndices, OutIndexInfo);
+    Resources.Primitives.Capsule.VertexInfo = OutVertexInfo;
+    Resources.Primitives.Capsule.IndexInfo = OutIndexInfo;
 }
 
 void FEditorRenderPass::CreateConstantBuffers()
 {
-    auto CreateCB = [this](const UINT Size, ID3D11Buffer** OutBuffer)
-    {
-        D3D11_BUFFER_DESC Desc = {};
-        Desc.Usage = D3D11_USAGE_DYNAMIC;
-        Desc.ByteWidth = Size;
-        Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        Graphics->Device->CreateBuffer(&Desc, nullptr, OutBuffer);
-    };
-
-    CreateCB(sizeof(FConstantBufferCamera), &Resources.ConstantBuffers.Camera00);
-    CreateCB(sizeof(FConstantBufferDebugAABB) * ConstantBufferSizeAABB, &Resources.ConstantBuffers.AABB11);
-    CreateCB(sizeof(FConstantBufferDebugSphere) * ConstantBufferSizeSphere, &Resources.ConstantBuffers.Sphere11);
-    CreateCB(sizeof(FConstantBufferDebugCone) * ConstantBufferSizeCone, &Resources.ConstantBuffers.Cone11);
-    CreateCB(sizeof(FConstantBufferDebugGrid), &Resources.ConstantBuffers.Grid11);
-    CreateCB(sizeof(FConstantBufferDebugIcon), &Resources.ConstantBuffers.Icon11);
-    CreateCB(sizeof(FConstantBufferDebugArrow) * ConstantBufferSizeArrow, &Resources.ConstantBuffers.Arrow11);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugBox>("BoxConstantBuffer", nullptr, sizeof(FConstantBufferDebugBox) * ConstantBufferSizeBox, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugSphere>("SphereConstantBuffer", nullptr, sizeof(FConstantBufferDebugSphere) * ConstantBufferSizeSphere, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugCapsule>("CapsuleConstantBuffer", nullptr, sizeof(FConstantBufferDebugCapsule) * ConstantBufferSizeCapsule, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugCone>("ConeConstantBuffer", nullptr, sizeof(FConstantBufferDebugCone) * ConstantBufferSizeCone, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugGrid>("GridConstantBuffer", nullptr, sizeof(FConstantBufferDebugGrid), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugIcon>("IconConstantBuffer", nullptr, sizeof(FConstantBufferDebugIcon), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FConstantBufferDebugArrow>("ArrowConstantBuffer", nullptr, sizeof(FConstantBufferDebugArrow) * ConstantBufferSizeArrow, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 }
 
-void FEditorRenderPass::PrepareRendertarget(std::shared_ptr<FEditorViewportClient> Viewport)
+void FEditorRenderPass::BindRenderTarget(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
-    const EResourceType ResourceType = EResourceType::ERT_Editor;
+    constexpr EResourceType ResourceType = EResourceType::ERT_Editor;
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
@@ -337,38 +370,71 @@ void FEditorRenderPass::PrepareRendertarget(std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->DSV);
 }
 
-void FEditorRenderPass::PrepareRender()
+void FEditorRenderPass::BindShaderResource(const std::wstring& VertexKey, const std::wstring& PixelKey, D3D_PRIMITIVE_TOPOLOGY Topology) const
 {
-    ClearRenderArr();
-    // gizmo 제외하고 넣기
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(VertexKey);
+    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(PixelKey);
+    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(VertexKey);
+    
+    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+    Graphics->DeviceContext->IASetPrimitiveTopology(Topology);
+}
 
+void FEditorRenderPass::BindBuffers(const FDebugPrimitiveData& InPrimitiveData) const
+{
+    UINT offset = 0;
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &InPrimitiveData.VertexInfo.VertexBuffer, &InPrimitiveData.VertexInfo.Stride, &offset);
+    Graphics->DeviceContext->IASetIndexBuffer(InPrimitiveData.IndexInfo.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+}
+
+void FEditorRenderPass::PrepareRenderArr()
+{
     if (GEngine->ActiveWorld->WorldType != EWorldType::Editor)
     {
         return;
     }
-    for (const auto& actor : TObjectRange<AActor>())
+    
+    // gizmo 제외하고 넣기
+    for (const auto* Actor : TObjectRange<AActor>())
     {
-        for (const auto& comp : actor->GetComponents())
+        for (const auto* Component : Actor->GetComponents())
         {
             // AABB용 static mesh component
-            if (UStaticMeshComponent* staticmesh = Cast<UStaticMeshComponent>(comp))
+            if (UStaticMeshComponent* StaticMesh = Cast<UStaticMeshComponent>(Component))
             {
-                if (!staticmesh->IsA<UGizmoBaseComponent>())
+                if (!StaticMesh->IsA<UGizmoBaseComponent>())
                 {
-                    Resources.Components.StaticMesh.Add(staticmesh);
+                    Resources.Components.StaticMeshComponent.Add(StaticMesh);
                 }
             }
 
             // light
-            if (ULightComponentBase* light = Cast<ULightComponentBase>(comp))
+            if (ULightComponentBase* light = Cast<ULightComponentBase>(Component))
             {
                 Resources.Components.Light.Add(light);
             }
 
             // fog
-            if (UHeightFogComponent* fog = Cast<UHeightFogComponent>(comp))
+            if (UHeightFogComponent* fog = Cast<UHeightFogComponent>(Component))
             {
                 Resources.Components.Fog.Add(fog);
+            }
+
+            if (USphereComponent* SphereComponent = Cast<USphereComponent>(Component))
+            {
+                Resources.Components.SphereComponents.Add(SphereComponent);
+            }
+
+            if (UBoxComponent* BoxComponent = Cast<UBoxComponent>(Component))
+            {
+                Resources.Components.BoxComponents.Add(BoxComponent);
+            }
+            
+            if (UCapsuleComponent* CapsuleComponent = Cast<UCapsuleComponent>(Component))
+            {
+                Resources.Components.CapsuleComponents.Add(CapsuleComponent);
             }
         }
     }
@@ -376,32 +442,37 @@ void FEditorRenderPass::PrepareRender()
 
 void FEditorRenderPass::ClearRenderArr()
 {
-    Resources.Components.StaticMesh.Empty();
+    Resources.Components.StaticMeshComponent.Empty();
     Resources.Components.Light.Empty();
     Resources.Components.Fog.Empty();
+    Resources.Components.SphereComponents.Empty();
+    Resources.Components.CapsuleComponents.Empty();
+    Resources.Components.BoxComponents.Empty();
 }
 
-void FEditorRenderPass::PrepareConstantbufferGlobal()
+// 꼼수로 이미 로드된 리소스를 사용
+// GUObjectArray에 안올라가게 우회
+void FEditorRenderPass::LazyLoad()
 {
-    if (Resources.ConstantBuffers.Camera00)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &Resources.ConstantBuffers.Camera00);
-    }
+    // Resourcemanager에서 로드된 texture의 포인터를 가져옴
+    // FResourceMgr::Initialize에 추가되어야함
+    Resources.IconTextures[IconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
+    Resources.IconTextures[IconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
+    Resources.IconTextures[IconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
+    Resources.IconTextures[IconType::AmbientLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AmbientLight_64x.png");
+    Resources.IconTextures[IconType::ExponentialFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
+    Resources.IconTextures[IconType::AtmosphericFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AtmosphericFog_64.png");
+
+    // Gizmo arrow 로드
+    UStaticMesh* Mesh = FManagerOBJ::GetStaticMesh(L"Assets/GizmoTranslationZ.obj");
+    Resources.Primitives.Arrow.VertexInfo.VertexBuffer = Mesh->GetRenderData()->VertexBuffer;
+    Resources.Primitives.Arrow.VertexInfo.NumVertices = Mesh->GetRenderData()->Vertices.Num();
+    Resources.Primitives.Arrow.VertexInfo.Stride = sizeof(FStaticMeshVertex); // Directional Light의 Arrow에 해당됨
+    Resources.Primitives.Arrow.IndexInfo.IndexBuffer = Mesh->GetRenderData()->IndexBuffer;
+    Resources.Primitives.Arrow.IndexInfo.NumIndices = Mesh->GetRenderData()->Indices.Num();
 }
 
-void FEditorRenderPass::UpdateConstantbufferGlobal(FConstantBufferCamera Buffer)
-{
-    if (Resources.ConstantBuffers.Camera00)
-    {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
-
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Camera00, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Camera00, 0); // GPU�� �ٽ� ��밡���ϰ� �����
-    }
-}
-
-void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
+void FEditorRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     static bool isLoaded = false;
     if (!isLoaded)
@@ -410,21 +481,9 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
         isLoaded = true;
     }
 
-    PrepareRendertarget(Viewport);
-    
-    // PrepareConstantbufferGlobal();
-
-    // FConstantBufferCamera buf;
-    // buf.ViewMatrix = Viewport->GetViewMatrix();
-    // buf.ProjMatrix = Viewport->GetProjectionMatrix();
-    // buf.CameraPos = Viewport->GetCameraLocation();
-    // buf.CameraLookAt = ActiveViewport->ViewTransformPerspective.GetLookAt();
-    // UpdateConstantbufferGlobal(buf);
-
-    // ID3D11DepthStencilState* DepthStateEnable = Graphics->DepthStencilState;
-    // Graphics->DeviceContext->OMSetDepthStencilState(DepthStateEnable, 0);
-
     const uint64 ShowFlag = Viewport->GetShowFlag();
+
+    BindRenderTarget(Viewport);    
 
     if (ShowFlag & EEngineShowFlags::SF_LightWireframe)
     {
@@ -432,7 +491,14 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
         RenderSpotlightInstanced(ShowFlag);
     }
 
-    RenderArrowsInstanced();
+    if (ShowFlag & EEngineShowFlags::SF_Collision)
+    {
+        RenderBoxInstanced(ShowFlag);
+        RenderSphereInstanced(ShowFlag);
+        RenderCapsuleInstanced(ShowFlag);
+    }
+
+    RenderArrowInstanced();
     //RenderIcons(World, ActiveViewport); // 기존 렌더패스에서 아이콘 렌더하고 있으므로 제거
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -442,55 +508,11 @@ void FEditorRenderPass::Render(std::shared_ptr<FEditorViewportClient> Viewport)
     Graphics->DeviceContext->PSSetConstantBuffers(11, 1, NullBuffer);
 }
 
-void FEditorRenderPass::PrepareShaderGizmo()
-{
-
-}
-
-void FEditorRenderPass::PrepareConstantbufferGizmo()
-{
-}
-
-void FEditorRenderPass::RenderAxis()
-{
-    PrepareShader(Resources.Shaders.AxisLine);
-
-    Graphics->DeviceContext->Draw(6, 0);
-}
-
-void FEditorRenderPass::PrepareConstantbufferAABB()
-{
-    /*if (Resources.ConstantBuffers.AABB13)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(11, 1, &Resources.ConstantBuffers.AABB13);
-    }*/
-}
-
-void FEditorRenderPass::UdpateConstantbufferAABBInstanced(TArray<FConstantBufferDebugAABB> Buffer)
-{
-    if (Buffer.Num() > ConstantBufferSizeAABB)
-    {
-        // 최대개수 초과
-        // 코드 잘못짠거 아니면 오면안됨
-        UE_LOG(LogLevel::Error, "Invalid Buffer Num");
-        return;
-    }
-    if (Resources.ConstantBuffers.AABB11)
-    {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
-
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.AABB11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugAABB) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.AABB11, 0);
-    }
-}
-
 void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
 {
-    SetShaderAndPrepare(L"SphereVS", L"SpherePS", Resources.Shaders.Sphere);
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Sphere.Vertex, &Resources.Primitives.Sphere.VertexStride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Sphere.Index, DXGI_FORMAT_R32_UINT, 0);
+    BindShaderResource(L"SphereVS", L"SpherePS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    BindBuffers(Resources.Primitives.Sphere);
 
     // 위치랑 bounding box 크기 정보 가져오기
     TArray<FConstantBufferDebugSphere> BufferAll;
@@ -520,13 +542,13 @@ void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
             }
         }
     }
-
-    PrepareConstantbufferPointlight();
+    
+    BufferManager->BindConstantBuffer("SphereConstantBuffer", 11, EShaderStage::Vertex);
     int BufferIndex = 0;
     for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
     {
         TArray<FConstantBufferDebugSphere> SubBuffer;
-        for (int j = 0; j < ConstantBufferSizeAABB; ++j)
+        for (int j = 0; j < ConstantBufferSizeSphere; ++j)
         {
             if (BufferIndex < BufferAll.Num())
             {
@@ -541,42 +563,15 @@ void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
 
         if (SubBuffer.Num() > 0)
         {
-            UdpateConstantbufferPointlightInstanced(SubBuffer);
-            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.NumIndices, SubBuffer.Num(), 0, 0, 0);
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugSphere>(TEXT("SphereConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
         }
-    }
-}
-
-void FEditorRenderPass::PrepareConstantbufferPointlight()
-{
-    if (Resources.ConstantBuffers.Sphere11)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(11, 1, &Resources.ConstantBuffers.Sphere11);
-    }
-}
-
-void FEditorRenderPass::UdpateConstantbufferPointlightInstanced(TArray<FConstantBufferDebugSphere> Buffer)
-{
-    if (Buffer.Num() > ConstantBufferSizeSphere)
-    {
-        // 최대개수 초과
-        // 코드 잘못짠거 아니면 오면안됨
-        UE_LOG(LogLevel::Error, "Invalid Buffer Num");
-        return;
-    }
-    if (Resources.ConstantBuffers.Sphere11)
-    {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
-
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Sphere11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugSphere) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Sphere11, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
 
 void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
 {
-    SetShaderAndPrepare(L"ConeVS", L"ConePS", Resources.Shaders.Cone);
+    BindShaderResource(L"ConeVS", L"ConePS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
     // 위치랑 bounding box 크기 정보 가져오기
     TArray<FConstantBufferDebugCone> BufferAll;
@@ -591,7 +586,7 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
                     if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(SpotLightComp))
                     {
                         FConstantBufferDebugCone b;
-                        b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                        b.ApexPosition = SpotLightComp->GetWorldLocation();
                         b.Radius = SpotLightComp->GetRadius();
                         b.Direction = SpotLightComp->GetDirection();
                         // Inner Cone
@@ -606,7 +601,7 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
             else
             {
                 FConstantBufferDebugCone b;
-                b.ApexPosiiton = SpotLightComp->GetWorldLocation();
+                b.ApexPosition = SpotLightComp->GetWorldLocation();
                 b.Radius = SpotLightComp->GetRadius();
                 b.Direction = SpotLightComp->GetDirection();
                 // Inner Cone
@@ -619,7 +614,8 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
         }
     }
 
-    PrepareConstantbufferSpotlight();
+
+    BufferManager->BindConstantBuffer("ConeConstantBuffer", 11, EShaderStage::Vertex);
     int BufferIndex = 0;
     for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCone) * ConstantBufferSizeCone; ++i)
     {
@@ -639,148 +635,77 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
 
         if (SubBuffer.Num() > 0)
         {
-            UdpateConstantbufferSpotlightInstanced(SubBuffer);
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugCone>(TEXT("ConeConstantBuffer"), SubBuffer);
             // Only Draw Selected SpotLight's Cone = 2 | Cone: (24 * 2) * 2 + Sphere: (10 * 2) * 2 = 136
             Graphics->DeviceContext->DrawInstanced(136, SubBuffer.Num(), 0, 0);
         }
     }
 }
 
-void FEditorRenderPass::PrepareConstantbufferSpotlight()
-{
-    if (Resources.ConstantBuffers.Cone11)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(11, 1, &Resources.ConstantBuffers.Cone11);
-    }
-}
-
-void FEditorRenderPass::UdpateConstantbufferSpotlightInstanced(TArray<FConstantBufferDebugCone> Buffer)
-{
-    if (Buffer.Num() > ConstantBufferSizeCone)
-    {
-        // 최대개수 초과
-        // 코드 잘못짠거 아니면 오면안됨
-        UE_LOG(LogLevel::Error, "Invalid Buffer Num");
-        return;
-    }
-    if (Resources.ConstantBuffers.Cone11)
-    {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
-
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Cone11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugCone) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Cone11, 0); // GPU�� �ٽ� ��밡���ϰ� �����
-    }
-}
-
-
-// 꼼수로 이미 로드된 리소스를 사용
-// GUObjectArray에 안올라가게 우회
-void FEditorRenderPass::LazyLoad()
-{
-    // Resourcemanager에서 로드된 texture의 포인터를 가져옴
-    // FResourceMgr::Initialize에 추가되어야함
-    Resources.IconTextures[IconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
-    Resources.IconTextures[IconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
-	Resources.IconTextures[IconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
-    Resources.IconTextures[IconType::AmbientLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AmbientLight_64x.png");
-	Resources.IconTextures[IconType::ExponentialFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
-	Resources.IconTextures[IconType::AtmosphericFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AtmosphericFog_64.png");
-
-    // Gizmo arrow 로드
-    UStaticMesh* Mesh = FManagerOBJ::GetStaticMesh(L"Assets/GizmoTranslationZ.obj");
-    Resources.Primitives.Arrow.Vertex = Mesh->GetRenderData()->VertexBuffer;
-    Resources.Primitives.Arrow.Index = Mesh->GetRenderData()->IndexBuffer;
-    Resources.Primitives.Arrow.NumVertices = Mesh->GetRenderData()->Vertices.Num();
-    Resources.Primitives.Arrow.NumIndices = Mesh->GetRenderData()->Indices.Num();
-    Resources.Primitives.Arrow.VertexStride = sizeof(FStaticMeshVertex); // Directional Light의 Arrow에 해당됨
-
-}
-
+// 사용 안함
 void FEditorRenderPass::RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
     // ULightComponentBase::CheckRayIntersection에서도 수정 필요
-    const float IconScale = 0.3;
-    PrepareShader(Resources.Shaders.Icon);
-    UINT offset = 0;
-    // input vertex index 없음
-
-    PrepareConstantbufferIcon();
-    for (ULightComponentBase* LightComp : Resources.Components.Light)
-    {
-        FConstantBufferDebugIcon b;
-        b.Position = LightComp->GetWorldLocation();
-        b.Scale = IconScale;
-        UdpateConstantbufferIcon(b);
-
-        if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
-        {
-            UpdateTextureIcon(IconType::PointLight);
-        }
-        else if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
-        {
-            UpdateTextureIcon(IconType::SpotLight);
-        }
-        else if (UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(LightComp))
-        {
-            UpdateTextureIcon(IconType::DirectionalLight);
-        }
-        else if (UAmbientLightComponent* AmbientLightComp = Cast<UAmbientLightComponent>(LightComp))
-        {
-            UpdateTextureIcon(IconType::AmbientLight);
-        }
-        else
-        {
-            // 잘못된 light 종류
-            continue;
-        };
-        Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
-    }
-
-    for (UHeightFogComponent* FogComp : Resources.Components.Fog)
-    {
-        FConstantBufferDebugIcon b;
-        b.Position = FogComp->GetWorldLocation();
-        b.Scale = IconScale;
-        UdpateConstantbufferIcon(b);
-        UpdateTextureIcon(IconType::ExponentialFog);
-
-        Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
-    }
+    // const float IconScale = 0.3;
+    // BindShaderResource(Resources.Shaders.Icon);
+    // UINT offset = 0;
+    // // input vertex index 없음
+    //
+    // BufferManager->BindConstantBuffer("IconConstantBuffer", 11, EShaderStage::Vertex);
+    // for (ULightComponentBase* LightComp : Resources.Components.Light)
+    // {
+    //     FConstantBufferDebugIcon b;
+    //     b.Position = LightComp->GetWorldLocation();
+    //     b.Scale = IconScale;
+    //     BufferManager->UpdateConstantBuffer<FConstantBufferDebugIcon>(TEXT("IconConstantBuffer"), b);
+    //
+    //     if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
+    //     {
+    //         UpdateTextureIcon(IconType::PointLight);
+    //     }
+    //     else if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
+    //     {
+    //         UpdateTextureIcon(IconType::SpotLight);
+    //     }
+    //     else if (UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(LightComp))
+    //     {
+    //         UpdateTextureIcon(IconType::DirectionalLight);
+    //     }
+    //     else if (UAmbientLightComponent* AmbientLightComp = Cast<UAmbientLightComponent>(LightComp))
+    //     {
+    //         UpdateTextureIcon(IconType::AmbientLight);
+    //     }
+    //     else
+    //     {
+    //         // 잘못된 light 종류
+    //         continue;
+    //     };
+    //     Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
+    // }
+    //
+    // for (UHeightFogComponent* FogComp : Resources.Components.Fog)
+    // {
+    //     FConstantBufferDebugIcon b;
+    //     b.Position = FogComp->GetWorldLocation();
+    //     b.Scale = IconScale;
+    //     BufferManager->UpdateConstantBuffer<FConstantBufferDebugIcon>(TEXT("IconConstantBuffer"), b);
+    //     UpdateTextureIcon(IconType::ExponentialFog);
+    //
+    //     Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
+    // }
 }
 
-void FEditorRenderPass::PrepareConstantbufferIcon()
-{
-    if (Resources.ConstantBuffers.Icon11)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(11, 1, &Resources.ConstantBuffers.Icon11);
-    }
-}
-
-void FEditorRenderPass::UdpateConstantbufferIcon(FConstantBufferDebugIcon Buffer)
-{
-    if (Resources.ConstantBuffers.Icon11)
-    {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
-
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Icon11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(FConstantBufferDebugIcon)); // TArray이니까 실제 값을 받아와야함
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Icon11, 0); // GPU�� �ٽ� ��밡���ϰ� �����
-    }
-}
-
+// 사용 안함
 void FEditorRenderPass::UpdateTextureIcon(IconType type)
 {
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &Resources.IconTextures[type]->TextureSRV);
     Graphics->DeviceContext->PSSetSamplers(0, 1, &Resources.IconTextures[type]->SamplerState);
 }
 
-void FEditorRenderPass::RenderArrowsInstanced()
+void FEditorRenderPass::RenderArrowInstanced()
 {
-    SetShaderAndPrepare(L"ArrowVS", L"ArrowPS", Resources.Shaders.Arrow);
-    constexpr UINT Offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Arrow.Vertex, &Resources.Primitives.Arrow.VertexStride, &Offset);
-    Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Arrow.Index, DXGI_FORMAT_R32_UINT, 0);
+    BindShaderResource(L"ArrowVS", L"ArrowPS", D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    BindBuffers(Resources.Primitives.Arrow);
 
     // 1. Collect Instance Data
     TArray<FConstantBufferDebugArrow> BufferAll;
@@ -807,7 +732,7 @@ void FEditorRenderPass::RenderArrowsInstanced()
         }
     }
 
-    PrepareConstantbufferArrowInstanced();
+    BufferManager->BindConstantBuffer("ArrowConstantBuffer", 11, EShaderStage::Vertex);
 
     int32 BufferIndex = 0;
     for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeArrow) * ConstantBufferSizeArrow; ++i)
@@ -828,41 +753,178 @@ void FEditorRenderPass::RenderArrowsInstanced()
 
         if (SubBuffer.Num() > 0)
         {
-            UdpateConstantbufferArrowInstanced(SubBuffer);
-            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Arrow.NumIndices, SubBuffer.Num(), 0, 0, 0);
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugArrow>(TEXT("ArrowConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Arrow.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
         }
     }
 }
 
-void FEditorRenderPass::PrepareConstantbufferArrowInstanced() const
+void FEditorRenderPass::RenderBoxInstanced(uint64 ShowFlag)
 {
-    if (Resources.ConstantBuffers.Arrow11)
+    BindShaderResource(L"BoxVS", L"BoxPS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    BindBuffers(Resources.Primitives.Box);
+    
+    // 위치랑 bounding box 크기 정보 가져오기
+    TArray<FConstantBufferDebugBox> BufferAll;
+    for (UBoxComponent* BoxComponent : Resources.Components.BoxComponents)
     {
-        Graphics->DeviceContext->VSSetConstantBuffers(11, 1, &Resources.ConstantBuffers.Arrow11);
+        if (ShowFlag & EEngineShowFlags::SF_CollisionSelectedOnly)
+        {
+            AActor* Actor = Cast<UEditorEngine>(GEngine)->GetSelectedActor();
+            if (Actor && Actor->GetComponents().Contains(BoxComponent))
+            {
+                FConstantBufferDebugBox b;
+                b.WorldMatrix = BoxComponent->GetWorldMatrix();
+                b.Extent = BoxComponent->GetBoxExtent();
+                BufferAll.Add(b);
+            }
+        }
+        else
+        {
+            FConstantBufferDebugBox b;
+            b.WorldMatrix = BoxComponent->GetWorldMatrix();
+            b.Extent = BoxComponent->GetBoxExtent();
+            BufferAll.Add(b);
+        }
+    }
+    
+    BufferManager->BindConstantBuffer("BoxConstantBuffer", 11, EShaderStage::Vertex);
+    int BufferIndex = 0;
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeBox) * ConstantBufferSizeBox; ++i)
+    {
+        TArray<FConstantBufferDebugBox> SubBuffer;
+        for (uint32 j = 0; j < ConstantBufferSizeBox; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugBox>(TEXT("BoxConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Box.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
     }
 }
 
-void FEditorRenderPass::UdpateConstantbufferArrowInstanced(TArray<FConstantBufferDebugArrow>& Buffer) const
+void FEditorRenderPass::RenderSphereInstanced(uint64 ShowFlag)
 {
-    if (Buffer.Num() > ConstantBufferSizeArrow)
+    BindShaderResource(L"SphereVS", L"SpherePS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    BindBuffers(Resources.Primitives.Sphere);
+
+    // 위치랑 bounding box 크기 정보 가져오기
+    TArray<FConstantBufferDebugSphere> BufferAll;
+    for (USphereComponent* SphereComponent : Resources.Components.SphereComponents)
     {
-        UE_LOG(LogLevel::Error, "Invalid Arrow Buffer Num");
-        return;
+        if (ShowFlag & EEngineShowFlags::SF_CollisionSelectedOnly)
+        {
+            AActor* Actor = Cast<UEditorEngine>(GEngine)->GetSelectedActor();
+            if (Actor && Actor->GetComponents().Contains(SphereComponent))
+            {
+                FConstantBufferDebugSphere b;
+                b.Position = SphereComponent->GetWorldLocation();
+                b.Radius = SphereComponent->GetRadius();
+                BufferAll.Add(b);
+            }
+        }
+        else
+        {
+            FConstantBufferDebugSphere b;
+            b.Position = SphereComponent->GetWorldLocation();
+            b.Radius = SphereComponent->GetRadius();
+            BufferAll.Add(b);
+        }
     }
 
-    if (Resources.ConstantBuffers.Arrow11)
+    BufferManager->BindConstantBuffer("SphereConstantBuffer", 11, EShaderStage::Vertex);
+    int BufferIndex = 0;
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
     {
-        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
-        Graphics->DeviceContext->Map(Resources.ConstantBuffers.Arrow11, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
-        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugArrow) * Buffer.Num());
-        Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Arrow11, 0);
+        TArray<FConstantBufferDebugSphere> SubBuffer;
+        for (uint32 j = 0; j < ConstantBufferSizeSphere; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugSphere>(TEXT("SphereConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
     }
 }
 
-void FEditorRenderPass::SetShaderAndPrepare(const std::wstring& VertexKey, const std::wstring& PixelKey, FShaderResource& ShaderSlot)
+void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
 {
-    ShaderSlot.Vertex = ShaderManager->GetVertexShaderByKey(VertexKey);
-    ShaderSlot.Pixel = ShaderManager->GetPixelShaderByKey(PixelKey);
-    ShaderSlot.Layout = ShaderManager->GetInputLayoutByKey(VertexKey);
-    PrepareShader(ShaderSlot);
+    BindShaderResource(L"CapsuleVS", L"CapsulePS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    BindBuffers(Resources.Primitives.Capsule);
+    
+    // 위치랑 bounding box 크기 정보 가져오기
+    TArray<FConstantBufferDebugCapsule> BufferAll;
+    for (UShapeComponent* ShapeComponent : Resources.Components.CapsuleComponents)
+    {
+        if (UCapsuleComponent* CapsuleComponent = Cast<UCapsuleComponent>(ShapeComponent))
+        {
+            if (ShowFlag & EEngineShowFlags::SF_CollisionSelectedOnly)
+            {
+                AActor* Actor = Cast<UEditorEngine>(GEngine)->GetSelectedActor();
+                if (Actor && Actor->GetComponents().Contains(CapsuleComponent))
+                {
+                    FConstantBufferDebugCapsule b;
+                    b.WorldMatrix = CapsuleComponent->GetWorldMatrix();
+                    b.Height = CapsuleComponent->GetHalfHeight();
+                    b.Radius = CapsuleComponent->GetRadius();
+                    BufferAll.Add(b);
+                }
+            }
+            else
+            {
+                FConstantBufferDebugCapsule b;
+                b.WorldMatrix = CapsuleComponent->GetWorldMatrix();
+                b.Height = CapsuleComponent->GetHalfHeight();
+                b.Radius = CapsuleComponent->GetRadius();
+                BufferAll.Add(b);
+            }
+        }
+    }
+    
+    BufferManager->BindConstantBuffer("CapsuleConstantBuffer", 11, EShaderStage::Vertex);
+    int BufferIndex = 0;
+    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCapsule) * ConstantBufferSizeCapsule; ++i)
+    {
+        TArray<FConstantBufferDebugCapsule> SubBuffer;
+        for (int j = 0; j < ConstantBufferSizeCapsule; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+    
+        if (SubBuffer.Num() > 0)
+        {
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugCapsule>(TEXT("CapsuleConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Capsule.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
+    }
 }

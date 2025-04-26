@@ -352,11 +352,6 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const FString&
                 continue;
             }
 
-            if (componentData.ComponentID == "USpotLightComponent_156")
-            {
-                int a= 0;
-            }
-
             // --- 이제 TargetComponent는 유효한 기존 컴포넌트 또는 새로 생성된 컴포넌트 ---
             if (TargetComponent)
             {
@@ -390,10 +385,6 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const FString&
         for (const FComponentSaveData& componentData : actorData.Components) // 다시 컴포넌트 데이터 순회
         {
             UActorComponent** FoundCompPtr = ActorComponentsMap.Find(componentData.ComponentID);
-            if (componentData.ComponentID == "USpotLightComponent_156")
-            {
-                int a= 0;
-            }
             
             if (FoundCompPtr == nullptr || *FoundCompPtr == nullptr) continue; // 위에서 생성/찾기 실패한 경우
 
