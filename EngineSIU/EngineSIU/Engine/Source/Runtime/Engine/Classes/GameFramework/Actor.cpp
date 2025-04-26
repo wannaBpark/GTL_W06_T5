@@ -1,6 +1,7 @@
 #include "Actor.h"
 #include "World/World.h"
-
+#include "PlayerController.h"
+#include "Components/InputComponent.h"
 #include "sol/sol.hpp"
 #include "Components/LuaScriptComponent.h"
 #include "Engine/Lua/LuaScriptManager.h"
@@ -295,6 +296,33 @@ bool AActor::SetActorScale(const FVector& NewScale)
         return true;
     }
     return false;
+}
+
+void AActor::EnableInput(APlayerController* PlayerController)
+{
+    if (!PlayerController)
+    {
+        return;
+    }
+
+    if (!InputComponent)
+    {
+        InputComponent = FObjectFactory::ConstructObject<UInputComponent>(this);
+    }
+
+    PlayerController->PushInputComponent(InputComponent);
+
+}
+
+void AActor::DisableInput(APlayerController* PlayerController)
+{
+    if (!PlayerController || !InputComponent)
+    {
+        return;
+    }
+
+    // 입력 스택에서 제거
+    PlayerController->PopInputComponent(InputComponent);
 }
 
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)
