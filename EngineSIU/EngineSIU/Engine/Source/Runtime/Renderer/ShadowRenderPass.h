@@ -14,6 +14,7 @@
 // 모든 Light에 대한 Depth Map Texture를 생성합니다.
 // ViewMode != Unlit일 때에만 Static Mesh Render Pass 에서 실행됩니다
 
+struct FStaticMeshRenderData;
 class FDXDBufferManager;
 class FDXDShaderManager;
 class FGraphicsDevice;
@@ -41,7 +42,7 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
     virtual void ClearRenderArr() override;
 
-    void RenderPrimitive(OBJ::FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int getselected_sub_mesh_index);
+    void RenderPrimitive(FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int32 SelectedSubMeshIndex);
     virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
     void RenderAllStaticMeshesForCSM(const std::shared_ptr<FEditorViewportClient>& Viewport,
                                      FCascadeConstantBuffer FCasCadeData);

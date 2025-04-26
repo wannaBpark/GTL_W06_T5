@@ -11,6 +11,7 @@
 UBillboardComponent::UBillboardComponent()
 {
     SetType(StaticClass()->GetName());
+    SetTexture(L"Assets/Editor/Icon/S_Actor.PNG");
 }
 
 UBillboardComponent::~UBillboardComponent()

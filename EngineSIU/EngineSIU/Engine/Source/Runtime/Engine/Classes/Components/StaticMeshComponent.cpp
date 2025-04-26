@@ -1,6 +1,6 @@
 #include "Components/StaticMeshComponent.h"
 
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 #include "Launch/EngineLoop.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
@@ -11,7 +11,7 @@ UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-    NewComponent->staticMesh = staticMesh;
+    NewComponent->StaticMesh = StaticMesh;
     NewComponent->selectedSubMeshIndex = selectedSubMeshIndex;
 
     return NewComponent;
@@ -56,7 +56,7 @@ void UStaticMeshComponent::SetProperties(const TMap<FString, FString>& InPropert
         {
             // 경로 문자열로 UStaticMesh 에셋 로드 시도
            
-            if (UStaticMesh* MeshToSet = FManagerOBJ::CreateStaticMesh(*TempStr))
+            if (UStaticMesh* MeshToSet = FObjManager::CreateStaticMesh(*TempStr))
             {
                 SetStaticMesh(MeshToSet); // 성공 시 메시 설정
                 UE_LOG(LogLevel::Display, TEXT("Set StaticMesh '%s' for %s"), **TempStr, *GetName());
@@ -85,23 +85,23 @@ void UStaticMeshComponent::SetProperties(const TMap<FString, FString>& InPropert
 
 uint32 UStaticMeshComponent::GetNumMaterials() const
 {
-    if (staticMesh == nullptr) return 0;
+    if (StaticMesh == nullptr) return 0;
 
-    return staticMesh->GetMaterials().Num();
+    return StaticMesh->GetMaterials().Num();
 }
 
 UMaterial* UStaticMeshComponent::GetMaterial(uint32 ElementIndex) const
 {
-    if (staticMesh != nullptr)
+    if (StaticMesh != nullptr)
     {
         if (OverrideMaterials[ElementIndex] != nullptr)
         {
             return OverrideMaterials[ElementIndex];
         }
     
-        if (staticMesh->GetMaterials().IsValidIndex(ElementIndex))
+        if (StaticMesh->GetMaterials().IsValidIndex(ElementIndex))
         {
-            return staticMesh->GetMaterials()[ElementIndex]->Material;
+            return StaticMesh->GetMaterials()[ElementIndex]->Material;
         }
     }
     return nullptr;
@@ -109,17 +109,17 @@ UMaterial* UStaticMeshComponent::GetMaterial(uint32 ElementIndex) const
 
 uint32 UStaticMeshComponent::GetMaterialIndex(FName MaterialSlotName) const
 {
-    if (staticMesh == nullptr) return -1;
+    if (StaticMesh == nullptr) return -1;
 
-    return staticMesh->GetMaterialIndex(MaterialSlotName);
+    return StaticMesh->GetMaterialIndex(MaterialSlotName);
 }
 
 TArray<FName> UStaticMeshComponent::GetMaterialSlotNames() const
 {
     TArray<FName> MaterialNames;
-    if (staticMesh == nullptr) return MaterialNames;
+    if (StaticMesh == nullptr) return MaterialNames;
 
-    for (const FStaticMaterial* Material : staticMesh->GetMaterials())
+    for (const FStaticMaterial* Material : StaticMesh->GetMaterials())
     {
         MaterialNames.Emplace(Material->MaterialSlotName);
     }
@@ -129,8 +129,8 @@ TArray<FName> UStaticMeshComponent::GetMaterialSlotNames() const
 
 void UStaticMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
 {
-    if (staticMesh == nullptr) return;
-    staticMesh->GetUsedMaterials(Out);
+    if (StaticMesh == nullptr) return;
+    StaticMesh->GetUsedMaterials(Out);
     for (int materialIndex = 0; materialIndex < GetNumMaterials(); materialIndex++)
     {
         if (OverrideMaterials[materialIndex] != nullptr)
@@ -144,9 +144,9 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
 {
     if (!AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
     int nIntersections = 0;
-    if (staticMesh == nullptr) return 0;
+    if (StaticMesh == nullptr) return 0;
 
-    OBJ::FStaticMeshRenderData* renderData = staticMesh->GetRenderData();
+    FStaticMeshRenderData* renderData = StaticMesh->GetRenderData();
 
     FStaticMeshVertex* vertices = renderData->Vertices.GetData();
     int vCount = renderData->Vertices.Num();

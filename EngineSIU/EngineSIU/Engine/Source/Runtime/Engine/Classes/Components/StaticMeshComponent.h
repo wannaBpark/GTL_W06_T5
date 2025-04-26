@@ -1,6 +1,8 @@
 #pragma once
 #include "Components/MeshComponent.h"
-#include "Mesh/StaticMesh.h"
+#include "Mesh/StaticMeshRenderData.h"
+
+#include "Engine/Asset/StaticMeshAsset.h"
 
 class UStaticMeshComponent : public UMeshComponent
 {
@@ -27,15 +29,23 @@ public:
 
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     
-    UStaticMesh* GetStaticMesh() const { return staticMesh; }
+    UStaticMesh* GetStaticMesh() const { return StaticMesh; }
     void SetStaticMesh(UStaticMesh* value)
     { 
-        staticMesh = value;
-        OverrideMaterials.SetNum(value->GetMaterials().Num());
-        AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+        StaticMesh = value;
+        if (StaticMesh == nullptr)
+        {
+            OverrideMaterials.SetNum(0);
+            AABB = FBoundingBox(FVector::ZeroVector, FVector::ZeroVector);
+        }
+        else
+        {
+            OverrideMaterials.SetNum(value->GetMaterials().Num());
+            AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
+        }
     }
 
 protected:
-    UStaticMesh* staticMesh = nullptr;
+    UStaticMesh* StaticMesh = nullptr;
     int selectedSubMeshIndex = -1;
 };

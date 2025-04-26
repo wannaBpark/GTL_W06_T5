@@ -1,5 +1,6 @@
 #pragma once
-#include "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h"
+#include "Components/SceneComponent.h"
+#include "Engine/OverlapInfo.h"
 
 class UPrimitiveComponent : public USceneComponent
 {
@@ -25,6 +26,18 @@ public:
 
     FBoundingBox AABB;
 
+    bool IsOverlappingActor(const AActor* Other) const;
+
+    bool bGenerateOverlapEvents = true;
+    bool bBlockComponent = true;
+
+    const TArray<FOverlapInfo>& GetOverlapInfos() const;
+
+protected:
+    TArray<FOverlapInfo> OverlappingComponents;
+
+    virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps) override;
+
 private:
     FString m_Type;
 
@@ -36,6 +49,7 @@ public:
         m_Type = _Type;
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
+    
     FBoundingBox GetBoundingBox() const { return AABB; }
 };
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "MathUtility.h"
 #include "Serialization/Archive.h"
 
 struct FVector;
@@ -43,6 +44,8 @@ struct FQuat
 
     // 쿼터니언을 회전 행렬로 변환
     FMatrix ToMatrix() const;
+
+    bool Equals(const FQuat& Q, float Tolerance = KINDA_SMALL_NUMBER) const;
 };
 
 inline FArchive& operator<<(FArchive& Ar, FQuat& Q)

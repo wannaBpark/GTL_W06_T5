@@ -1,4 +1,6 @@
 #include "Actor.h"
+
+#include "Components/PrimitiveComponent.h"
 #include "World/World.h"
 
 
@@ -16,8 +18,11 @@ UObject* AActor::Duplicate(UObject* InOuter)
     TArray<FName> DefaultCopiedComponentNames;
     for (UActorComponent* Components : CopiedComponents)
     {
-        DefaultCopiedComponentNames.Add(Components->GetFName());
-        Components->DestroyComponent();
+        if (Components)
+        {
+            DefaultCopiedComponentNames.Add(Components->GetFName());
+            Components->DestroyComponent(true);
+        }
     }
     NewActor->OwnedComponents.Empty();
 
@@ -110,6 +115,15 @@ void AActor::Destroyed()
 {
     // Actor가 제거되었을 때 호출하는 EndPlay
     EndPlay(EEndPlayReason::Destroyed);
+
+    TSet<UActorComponent*> Components = OwnedComponents;
+    for (UActorComponent* Component : Components)
+    {
+        if (Component)
+        {
+            Component->DestroyComponent(true);
+        }
+    }
 }
 
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -123,6 +137,22 @@ void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
         }
     }
     UninitializeComponents();
+}
+
+bool AActor::IsOverlappingActor(const AActor* Other) const
+{
+    for (UActorComponent* OwnedComp : OwnedComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(OwnedComp))
+        {
+            if ((PrimComp->GetOverlapInfos().Num() > 0) && PrimComp->IsOverlappingActor(Other))
+            {
+                // found one, finished
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool AActor::Destroy()

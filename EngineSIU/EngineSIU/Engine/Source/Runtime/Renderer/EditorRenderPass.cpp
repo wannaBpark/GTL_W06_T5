@@ -21,7 +21,7 @@
 #include "Engine/Classes/Components/Light/PointLightComponent.h"
 #include "Engine/Classes/Components/HeightFogComponent.h"
 #include "Engine/Classes/Components/Light/AmbientLightComponent.h"
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 #include "PropertyEditor/ShowFlags.h"
 
 
@@ -680,19 +680,26 @@ void FEditorRenderPass::LazyLoad()
 {
     // Resourcemanager에서 로드된 texture의 포인터를 가져옴
     // FResourceMgr::Initialize에 추가되어야함
-    Resources.IconTextures[IconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
-    Resources.IconTextures[IconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
-	Resources.IconTextures[IconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
+    Resources.IconTextures[IconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/S_LightDirectional.PNG");
+    Resources.IconTextures[IconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/S_LightPoint.PNG");
+	Resources.IconTextures[IconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/S_LightSpot.PNG");
     Resources.IconTextures[IconType::AmbientLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AmbientLight_64x.png");
-	Resources.IconTextures[IconType::ExponentialFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
-	Resources.IconTextures[IconType::AtmosphericFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AtmosphericFog_64.png");
+	Resources.IconTextures[IconType::ExponentialFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
+	Resources.IconTextures[IconType::AtmosphericFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
 
     // Gizmo arrow 로드
-    UStaticMesh* Mesh = FManagerOBJ::GetStaticMesh(L"Assets/GizmoTranslationZ.obj");
-    Resources.Primitives.Arrow.Vertex = Mesh->GetRenderData()->VertexBuffer;
-    Resources.Primitives.Arrow.Index = Mesh->GetRenderData()->IndexBuffer;
-    Resources.Primitives.Arrow.NumVertices = Mesh->GetRenderData()->Vertices.Num();
-    Resources.Primitives.Arrow.NumIndices = Mesh->GetRenderData()->Indices.Num();
+    FStaticMeshRenderData* RenderData = FObjManager::GetStaticMesh(L"Assets/GizmoTranslationZ.obj")->GetRenderData();
+
+    FVertexInfo VertexInfo;
+    BufferManager->CreateVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
+
+    FIndexInfo IndexInfo;
+    BufferManager->CreateIndexBuffer(RenderData->ObjectName, RenderData->Indices, IndexInfo);
+    
+    Resources.Primitives.Arrow.Vertex = VertexInfo.VertexBuffer;
+    Resources.Primitives.Arrow.NumVertices = VertexInfo.NumVertices;
+    Resources.Primitives.Arrow.Index = IndexInfo.IndexBuffer;
+    Resources.Primitives.Arrow.NumIndices = IndexInfo.NumIndices;
     Resources.Primitives.Arrow.VertexStride = sizeof(FStaticMeshVertex); // Directional Light의 Arrow에 해당됨
 
 }

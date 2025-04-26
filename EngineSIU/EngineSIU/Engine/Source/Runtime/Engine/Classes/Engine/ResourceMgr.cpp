@@ -6,39 +6,42 @@
 #include "Components/SkySphereComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "DirectXTK/Include/DDSTextureLoader.h"
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 
 
 void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
 {
     //RegisterMesh(renderer, "Quad", quadVertices, sizeof(quadVertices) / sizeof(FVertexSimple), quadIndices, sizeof(quadIndices)/sizeof(uint32));
 
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisArrowX.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisArrowY.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisArrowZ.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisScaleArrowX.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisScaleArrowY.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisScaleArrowZ.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets//AxisCircleX.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets//AxisCircleY.obj");
-    //FManagerOBJ::LoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
-    // FManagerOBJ::LoadObjStaticMeshAsset("Assets/helloBlender.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowX.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowY.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowZ.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowX.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowY.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowZ.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleX.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleY.obj");
+    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
+    // FManagerLoadObjStaticMeshAsset("Assets/helloBlender.obj");
 
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/ocean_sky.jpg");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/font.png");
     LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/font.dds");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/emart.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/T_Explosion_SubUV.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.png");
     LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/spotLight.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/SpotLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/PointLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/DirectionalLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/AtmosphericFog_64.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/AmbientLight_64x.png");
+
+    LoadTextureFromFile(device->Device, L"Assets/Texture/ocean_sky.jpg");
+    LoadTextureFromFile(device->Device, L"Assets/Texture/font.png");
+    LoadTextureFromFile(device->Device, L"Assets/Texture/emart.png");
+    LoadTextureFromFile(device->Device, L"Assets/Texture/T_Explosion_SubUV.png");
+    LoadTextureFromFile(device->Device, L"Assets/Texture/UUID_Font.png");
+    LoadTextureFromFile(device->Device, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
+    LoadTextureFromFile(device->Device, L"Assets/Texture/spotLight.png");
+
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_Actor.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightSpot.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightPoint.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightDirectional.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
 
 }
 
@@ -76,7 +79,7 @@ std::shared_ptr<FTexture> FResourceMgr::GetTexture(const FWString& name) const
     return TempValue ? *TempValue : nullptr;
 }
 
-HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
+HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, const wchar_t* filename, bool bIsSRGB)
 {
     IWICImagingFactory* wicFactory = nullptr;
     IWICBitmapDecoder* decoder = nullptr;
@@ -124,7 +127,7 @@ HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
     textureDesc.Height = height;
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
-    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Format = bIsSRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
     textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;

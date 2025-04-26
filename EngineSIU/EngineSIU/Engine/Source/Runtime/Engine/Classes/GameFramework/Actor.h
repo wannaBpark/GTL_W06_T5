@@ -36,6 +36,8 @@ public:
      */
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
+    bool IsOverlappingActor(const AActor* Other) const;
+
 public:
     /** 이 Actor를 제거합니다. */
     virtual bool Destroy();
@@ -65,7 +67,7 @@ public:
 
     template<typename T>
         requires std::derived_from<T, UActorComponent>
-    T* GetComponentByClass();
+    T* GetComponentByClass() const;
 
     void InitializeComponents();
     void UninitializeComponents();
@@ -140,7 +142,7 @@ T* AActor::AddComponent(FName InName)
 }
 
 template <typename T> requires std::derived_from<T, UActorComponent>
-T* AActor::GetComponentByClass()
+T* AActor::GetComponentByClass() const
 {
     for (UActorComponent* Component : OwnedComponents)
     {
