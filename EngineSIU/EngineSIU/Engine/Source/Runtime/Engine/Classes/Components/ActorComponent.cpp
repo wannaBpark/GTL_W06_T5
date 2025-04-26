@@ -100,7 +100,7 @@ void UActorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     bHasBegunPlay = false;
 }
 
-void UActorComponent::DestroyComponent()
+void UActorComponent::DestroyComponent(bool bPromoteChildren)
 {
     if (bIsBeingDestroyed)
     {

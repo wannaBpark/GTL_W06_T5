@@ -215,13 +215,27 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
         {
         case 'F':
         {
-            const UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-            if (const AActor* PickedActor = Engine->GetSelectedActor())
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+            AActor* SelectedActor = Engine->GetSelectedActor();
+
+            USceneComponent* TargetComponent = nullptr;
+
+            if (SelectedComponent != nullptr)
+            {
+                TargetComponent = SelectedComponent;
+            }
+            else if (SelectedActor != nullptr)
+            {
+                TargetComponent = SelectedActor->GetRootComponent();
+            }
+
+            if (TargetComponent)
             {
                 FViewportCamera& ViewTransform = PerspectiveCamera;
                 ViewTransform.SetLocation(
                     // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
-                    PickedActor->GetActorLocation() - (ViewTransform.GetForwardVector() * 10.0f)
+                    TargetComponent->GetWorldLocation() - (ViewTransform.GetForwardVector() * 10.0f)
                 );
             }
             break;
@@ -243,10 +257,37 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
         {
         case VK_DELETE:
         {
-            if (AActor* SelectedActor = EdEngine->GetSelectedActor())
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            if (Engine)
             {
-                EdEngine->DeselectActor(SelectedActor);
-                GEngine->ActiveWorld->DestroyActor(SelectedActor);
+                USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+                AActor* SelectedActor = Engine->GetSelectedActor();
+
+                if (SelectedComponent)
+                {
+                    AActor* Owner = SelectedComponent->GetOwner();
+
+                    if (Owner && Owner->GetRootComponent() != SelectedComponent)
+                    {
+                        UE_LOG(LogLevel::Display, "Delete Component - %s", *SelectedComponent->GetName());
+                        Engine->DeselectComponent(SelectedComponent);
+                        SelectedComponent->DestroyComponent();
+                    }
+                    else if (SelectedActor)
+                    {
+                        UE_LOG(LogLevel::Display, "Delete Component - %s", *SelectedActor->GetName());
+                        Engine->DeselectActor(SelectedActor);
+                        Engine->DeselectComponent(SelectedComponent);
+                        Engine->ActiveWorld->DestroyActor(SelectedActor);
+                    }
+                }
+                else if (SelectedActor)
+                {
+                    UE_LOG(LogLevel::Display, "Delete Component - %s", *SelectedActor->GetName());
+                    Engine->DeselectActor(SelectedActor);
+                    Engine->DeselectComponent(SelectedComponent);
+                    Engine->ActiveWorld->DestroyActor(SelectedActor);
+                }
             }
             break;
         }

@@ -13,9 +13,19 @@ ACube::ACube()
     // Begin Test
     //StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Contents/helloBlender.obj"));
     StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Contents/Reference/Reference.obj"));
-    AddComponent<UBoxComponent>("CUBECOLLISION_0");
-    AddComponent<UCapsuleComponent>("CAPSULECOLLISION_0");
-    AddComponent<USphereComponent>("SPHERECOLLISION_0");
+
+
+
+    // TODO 임시 코드임. (Class Table에 생성되지 않으면 안넣어짐.)
+    auto BoxComponent = AddComponent<UBoxComponent>();
+    BoxComponent->DestroyComponent();
+
+    auto SphereComponent = AddComponent<USphereComponent>();
+    SphereComponent->DestroyComponent();
+
+    auto CapsuleComponent = AddComponent<UCapsuleComponent>();
+    CapsuleComponent->DestroyComponent();
+    
     // End Test
 }
 
