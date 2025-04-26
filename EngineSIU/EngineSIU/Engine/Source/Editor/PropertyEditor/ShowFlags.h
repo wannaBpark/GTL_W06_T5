@@ -1,5 +1,4 @@
 #pragma once
-#include "Define.h"
 #include "IWindowToggleable.h"
 #include "UnrealEd/EditorViewportClient.h"
 
@@ -16,6 +15,8 @@ namespace EEngineShowFlags
         SF_LightWireframe = 1ULL << 5,
         SF_LightWireframeSelectedOnly = 1ULL << 6,
         SF_Shadow = 1ULL << 7,
+        SF_Collision = 1ULL << 8,
+        SF_CollisionSelectedOnly = 1ULL << 9,
     };
 }
 
