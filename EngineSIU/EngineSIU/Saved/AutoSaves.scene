@@ -67,40 +67,13 @@
                         "ComponentName": "StaticMeshComponent_0",
                         "ComponentOwner": "ACube_113",
                         "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=0.826 Y=4.562 Z=0.288",
-                        "RelativeRotation": "Pitch=-8.334 Yaw=6.654 Roll=19.573",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "RelativeLocation": "X=2.412 Y=5.260 Z=-0.002",
+                        "RelativeRotation": "Pitch=-1.022 Yaw=27.316 Roll=21.384",
+                        "RelativeScale3D": "X=1.632 Y=1.074 Z=0.956",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
-                    }
-                },
-                {
-                    "ComponentClass": "USpotLightComponent",
-                    "ComponentID": "USpotLightComponent_116",
-                    "Properties": {
-                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
-                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
-                        "AttachParentID": "UDirectionalLightComponent_115",
-                        "Attenuation": "20.000000",
-                        "ComponentClass": "USpotLightComponent",
-                        "ComponentName": "USpotLightComponent_116",
-                        "ComponentOwner": "ACube_113",
-                        "ComponentOwnerClass": "ACube",
-                        "Direction": "X=0.392 Y=-0.662 Z=0.638",
-                        "InnerRad": "0.261800",
-                        "Intensity": "1000.000000",
-                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "OuterRad": "0.523600",
-                        "Position": "X=11.895 Y=-3.547 Z=-2.643",
-                        "Radius": "30.000000",
-                        "RelativeLocation": "X=-3.580 Y=-7.194 Z=4.851",
-                        "RelativeRotation": "Pitch=11.539 Yaw=-33.830 Roll=-132.223",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "Type": "2",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
                     }
                 },
                 {
@@ -117,11 +90,31 @@
                         "Direction": "X=-1.000 Y=-0.000 Z=-0.000",
                         "Intensity": "10.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "RelativeLocation": "X=17.852 Y=-3.176 Z=-2.086",
+                        "RelativeLocation": "X=4.808 Y=-0.959 Z=0.392",
                         "RelativeRotation": "Pitch=39.491 Yaw=-38.461 Roll=-35.055",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "UStaticMeshComponent_113",
+                    "Properties": {
+                        "AABB_max": "X=0.500 Y=0.500 Z=0.500",
+                        "AABB_min": "X=-0.500 Y=-0.500 Z=-0.500",
+                        "AttachParentID": "UDirectionalLightComponent_115",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "UStaticMeshComponent_113",
+                        "ComponentOwner": "ACube_113",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=1.942 Y=1.196 Z=-1.860",
+                        "RelativeRotation": "Pitch=-30.677 Yaw=47.733 Roll=-17.231",
+                        "RelativeScale3D": "X=1.538 Y=1.000 Z=2.782",
+                        "StaticMeshPath": "Contents/CubePrimitive.obj",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
                     }
                 }
             ],

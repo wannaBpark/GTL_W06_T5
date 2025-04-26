@@ -96,6 +96,11 @@ void ATransformGizmo::Tick(float DeltaTime)
     {
         return;
     }
+    AEditorPlayer* EditorPlayer = Engine->GetEditorPlayer();
+    if (!EditorPlayer)
+    {
+        return;
+    }
     
     USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
     AActor* SelectedActor = Engine->GetSelectedActor();
@@ -114,11 +119,11 @@ void ATransformGizmo::Tick(float DeltaTime)
     if (TargetComponent)
     {
         SetActorLocation(TargetComponent->GetWorldLocation());
-        if (Engine->GetEditorPlayer()->GetCoordMode() == ECoordMode::CDM_LOCAL)
+        if (EditorPlayer->GetCoordMode() == ECoordMode::CDM_LOCAL || EditorPlayer->GetControlMode() == EControlMode::CM_SCALE)
         {
             SetActorRotation(TargetComponent->GetWorldRotation());
         }
-        else if (Engine->GetEditorPlayer()->GetCoordMode() == ECoordMode::CDM_WORLD)
+        else
         {
             SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
         }

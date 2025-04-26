@@ -307,7 +307,8 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
             AttachParent == nullptr                               // AttachParent도 유효하며
             || !AttachParent->AttachChildren.Contains(this)  // 한번이라도 SetupAttachment가 호출된적이 없는 경우
         ) 
-    ) {
+    )
+    {
         AttachParent = InParent;
 
         // TODO: .AddUnique의 실행 위치를 RegisterComponent로 바꾸거나 해야할 듯

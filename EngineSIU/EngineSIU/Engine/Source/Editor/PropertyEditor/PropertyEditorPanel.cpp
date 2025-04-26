@@ -260,7 +260,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
 {
     if (StaticMeshComp->GetStaticMesh() == nullptr)
     {
-        return;
+        // return;
     }
 
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -269,7 +269,15 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         ImGui::Text("StaticMesh");
         ImGui::SameLine();
 
-        FString PreviewName = StaticMeshComp->GetStaticMesh()->GetRenderData()->DisplayName;
+        FString PreviewName = FString("None");
+        if (UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh())
+        {
+            if (FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData())
+            {
+                PreviewName = RenderData->DisplayName;
+            }
+        }
+        
         const TMap<FName, FAssetInfo> Assets = UAssetManager::Get().GetAssetRegistry();
 
         if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))

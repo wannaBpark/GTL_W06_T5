@@ -44,14 +44,18 @@ void OutlinerEditorPanel::Render()
         return;
     }
 
-    std::function<void(USceneComponent*)> CreateNode = [&CreateNode, &Engine](USceneComponent* InComp)->void
+    std::function<void(USceneComponent*)> CreateNode =
+        [&CreateNode, &Engine](USceneComponent* InComp)->void
         {
             FString Name = InComp->GetName();
 
             ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_None;
             if (InComp->GetAttachChildren().Num() == 0)
+            {
                 Flags |= ImGuiTreeNodeFlags_Leaf;
-
+            }
+            
+            ImGui::SetNextItemOpen(true, ImGuiCond_Always);
             bool NodeOpen = ImGui::TreeNodeEx(*Name, Flags);
 
             if (ImGui::IsItemClicked())
@@ -73,6 +77,8 @@ void OutlinerEditorPanel::Render()
     for (AActor* Actor : Engine->ActiveWorld->GetActiveLevel()->Actors)
     {
         ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_None;
+
+        ImGui::SetNextItemOpen(true, ImGuiCond_Always);
 
         bool NodeOpen = ImGui::TreeNodeEx(*Actor->GetName(), Flags);
 

@@ -33,5 +33,5 @@ public:
     
     void SetGizmoType(EGizmoType InGizmoType) { GizmoType = InGizmoType; }
 
-    float GizmoScale = 0.3f;
+    float GizmoScale = 0.2f;
 };
