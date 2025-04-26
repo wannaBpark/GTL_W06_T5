@@ -281,7 +281,6 @@ void AEditorPlayer::PickedObjControl()
         int32 deltaX = currentMousePos.x - m_LastMousePos.x;
         int32 deltaY = currentMousePos.y - m_LastMousePos.y;
 
-        // USceneComponent* pObj = GetWorld()->GetPickingObj();
         USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
         AActor* SelectedActor = Engine->GetSelectedActor();
 
