@@ -69,7 +69,6 @@ void UPrimitiveComponent::GetProperties(TMap<FString, FString>& OutProperties) c
     OutProperties.Add(TEXT("AABB_max"), AABB.max.ToString());
 }
 
-
 void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperties)
 {
     Super::SetProperties(InProperties);

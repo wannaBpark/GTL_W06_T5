@@ -48,6 +48,12 @@ public:
     FQuat ToQuat() const;
 
     FVector GetScaleVector(float Tolerance = SMALL_NUMBER) const;
+
+    FVector GetTranslationVector() const;
+
+    FMatrix GetMatrixWithoutScale(float Tolerance = SMALL_NUMBER) const;
+
+    void RemoveScaling(float Tolerance = SMALL_NUMBER);
 };
 
 inline FArchive& operator<<(FArchive& Ar, FMatrix& M)

@@ -30,7 +30,16 @@ void USceneComponent::GetProperties(TMap<FString, FString>& OutProperties) const
     OutProperties.Add(TEXT("RelativeLocation"), *RelativeLocation.ToString());
     OutProperties.Add(TEXT("RelativeRotation"), *RelativeRotation.ToString());
     OutProperties.Add(TEXT("RelativeScale3D"), *RelativeScale3D.ToString());
-    
+
+    USceneComponent* ParentComp = GetAttachParent();
+    if (ParentComp != nullptr)
+    {
+        OutProperties.Add(TEXT("AttachParentID"), ParentComp->GetName());
+    }
+    else
+    {
+        OutProperties.Add(TEXT("AttachParentID"), "nullptr");
+    }
 }
 
 void USceneComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -123,22 +132,22 @@ void USceneComponent::DestroyComponent(bool bPromoteChildren)
 
 FVector USceneComponent::GetForwardVector()
 {
-	FVector Forward = FVector(1.f, 0.f, 0.0f);
-	Forward = JungleMath::FVectorRotate(Forward, RelativeRotation);
+	FVector Forward = FVector::ForwardVector;
+	Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
 	return Forward;
 }
 
 FVector USceneComponent::GetRightVector()
 {
-	FVector Right = FVector(0.f, 1.f, 0.0f);
-	Right = JungleMath::FVectorRotate(Right, RelativeRotation);
+	FVector Right = FVector::RightVector;
+	Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
 	return Right;
 }
 
 FVector USceneComponent::GetUpVector()
 {
-	FVector Up = FVector(0.f, 0.f, 1.0f);
-	Up = JungleMath::FVectorRotate(Up, RelativeRotation);
+	FVector Up = FVector::UpVector;
+	Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
 	return Up;
 }
 
@@ -189,20 +198,46 @@ void USceneComponent::AttachToComponent(USceneComponent* InParent)
 
 void USceneComponent::SetWorldLocation(const FVector& InLocation)
 {
+    // TODO: 기즈모 문제인지 이 코드가 문제인지는 검증 안됨
+    FMatrix NewRelativeMatrix = FMatrix::CreateTranslationMatrix(InLocation);
+    if (AttachParent)
+    {
+        FMatrix ParentMatrix = AttachParent->GetWorldMatrix().GetMatrixWithoutScale();
+        NewRelativeMatrix = NewRelativeMatrix * FMatrix::Inverse(ParentMatrix);
+    }
+    FVector NewRelativeLocation = NewRelativeMatrix.GetTranslationVector();
+    RelativeLocation = NewRelativeLocation;
 }
 
 void USceneComponent::SetWorldRotation(const FRotator& InRotation)
 {
+    // TODO: 기즈모 문제인지 이 코드가 문제인지는 검증 안됨
+    FMatrix NewRelativeMatrix = FMatrix::CreateRotationMatrix(InRotation.Roll, InRotation.Pitch, InRotation.Yaw);
+    if (AttachParent)
+    {
+        FMatrix ParentMatrix = AttachParent->GetWorldMatrix().GetMatrixWithoutScale();
+        NewRelativeMatrix = NewRelativeMatrix * FMatrix::Inverse(ParentMatrix);
+    }
+    FQuat NewRelativeRotation = FQuat(NewRelativeMatrix);
+    RelativeRotation = FRotator(NewRelativeRotation);
 }
 
 void USceneComponent::SetWorldScale3D(const FVector& InScale)
 {
+    // TODO: 기즈모 문제인지 이 코드가 문제인지는 검증 안됨
+    FMatrix NewRelativeMatrix = FMatrix::CreateScaleMatrix(InScale.X, InScale.Y, InScale.Z);
+    if (AttachParent)
+    {
+        FMatrix ParentMatrix = FMatrix::GetScaleMatrix(AttachParent->RelativeScale3D);
+        NewRelativeMatrix = NewRelativeMatrix * FMatrix::Inverse(ParentMatrix);
+    }
+    FVector NewRelativeScale = NewRelativeMatrix.GetScaleVector();
+    RelativeScale3D = NewRelativeScale;
 }
 
 FVector USceneComponent::GetWorldLocation() const
 {
-    FMatrix WorldMatrix = GetWorldMatrix();
-    return FVector(WorldMatrix.M[3][0], WorldMatrix.M[3][1], WorldMatrix.M[3][2]);
+    return GetWorldMatrix().GetTranslationVector();
 }
 
 FRotator USceneComponent::GetWorldRotation() const
