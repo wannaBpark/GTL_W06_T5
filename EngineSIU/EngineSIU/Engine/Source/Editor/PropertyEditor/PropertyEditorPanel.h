@@ -31,7 +31,6 @@ class PropertyEditorPanel : public UEditorPanel
 public:
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
-    void OpenLuaScriptFile(LPCTSTR InLuaFilePath);
 
 private:
     static void RGBToHSV(float R, float G, float B, float& H, float& S, float& V);

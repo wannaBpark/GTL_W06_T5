@@ -805,7 +805,7 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\GPUTimingManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowManager.cpp" />
-    <ClCompile Include="LuaScriptComponent.cpp" />
+    <ClCompile Include="LuaScripts\LuaScriptComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -882,7 +882,9 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\StatDefine.h" />
-    <ClInclude Include="LuaScriptComponent.h" />
+    <ClInclude Include="LuaScripts\LuaBindingHelpers.h" />
+    <ClInclude Include="LuaScripts\LuaScriptComponent.h" />
+    <ClInclude Include="LuaScripts\LuaScriptFileUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />

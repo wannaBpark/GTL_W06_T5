@@ -3,7 +3,6 @@
 #include "Runtime/Core/Math/Vector.h"
 #include "Runtime/Engine/UserInterface/Console.h"
 #include "EngineLoop.h"
-#include "Engine/Engine.h"
 
 namespace LuaBindingHelpers
 {

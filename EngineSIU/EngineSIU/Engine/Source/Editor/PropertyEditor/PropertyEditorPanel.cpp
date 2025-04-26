@@ -2,10 +2,9 @@
 
 #include <algorithm>
 #include <string>
-#include <windows.h>
-#include <tchar.h>
-//#include <shlwapi.h>
-#include <shellapi.h>
+//#include <windows.h>
+//#include <tchar.h>
+
 
 #include "World/World.h"
 #include "Actors/Player.h"
@@ -32,6 +31,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 #include "LuaScripts/LuaScriptComponent.h"
+#include "LuaScripts/LuaScriptFileUtils.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -132,9 +132,8 @@ void PropertyEditorPanel::Render()
                 // 예: PickedActor에서 스크립트 경로를 받아옴
                 if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
                 {
-                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();
-                    LPCTSTR filePath = ws.c_str();
-                    OpenLuaScriptFile(filePath);
+                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();                    
+                    LuaScriptFileUtils::OpenLuaScriptFile(ws.c_str());
                 }
             }
         }
@@ -1026,20 +1025,4 @@ void PropertyEditorPanel::OnResize(HWND hWnd)
     GetClientRect(hWnd, &ClientRect);
     Width = ClientRect.right - ClientRect.left;
     Height = ClientRect.bottom - ClientRect.top;
-}
-
-void PropertyEditorPanel::OpenLuaScriptFile(LPCTSTR InLuaFilePath)
-{
-    HINSTANCE hInst = ShellExecute(
-        NULL,
-        _T("open"),
-        InLuaFilePath,
-        NULL,
-        NULL,
-        SW_SHOWNORMAL
-    );
-
-    if ((INT_PTR)hInst <= 32) {
-        MessageBox(NULL, _T("파일 열기에 실패했습니다."), _T("Error"), MB_OK | MB_ICONERROR);
-    }
 }
