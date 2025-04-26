@@ -17,11 +17,7 @@ public:
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
-    virtual int CheckRayIntersection(
-        FVector& rayOrigin,
-        FVector& rayDirection,
-        float& pfNearHitDistance
-    ) override;
+    virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
 
     virtual void SetTexture(const FWString& _fileName);
     void SetUUIDParent(USceneComponent* _parent);

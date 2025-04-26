@@ -101,11 +101,13 @@ void UTextComponent::SetRowColumnCount(int cellsPerRow, int cellsPerColumn)
     ColumnCount = cellsPerColumn;
 }
 
-int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
+int UTextComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const
 {
-    if (!(ShowFlags::GetInstance().CurrentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))) {
+    if (!(ShowFlags::GetInstance().CurrentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)))
+    {
         return 0;
     }
+    
     //TODO: quadWidth 고정으로 font사이즈 변경시 문제 발생할 수 있음
     const float quadWidth = 2.0f;
     float totalTextWidth = quadWidth * Text.size();
@@ -123,7 +125,7 @@ int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirecti
         float hitDistance = 0.0f;
         if (CheckPickingOnNDC(LetterQuad, hitDistance))
         {
-            pfNearHitDistance = hitDistance;
+            OutHitDistance = hitDistance;
             return 1;
         }
     }

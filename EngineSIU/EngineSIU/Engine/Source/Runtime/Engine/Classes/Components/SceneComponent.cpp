@@ -66,11 +66,9 @@ void USceneComponent::TickComponent(float DeltaTime)
 }
 
 
-int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance)
+int USceneComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const
 {
-    // TODO: 나중에 지워도 될듯
-    int nIntersections = 0;
-    return nIntersections;
+    return 0;
 }
 
 void USceneComponent::DestroyComponent(bool bPromoteChildren)
@@ -145,19 +143,19 @@ FVector USceneComponent::GetUpVector()
 }
 
 
-void USceneComponent::AddLocation(FVector InAddValue)
+void USceneComponent::AddLocation(const FVector& InAddValue)
 {
 	RelativeLocation = RelativeLocation + InAddValue;
 
 }
 
-void USceneComponent::AddRotation(FVector InAddValue)
+void USceneComponent::AddRotation(const FVector& InAddValue)
 {
 	RelativeRotation = RelativeRotation + InAddValue;
 
 }
 
-void USceneComponent::AddScale(FVector InAddValue)
+void USceneComponent::AddScale(const FVector& InAddValue)
 {
 	RelativeScale3D = RelativeScale3D + InAddValue;
 
@@ -187,6 +185,18 @@ void USceneComponent::AttachToComponent(USceneComponent* InParent)
     {
         InParent->AttachChildren.Add(this);
     }
+}
+
+void USceneComponent::SetWorldLocation(const FVector& InLocation)
+{
+}
+
+void USceneComponent::SetWorldRotation(const FRotator& InRotation)
+{
+}
+
+void USceneComponent::SetWorldScale3D(const FVector& InScale)
+{
 }
 
 FVector USceneComponent::GetWorldLocation() const

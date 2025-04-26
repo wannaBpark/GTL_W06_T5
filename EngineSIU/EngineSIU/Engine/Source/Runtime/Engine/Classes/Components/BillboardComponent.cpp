@@ -75,7 +75,7 @@ void UBillboardComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 }
 
-int UBillboardComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
+int UBillboardComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const
 {
     TArray<FVector> Vertices =
     {
@@ -85,7 +85,7 @@ int UBillboardComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
         FVector(-1.0f, -1.0f, 0.0f),
     };
 
-    return CheckPickingOnNDC(Vertices, pfNearHitDistance) ? 1 : 0;
+    return CheckPickingOnNDC(Vertices, OutHitDistance) ? 1 : 0;
 }
 
 void UBillboardComponent::SetTexture(const FWString& _fileName)
