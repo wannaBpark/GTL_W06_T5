@@ -1,42 +1,43 @@
 {
     "Actors": [
         {
-            "ActorClass": "AActor",
-            "ActorID": "AActor_114",
-            "ActorLabel": "OBJ_SPHERE_114",
+            "ActorClass": "ACube",
+            "ActorID": "ACube_108",
+            "ActorLabel": "ACube108",
             "Components": [
                 {
-                    "ComponentClass": "USphereComp",
-                    "ComponentID": "USphereComp_115",
+                    "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "StaticMeshComponent_0",
                     "Properties": {
-                        "AABB_max": "X=1.000 Y=1.000 Z=1.000",
-                        "AABB_min": "X=-1.000 Y=-1.000 Z=-1.000",
-                        "ComponentClass": "USphereComp",
-                        "ComponentName": "USphereComp_115",
-                        "ComponentOwner": "AActor_114",
-                        "ComponentOwnerClass": "AActor",
-                        "RelativeLocation": "X=0.000 Y=10.594 Z=0.000",
+                        "AABB_max": "X=1.287 Y=1.199 Z=2.555",
+                        "AABB_min": "X=-1.287 Y=-1.199 Z=-0.000",
+                        "AttachParentID": "nullptr",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "StaticMeshComponent_0",
+                        "ComponentOwner": "ACube_108",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=0.000 Y=10.340 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/Sphere.obj",
+                        "StaticMeshPath": "Contents/Reference/Reference.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
-                        "m_Type": "USphereComp"
+                        "m_Type": ""
                     }
                 },
                 {
-                    "ComponentClass": "UCapsuleComponent",
-                    "ComponentID": "UCapsuleComponent_120",
+                    "ComponentClass": "UBoxComponent",
+                    "ComponentID": "UBoxComponent_114",
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "CapsuleHalfHeight": "1.000000",
-                        "CapsuleRadius": "0.500000",
+                        "AttachParentID": "StaticMeshComponent_0",
+                        "BoxExtent": "X=0.500 Y=0.500 Z=0.500",
                         "Color": "R=0.000 G=0.000 B=0.000 A=1.000",
-                        "ComponentClass": "UCapsuleComponent",
-                        "ComponentName": "UCapsuleComponent_120",
-                        "ComponentOwner": "AActor_114",
-                        "ComponentOwnerClass": "AActor",
+                        "ComponentClass": "UBoxComponent",
+                        "ComponentName": "UBoxComponent_114",
+                        "ComponentOwner": "ACube_108",
+                        "ComponentOwnerClass": "ACube",
                         "DrawOnlySelected": "true",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
@@ -45,76 +46,9 @@
                         "bIsActive": "true",
                         "m_Type": ""
                     }
-                },
-                {
-                    "ComponentClass": "USphereComponent",
-                    "ComponentID": "USphereComponent_114",
-                    "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "Color": "R=0.000 G=0.000 B=0.000 A=1.000",
-                        "ComponentClass": "USphereComponent",
-                        "ComponentName": "USphereComponent_114",
-                        "ComponentOwner": "AActor_114",
-                        "ComponentOwnerClass": "AActor",
-                        "DrawOnlySelected": "true",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "SphereRadius": "1.000000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": ""
-                    }
                 }
             ],
-            "RootComponentID": "USphereComp_115"
-        },
-        {
-            "ActorClass": "AActor",
-            "ActorID": "AActor_111",
-            "ActorLabel": "OBJ_SPHERE_111",
-            "Components": [
-                {
-                    "ComponentClass": "USphereComp",
-                    "ComponentID": "USphereComp_113",
-                    "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "ComponentClass": "USphereComp",
-                        "ComponentName": "USphereComp_113",
-                        "ComponentOwner": "AActor_111",
-                        "ComponentOwnerClass": "AActor",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "None",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": "USphereComp"
-                    }
-                },
-                {
-                    "ComponentClass": "USphereComp",
-                    "ComponentID": "USphereComp_112",
-                    "Properties": {
-                        "AABB_max": "X=1.000 Y=1.000 Z=1.000",
-                        "AABB_min": "X=-1.000 Y=-1.000 Z=-1.000",
-                        "ComponentClass": "USphereComp",
-                        "ComponentName": "USphereComp_112",
-                        "ComponentOwner": "AActor_111",
-                        "ComponentOwnerClass": "AActor",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/Sphere.obj",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": "USphereComp"
-                    }
-                }
-            ],
-            "RootComponentID": "USphereComp_112"
+            "RootComponentID": "StaticMeshComponent_0"
         }
     ],
     "NextUUID": 0,

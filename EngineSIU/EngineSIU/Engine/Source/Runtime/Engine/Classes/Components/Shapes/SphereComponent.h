@@ -23,7 +23,6 @@ public:
 
 public:
     virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
-    float GetRadius() const { return SphereRadius; }
 private:
     float SphereRadius = 0;
 };

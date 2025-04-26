@@ -87,7 +87,7 @@ void AActor::BeginPlay()
     {
         Comp->BeginPlay();
     }
-    OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
+    OnActorOverlapHandle = OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
 }
 
 void AActor::Tick(float DeltaTime)
@@ -117,6 +117,12 @@ void AActor::Destroyed()
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     // 본인이 소유하고 있는 모든 컴포넌트의 EndPlay 호출
+    if (OnActorOverlapHandle.IsValid())
+    {
+        OnActorOverlap.Remove(OnActorOverlapHandle);
+        OnActorOverlapHandle.Invalidate();
+    }
+
     for (UActorComponent* Component : GetComponents())
     {
         if (Component->HasBegunPlay())

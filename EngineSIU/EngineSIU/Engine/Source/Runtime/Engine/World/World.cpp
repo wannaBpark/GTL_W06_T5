@@ -63,11 +63,17 @@ void UWorld::Tick(float DeltaTime)
     {
         for (AActor* Other : ActorsCopy)
         {
+            if (!Other || Other->IsActorBeingDestroyed())
+            {
+                continue;
+            }
+
             if (Actor != Other)
             {
                 if (Actor->IsOverlappingActor(Other))
                 {
                     Actor->OnActorOverlap.Broadcast(Other);
+                    Other->OnActorOverlap.Broadcast(Actor);
                 }
             }
         }
@@ -132,7 +138,27 @@ bool UWorld::DestroyActor(AActor* ThisActor)
         return true;
     }
 
+
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine->GetSelectedActor() == ThisActor)
+    {
+        EditorEngine->DeselectActor(ThisActor);
+    }
+    if (EditorEngine->GetSelectedComponent() && 
+        
+        
+        
+        
+        
+        ThisActor->GetComponentByFName<UActorComponent>(EditorEngine->GetSelectedComponent()->GetFName()))
+    {
+        EditorEngine->DeselectComponent(EditorEngine->GetSelectedComponent());
+    }
+
     ThisActor->Destroyed();
+
+  
 
     if (ThisActor->GetOwner())
     {

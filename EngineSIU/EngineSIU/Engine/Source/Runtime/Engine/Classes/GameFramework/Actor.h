@@ -106,6 +106,8 @@ public:
 public:
     // 충돌시 호출되는 Delegate
     FActorHitSignature OnActorOverlap;
+    FDelegateHandle OnActorOverlapHandle;
+
     void HandleOverlap(AActor* OtherActor)
     {
         if (IsActorBeingDestroyed())

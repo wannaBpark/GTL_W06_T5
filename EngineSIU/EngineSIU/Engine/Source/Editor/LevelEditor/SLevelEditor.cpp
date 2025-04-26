@@ -255,7 +255,6 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
 
                             FVector RayOrigin, RayDir;
                             ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
-
                             const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), SelectedActor->GetActorLocation());
                             const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
                             const FVector Result = TargetRayEnd + TargetDiff;
