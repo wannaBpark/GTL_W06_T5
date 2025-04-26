@@ -73,7 +73,6 @@ namespace LuaBindingHelpers
                 UE_LOG(LogLevel::Error, TEXT("%s"), Msg.c_str());
                 // 화면에 출력
                 OutputDebugStringA(Msg.c_str()); // 디버그 창에 출력
-                MessageBoxA(NULL, Msg.c_str(), "Lua Display", MB_OK); // 팝업 창으로 표시
             }
         );
     }
