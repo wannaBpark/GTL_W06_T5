@@ -54,23 +54,6 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
-    // 임시적, PlayerController로 위임 예정
-    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
-    {
-        UWorld* PlayWorld = GEngine->ActiveWorld;
-        if (PlayWorld)
-        {
-            if (APlayerController* PC = PlayWorld->GetFirstPlayerController())
-            {
-                for (EKeys::Type Key : PressedKeys)
-                {
-                    // 키에 대응하는 InputAxis 호출
-                    PC->InputAxis(Key, 1.0f, DeltaTime);
-                }
-            }
-        }
-    }
-
     if(GEngine->ActiveWorld->WorldType == EWorldType::Editor)
     {
         UpdateEditorCameraMovement(DeltaTime);
@@ -139,11 +122,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PressedKeys.Add(EKeys::A);
+                        PC->InputKey(EKeys::A, IE_Pressed);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        PressedKeys.Remove(EKeys::A);
+                        PC->InputKey(EKeys::A, IE_Released);
                     }
                     break;
                 }
@@ -151,11 +134,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PressedKeys.Add(EKeys::D);
+                        PC->InputKey(EKeys::D, IE_Pressed);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        PressedKeys.Remove(EKeys::D);
+                        PC->InputKey(EKeys::D, IE_Released);
                     }
                     break;
                 }
@@ -163,11 +146,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PressedKeys.Add(EKeys::W);
+                        PC->InputKey(EKeys::W, IE_Pressed);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        PressedKeys.Remove(EKeys::W);
+                        PC->InputKey(EKeys::W, IE_Released);
                     }
                     break;
                 }
@@ -175,11 +158,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PressedKeys.Add(EKeys::S);
+                        PC->InputKey(EKeys::S, IE_Pressed);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        PressedKeys.Remove(EKeys::S);
+                        PC->InputKey(EKeys::S, IE_Released);
                     }
                     break;
                 }

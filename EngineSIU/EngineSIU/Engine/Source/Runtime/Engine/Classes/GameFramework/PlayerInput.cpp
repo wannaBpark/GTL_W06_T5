@@ -68,19 +68,23 @@ void UPlayerInput::InputKey(EKeys::Type Key, EInputEvent EventType)
     }
 }
 
-void UPlayerInput::InputAxis(EKeys::Type Key, float Delta, float DeltaTime)
+void UPlayerInput::InputAxis(EKeys::Type Key)
 {
     // 매핑된 축 찾기
-    for (const auto& M : AxisMappings)
+    if (APlayerController* PC = Cast<APlayerController>(GetOuter()))
     {
-        if (M.Key == Key && FMath::Abs(Delta) > KINDA_SMALL_NUMBER)
+        for (const EKeys::Type& Key : PressedKeys)
         {
-            float Scaled = Delta * M.Scale;
-            if (APlayerController* PC = Cast<APlayerController>(GetOuter()))
+            for (const auto& Mapping : AxisMappings)
             {
-                for (UInputComponent* IC : PC->GetInputComponentStack())
+                if (Mapping.Key == Key)
                 {
-                    IC->InputAxis(M.AxisName, Scaled);
+                    float ScaledValue = Mapping.Scale;
+
+                    for (UInputComponent* IC : PC->GetInputComponentStack())
+                    {
+                        IC->InputAxis(Mapping.AxisName, ScaledValue);
+                    }
                 }
             }
         }
