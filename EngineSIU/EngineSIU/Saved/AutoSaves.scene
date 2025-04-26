@@ -64,7 +64,7 @@
                         "ComponentName": "StaticMeshComponent_0",
                         "ComponentOwner": "ACube_109",
                         "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=0.663 Y=4.341 Z=1.984",
+                        "RelativeLocation": "X=2.769 Y=4.341 Z=1.984",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",

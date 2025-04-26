@@ -28,7 +28,7 @@ UObject* UBillboardComponent::Duplicate(UObject* InOuter)
         NewComponent->finalIndexV = finalIndexV;
         NewComponent->Texture = FEngineLoop::ResourceManager.GetTexture(TexturePath.ToWideString());
         NewComponent->TexturePath = TexturePath;
-        NewComponent->m_parent = m_parent;
+        NewComponent->UUIDParent = UUIDParent;
         NewComponent->bIsEditorBillboard = bIsEditorBillboard;
     }
     return NewComponent;
@@ -88,16 +88,16 @@ int UBillboardComponent::CheckRayIntersection(const FVector& InRayOrigin, const 
     return CheckPickingOnNDC(Vertices, OutHitDistance) ? 1 : 0;
 }
 
-void UBillboardComponent::SetTexture(const FWString& _fileName)
+void UBillboardComponent::SetTexture(const FWString& InFilePath)
 {
-    Texture = FEngineLoop::ResourceManager.GetTexture(_fileName);
-    TexturePath = FString(_fileName.c_str());
+    Texture = FEngineLoop::ResourceManager.GetTexture(InFilePath);
+    TexturePath = FString(InFilePath.c_str());
     //std::string str(_fileName.begin(), _fileName.end());
 }
 
-void UBillboardComponent::SetUUIDParent(USceneComponent* _parent)
+void UBillboardComponent::SetUUIDParent(USceneComponent* InUUIDParent)
 {
-    m_parent = _parent;
+    UUIDParent = InUUIDParent;
 }
 
 FMatrix UBillboardComponent::CreateBillboardMatrix() const
@@ -112,12 +112,16 @@ FMatrix UBillboardComponent::CreateBillboardMatrix() const
     CameraView.M[2][2] = -CameraView.M[2][2];
     FMatrix LookAtCamera = FMatrix::Transpose(CameraView);
 
-    FVector worldLocation = RelativeLocation;
-    if (m_parent)
-        worldLocation += m_parent->GetWorldLocation();
-    FVector worldScale = RelativeScale3D;
-    FMatrix S = FMatrix::CreateScaleMatrix(worldScale.X, worldScale.Y, worldScale.Z);
-    FMatrix T = FMatrix::CreateTranslationMatrix(worldLocation);
+    FVector WorldLocation = GetWorldLocation();
+    if (UUIDParent)
+    {
+        WorldLocation = UUIDParent->GetWorldLocation() + RelativeLocation;
+    }
+    
+    FVector WorldScale = RelativeScale3D;
+    FMatrix S = FMatrix::CreateScaleMatrix(WorldScale.X, WorldScale.Y, WorldScale.Z);
+    FMatrix T = FMatrix::CreateTranslationMatrix(WorldLocation);
+    
     // 최종 빌보드 행렬 = Scale * Rotation(LookAt) * Translation
     return S * LookAtCamera * T;
 }
