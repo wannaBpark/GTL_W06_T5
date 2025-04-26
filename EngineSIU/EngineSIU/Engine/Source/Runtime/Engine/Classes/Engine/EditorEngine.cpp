@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
 #include "Components/Light/DirectionalLightComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Character.h"
 
 namespace PrivateEditorSelection
 {
@@ -118,7 +120,18 @@ void UEditorEngine::StartPIE()
 
     PIEWorldContext.SetCurrentWorld(PIEWorld);
     ActiveWorld = PIEWorld;
-    
+
+    // GameMode 없으므로 StartPIE에서 바로 PC 생성
+    // 1) PlayerController 스폰
+    APlayerController* PC = ActiveWorld->SpawnActor<APlayerController>();
+
+    // 2) Character 스폰 및 Possess
+    ACharacter* PlayerCharacter = ActiveWorld->SpawnActor<ACharacter>();
+    PC->Possess(PlayerCharacter);
+
+    // 3) 월드에 컨트롤러 등록
+    ActiveWorld->AddPlayerController(PC);
+
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     WorldList.Add(GetWorldContextFromWorld(PIEWorld));

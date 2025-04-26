@@ -1,0 +1,108 @@
+#include "Pawn.h"
+#include "Controller.h"
+#include "Components/InputComponent.h"
+#include "PlayerController.h"
+
+void APawn::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+void APawn::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (!PendingMovement.IsNearlyZero())
+    {
+        // 최대 길이를 1로 정규화한 뒤 속도·델타타임 곱해서 이동량 계산
+        FVector Dir = PendingMovement.GetClampedToMaxSize(1.0f);
+        FVector Delta = Dir * MoveSpeed * DeltaTime;
+
+        // sweep=true 로 충돌 처리
+        //AddActorWorldOffset(Delta, true);
+
+        // 일단 충돌 처리 없이 이동
+        SetActorLocation(GetActorLocation() + Delta);
+
+        // 다음 프레임을 위해 초기화
+        PendingMovement = FVector::ZeroVector;
+    }
+}
+
+void APawn::Destroyed()
+{
+    Super::Destroyed();
+}
+
+void APawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+}
+
+void APawn::PossessedBy(AController* NewController)
+{
+    Controller = NewController;
+
+    if (APlayerController* PC = Cast<APlayerController>(Controller))
+    {
+        EnableInput(PC);
+    }
+
+}
+
+void APawn::UnPossessed()
+{
+    if (APlayerController* PC = Cast<APlayerController>(Controller))
+    {
+        DisableInput(PC);
+    }
+
+    Controller = nullptr;
+}
+
+void APawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+}
+
+void APawn::AddMovementInput(FVector WorldDirection, float ScaleValue)
+{
+    if (WorldDirection.IsZero() || ScaleValue == 0.0f)
+    {
+        return;
+    }
+    // 이동량을 누적
+    PendingMovement += WorldDirection.GetSafeNormal() * ScaleValue;
+}
+
+void APawn::AddControllerYawInput(float Value)
+{
+}
+
+void APawn::AddControllerPitchInput(float Value)
+{
+}
+
+FVector APawn::GetPawnViewLocation() const
+{
+    return FVector();
+}
+
+FRotator APawn::GetViewRotation() const
+{
+    return FRotator();
+}
+
+void APawn::EnableInput(APlayerController* PlayerController)
+{
+    Super::EnableInput(PlayerController);
+
+    if (InputComponent)
+    {
+        SetupPlayerInputComponent(InputComponent);
+    }
+}
+
+void APawn::DisableInput(APlayerController* PlayerController)
+{
+    Super::DisableInput(PlayerController);
+}

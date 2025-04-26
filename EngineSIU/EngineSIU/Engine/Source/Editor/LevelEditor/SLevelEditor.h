@@ -2,10 +2,11 @@
 #include <sstream>
 #include "Define.h"
 #include "Container/Map.h"
+#include "Engine/EditorEngine.h"
+#include "World/World.h"
 
 class SSplitterH;
 class SSplitterV;
-class UWorld;
 class FEditorViewportClient;
 
 
