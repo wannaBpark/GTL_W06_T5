@@ -70,6 +70,17 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     CallLuaFunction("EndPlay");
 }
 
+UObject* ULuaScriptComponent::Duplicate(UObject* InOuter)
+{
+    ULuaScriptComponent* NewComponent = Cast<ULuaScriptComponent>(Super::Duplicate(InOuter));
+    if (NewComponent)
+    {
+        NewComponent->ScriptPath = ScriptPath;
+        NewComponent->DisplayName = DisplayName;
+    }
+    return NewComponent;
+}
+
 void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
 {
     ScriptPath = InScriptPath;
