@@ -14,10 +14,10 @@ UObject* AActor::Duplicate(UObject* InOuter)
     //임시용 디폴트 컴포넌트 이름 저장
     //TODO: 디퐅트 컴포넌트를 삭제하지 않고 그 컴포넌트에 프로퍼티를 복사하는 방법으로 변경 필요
     TArray<FName> DefaultCopiedComponentNames;
-    for (UActorComponent* Components : CopiedComponents)
+    for (UActorComponent* Component : CopiedComponents)
     {
-        DefaultCopiedComponentNames.Add(Components->GetFName());
-        Components->DestroyComponent();
+        DefaultCopiedComponentNames.Add(Component->GetFName());
+        Component->DestroyComponent();
     }
     NewActor->OwnedComponents.Empty();
 
@@ -103,6 +103,12 @@ void AActor::Destroyed()
 {
     // Actor가 제거되었을 때 호출하는 EndPlay
     EndPlay(EEndPlayReason::Destroyed);
+    
+    TSet<UActorComponent*> Components = OwnedComponents;
+    for (UActorComponent* Component : Components)
+    {
+        Component->DestroyComponent(true);
+    }
 }
 
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
