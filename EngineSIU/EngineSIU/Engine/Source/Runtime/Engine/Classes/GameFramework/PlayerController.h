@@ -4,6 +4,7 @@
 
 class UCameraComponent;
 class UPlayerInput;
+class UInputComponent;
 class APlayerController : public AController
 {
     DECLARE_CLASS(APlayerController, AController)
@@ -19,16 +20,24 @@ public:
     void AddYawInput(float Value);
     void AddPitchInput(float Value);
     bool IsInputKeyDown(EKeys::Type Key) const;
+    
+    void PushInputComponent(UInputComponent* InputComponent);
+    void PopInputComponent(UInputComponent* InputComponent);
+    const TArray<UInputComponent*>& GetInputComponentStack() const { return InputComponentStack; }
+
+    void InputKey(EKeys::Type Key, EInputEvent EventType);
+    void InputAxis(EKeys::Type Key, float Delta, float DeltaTime);
 
     UPROPERTY
     (UCameraComponent*, PlayerCameraManager, = nullptr)
+
+    UPROPERTY
+    (TArray<UInputComponent*>, InputComponentStack, = {})
 
 protected:
     void SetupInputBindings();
 
     UPROPERTY
     (UPlayerInput*, PlayerInput, = nullptr)
-
-
 };
 

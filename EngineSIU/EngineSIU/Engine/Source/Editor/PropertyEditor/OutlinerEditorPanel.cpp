@@ -76,6 +76,9 @@ void OutlinerEditorPanel::Render()
 
     for (AActor* Actor : Engine->ActiveWorld->GetActiveLevel()->Actors)
     {
+        if (Actor->GetRootComponent() == nullptr)
+            continue;
+
         CreateNode(Actor->GetRootComponent());
     }
 

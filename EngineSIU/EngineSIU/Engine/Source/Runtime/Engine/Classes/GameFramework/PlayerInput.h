@@ -4,15 +4,31 @@
 
 struct FInputAxisKeyMapping
 {
-    FName AxisName;
+    FString AxisName;
     EKeys::Type Key;
     float Scale = 1.f;
+
+    // == 연산자 추가
+    bool operator==(const FInputAxisKeyMapping& Other) const
+    {
+        // '같다'고 판단할 기준을 정확히 명시
+        return AxisName == Other.AxisName
+            && Key == Other.Key;
+    }
 };
 
 struct FInputActionKeyMapping
 {
-    FName ActionName;
+    FString ActionName;
     EKeys::Type Key;
+
+    // == 연산자 추가
+    bool operator==(const FInputActionKeyMapping& Other) const
+    {
+        // '같다'고 판단할 기준을 정확히 명시
+        return ActionName == Other.ActionName
+            && Key == Other.Key;
+    }
 };
 
 class UPlayerInput : public UObject
@@ -22,33 +38,45 @@ class UPlayerInput : public UObject
 public:
     UPlayerInput() = default;
 
-    // === 입력 상태 ===
-    TMap<EKeys::Type, bool> KeyStates;             // 키가 눌렸는지 여부
-    TMap<EKeys::Type, float> KeyAxisValues;         // 축 값
-
-    // === 액션/축 매핑 ===
-    UPROPERTY
-    (TArray<FInputActionKeyMapping>, ActionMappings, = {})
-    
-    UPROPERTY
-    (TArray<FInputAxisKeyMapping>, AxisMappings, = {})
-
-    // === 주요 기능 ===
+    void InitializeDefaultMappings();
+    // 런타임에 매핑 추가/제거
+    void AddActionMapping(const FInputActionKeyMapping& Mapping);
+    void AddAxisMapping(const FInputAxisKeyMapping& Mapping);
+    void RemoveActionMapping(const FString ActionName, const EKeys::Type Key);
+    void RemoveAxisMapping(const FString AxisName, const EKeys::Type Key);
 
     /** 키가 눌려있는지 확인 */
     bool IsPressed(EKeys::Type Key) const;
 
     /** 축 값 읽기 */
-    float GetAxisValue(FName AxisName) const;
+    float GetAxisValue(FString AxisName) const;
 
     /** 키 이벤트 수신 */
-    void InputKey(EKeys::Type Key, EInputEvent EventType, float AmountDepressed = 1.0f);
+    void InputKey(EKeys::Type Key, EInputEvent EventType);
 
     /** 축 이벤트 수신 */
-    void InputAxis(EKeys::Type Key, float Delta);
+    void InputAxis(EKeys::Type Key, float Delta, float DeltaTime);
+
+    // SetupInputComponent 시, 매핑 데이터를 InputComponent 에 복사
+    void AddActionMappingsTo(TArray<FInputActionKeyMapping>& Out) const;
+    void AddAxisMappingsTo(TArray<FInputAxisKeyMapping>& Out) const;
 
 protected:
     /** 매 프레임 입력 상태 초기화 */
     void FlushPressedKeys();
+
+private:
+    // === 액션/축 매핑 ===
+    UPROPERTY
+    (TArray<FInputActionKeyMapping>, ActionMappings, = {})
+
+    UPROPERTY
+    (TArray<FInputAxisKeyMapping>, AxisMappings, = {})
+
+    // 현재 눌려 있는 키 집합
+    UPROPERTY
+    (TSet<EKeys::Type>, PressedKeys, = {})
+    
+
 };
 

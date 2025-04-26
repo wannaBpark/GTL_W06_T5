@@ -2,6 +2,7 @@
 #include "Actor.h"
 
 class AController;
+class APlayerController;
 class UInputComponent;
 
 class APawn : public AActor
@@ -36,7 +37,17 @@ public:
     virtual FVector GetPawnViewLocation() const;
     virtual FRotator GetViewRotation() const;
 
+    virtual void EnableInput(APlayerController* PlayerController) override;
+    virtual void DisableInput(APlayerController* PlayerController) override;
+
+
     UPROPERTY
     (AController*, Controller, = nullptr) // 현재 조종 중인 컨트롤러
+
+protected:
+    FVector PendingMovement;
+
+    UPROPERTY
+    (float, MoveSpeed, = 5.0f)
 };
 

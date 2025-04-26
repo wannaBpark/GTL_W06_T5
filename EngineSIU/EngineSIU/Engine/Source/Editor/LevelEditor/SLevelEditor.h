@@ -84,19 +84,4 @@ private:
         }
         return DefaultValue;
     }
-
-public:
-    template<typename TFunc>
-    auto EditorOnlyInputHandler(TFunc&& InFunc)
-    {
-        return [Func = std::forward<TFunc>(InFunc)](auto&&... Args)
-            {
-                if (!GEngine || !GEngine->ActiveWorld || GEngine->ActiveWorld->WorldType != EWorldType::Editor)
-                {
-                    return;
-                }
-
-                Func(std::forward<decltype(Args)>(Args)...);
-            };
-    }
 };

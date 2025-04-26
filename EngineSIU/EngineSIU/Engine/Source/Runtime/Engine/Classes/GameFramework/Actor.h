@@ -9,6 +9,8 @@
 
 
 class UActorComponent;
+class UInputComponent;
+class APlayerController;
 
 class AActor : public UObject
 {
@@ -90,9 +92,15 @@ public:
     bool SetActorRotation(const FRotator& NewRotation);
     bool SetActorScale(const FVector& NewScale);
 
+    virtual void EnableInput(APlayerController* PlayerController);
+    virtual void DisableInput(APlayerController* PlayerController);
+
 protected:
     UPROPERTY
     (USceneComponent*, RootComponent, = nullptr)
+
+    UPROPERTY
+    (UInputComponent*, InputComponent, = nullptr)
 
 private:
     /** 이 Actor를 소유하고 있는 다른 Actor의 정보 */

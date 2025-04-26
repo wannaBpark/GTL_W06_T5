@@ -79,7 +79,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
 
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
 
-    Handler->OnMouseDownDelegate.AddLambda(EditorOnlyInputHandler([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
     {
         if (ImGui::GetIO().WantCaptureMouse) return;
 
@@ -131,9 +131,9 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
             VSplitter->OnPressed({ClientPos.X, ClientPos.Y});
             HSplitter->OnPressed({ClientPos.X, ClientPos.Y});
         }
-    }));
+    });
 
-    Handler->OnMouseMoveDelegate.AddLambda(EditorOnlyInputHandler([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
     {
         if (ImGui::GetIO().WantCaptureMouse) return;
 
@@ -191,9 +191,9 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
             }
             FWindowsCursor::SetMouseCursor(CursorType);
         }
-    }));
+    });
 
-    Handler->OnMouseUpDelegate.AddLambda(EditorOnlyInputHandler([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
     {
         switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
         {
@@ -218,9 +218,9 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         default:
             return;
         }
-    }));
+    });
 
-    Handler->OnRawMouseInputDelegate.AddLambda(EditorOnlyInputHandler([this](const FPointerEvent& InMouseEvent)
+    Handler->OnRawMouseInputDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
     {
         // Mouse Move 이벤트 일때만 실행
         if (
@@ -328,9 +328,9 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
                 ActiveViewportClient->SetCameraSpeed(CurrentSpeed + Adjustment);
             }
         }
-    }));
+    });
 
-    Handler->OnMouseWheelDelegate.AddLambda(EditorOnlyInputHandler([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
     {
         if (ImGui::GetIO().WantCaptureMouse) return;
 
@@ -350,17 +350,17 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         {
             FEditorViewportClient::SetOthoSize(-InMouseEvent.GetWheelDelta());
         }
-    }));
+    });
 
-    Handler->OnKeyDownDelegate.AddLambda(EditorOnlyInputHandler([this](const FKeyEvent& InKeyEvent)
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
     {   
         ActiveViewportClient->InputKey(InKeyEvent);
-    }));
+    });
 
-    Handler->OnKeyUpDelegate.AddLambda(EditorOnlyInputHandler([this](const FKeyEvent& InKeyEvent)
+    Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
     {
         ActiveViewportClient->InputKey(InKeyEvent);
-    }));
+    });
 }
 
 void SLevelEditor::Tick(float DeltaTime)

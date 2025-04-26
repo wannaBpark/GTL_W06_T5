@@ -1,8 +1,8 @@
 #pragma once
 #include "Actor.h"
+#include "Components/InputComponent.h"
 
 class APawn;
-class UInputComponent;
 
 class AController : public AActor
 {
