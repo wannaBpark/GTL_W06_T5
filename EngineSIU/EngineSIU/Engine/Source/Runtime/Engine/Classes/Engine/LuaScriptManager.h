@@ -4,6 +4,7 @@
 #include "Container/String.h"
 #include "sol/sol.hpp"
 
+
 class FLuaScriptManager
 {
 

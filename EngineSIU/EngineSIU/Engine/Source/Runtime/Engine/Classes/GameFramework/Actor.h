@@ -149,7 +149,8 @@ public: // Lua Script.
 	// 자기 자신이 가진 정보들 Lua에 등록.
 	void InitLuaScriptComponent();
 	FString GetLuaScriptPathName();
-	virtual void SetupLuaProperties(sol::state& Lua, ULuaScriptComponent* LuaComponent);
+	virtual void ApplyTypeOnLua(sol::state& Lua); // Lua에 클래스 등록해주는 함수.
+    virtual void SetupLuaProperties(); // LuaEnv에서 사용할 멤버 변수 등록 함수.
 
 	bool bUseScript = true;
 private:

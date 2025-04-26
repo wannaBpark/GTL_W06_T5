@@ -72,7 +72,7 @@ public:
 public:
     void* operator new(size_t size)
     {
-        UE_LOG(LogLevel::Display, "UObject Created : %d", size);
+        //UE_LOG(LogLevel::Display, "UObject Created : %d", size);
 
         void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(size);
         UE_LOG(
@@ -86,7 +86,7 @@ public:
 
     void operator delete(void* ptr, size_t size)
     {
-        UE_LOG(LogLevel::Display, "UObject Deleted : %d", size);
+        //UE_LOG(LogLevel::Display, "UObject Deleted : %d", size);
         FPlatformMemory::Free<EAT_Object>(ptr, size);
     }
 

@@ -6,6 +6,7 @@
 #include "World/World.h"
 #include "Level.h"
 
+
 ULuaScriptComponent::ULuaScriptComponent()
 {
 }
@@ -27,8 +28,11 @@ void ULuaScriptComponent::BeginPlay()
 {
     Super::BeginPlay();
     
-    FString SceneName = GetWorld()->GetActiveLevel()->GetLevelName();
-    ScriptName = FString::Printf(TEXT("Scripts/%s/%s.lua"), *SceneName, *GetOwner()->GetClass()->GetName());
+    if (ScriptName.IsEmpty())
+    {
+        FString SceneName = GetWorld()->GetActiveLevel()->GetLevelName();
+        ScriptName = FString::Printf(TEXT("Scripts/%s/%s.lua"), *SceneName, *GetOwner()->GetClass()->GetName());
+    }
 
     if (LuaEnv.valid() && LuaEnv["BeginPlay"].valid())
     {
@@ -41,7 +45,6 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
     if (LuaEnv.valid() && LuaEnv["Tick"].valid())
     {
-        UE_LOG(LogLevel::Display, TEXT("LuaScriptComponent::TickComponent DeltaTime: %f"), DeltaTime);
         LuaEnv["Tick"](DeltaTime);
     }
 }
@@ -54,20 +57,20 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     }
 }
 
-void ULuaScriptComponent::LoadScript()
+sol::table& ULuaScriptComponent::LoadScript()
 {
-    /*FString SceneName = GetWorld()->GetActiveLevel()->GetLevelName();
-    ScriptName = FString::Printf(TEXT("Scripts/%s/%s.lua"), *SceneName, *GetOwner()->GetClass()->GetName());*/
-
     if (ScriptName.IsEmpty())
     {
-        return;
+        FString SceneName = GetWorld()->GetActiveLevel()->GetLevelName();
+        ScriptName = FString::Printf(TEXT("Scripts/%s/%s.lua"), *SceneName, *GetOwner()->GetClass()->GetName());
     }
+
     LuaEnv = FLuaScriptManager::Get().CreateLuaTable(ScriptName);
 
     if (!LuaEnv.valid())
-        return;
+        return LuaEnv;
 
     LuaEnv["self"] = GetOwner();
-    GetOwner()->SetupLuaProperties(FLuaScriptManager::Get().GetLua(), this);
+
+    return LuaEnv;
 }
