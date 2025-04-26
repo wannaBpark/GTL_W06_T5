@@ -4,14 +4,18 @@
 
 void APlayerController::BeginPlay()
 {
+    Super::BeginPlay();
 }
 
 void APlayerController::Tick(float DeltaTime)
 {
+    Super::Tick(DeltaTime);
 }
 
 void APlayerController::SetupInputComponent()
 {
+    Super::SetupInputComponent();
+    SetupInputBindings();
 }
 
 void APlayerController::AddYawInput(float Value)

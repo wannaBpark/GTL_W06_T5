@@ -1,4 +1,10 @@
 #include "Character.h"
+#include "Components/InputComponent.h"
+#include "Controller.h"
+
+ACharacter::ACharacter()
+{
+}
 
 void ACharacter::BeginPlay()
 {
@@ -10,12 +16,17 @@ void ACharacter::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 }
 
-void ACharacter::Destroyed()
+void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-    Super::Destroyed();
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ACharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ACharacter::PossessedBy(AController* NewController)
 {
-    Super::EndPlay(EndPlayReason);
+    Super::PossessedBy(NewController);
+}
+
+void ACharacter::UnPossessed()
+{
+    Super::UnPossessed();
 }
