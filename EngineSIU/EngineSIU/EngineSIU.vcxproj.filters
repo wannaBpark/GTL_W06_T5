@@ -810,6 +810,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\LuaScriptManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -890,7 +891,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.h" />
     <ClInclude Include="Engine\Source\ThirdParty\Lua\include\lauxlib.h" />
     <ClInclude Include="Engine\Source\ThirdParty\Lua\include\lua.h" />
     <ClInclude Include="Engine\Source\ThirdParty\Lua\include\lua.hpp" />
@@ -1013,6 +1013,8 @@
     <ClInclude Include="Engine\Source\ThirdParty\sol2\sol\variadic_results.hpp" />
     <ClInclude Include="Engine\Source\ThirdParty\sol2\sol\version.hpp" />
     <ClInclude Include="Engine\Source\ThirdParty\sol2\sol\wrapper.hpp" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\LuaScriptManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />

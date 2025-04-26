@@ -1,6 +1,8 @@
 #include "Actor.h"
 #include "World/World.h"
 
+#include "sol/sol.hpp"
+#include "Components/LuaScriptComponent.h"
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
@@ -74,6 +76,8 @@ UObject* AActor::Duplicate(UObject* InOuter)
         }
     }
 
+    LuaScriptComponent = GetComponentByClass<ULuaScriptComponent>();
+
     return NewActor;
 }
 
@@ -82,7 +86,7 @@ void AActor::BeginPlay()
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
     const auto CopyComponents = OwnedComponents;
     for (UActorComponent* Comp : CopyComponents)
-    {
+    {  
         Comp->BeginPlay();
     }
 }
@@ -289,4 +293,44 @@ bool AActor::SetActorScale(const FVector& NewScale)
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)
 {
     bTickInEditor = InbInTickInEditor;
+}
+
+void AActor::InitLuaScriptComponent()
+{
+    if (!LuaScriptComponent)
+    {
+        LuaScriptComponent = AddComponent<ULuaScriptComponent>("LuaComponent");
+    }
+
+    if (LuaScriptComponent)
+    {
+        LuaScriptComponent->LoadScript();
+    }
+}
+
+FString AActor::GetLuaScriptPathName()
+{
+    return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : TEXT("");
+}
+
+void AActor::SetupLuaProperties(sol::state& Lua, ULuaScriptComponent* LuaComponent)
+{
+    if (!bRegisteredLuaProperties)
+    {
+        Lua.new_usertype<AActor>("AActor",
+            "UUID", &ThisClass::UUID,
+            "ActorLocation", &ThisClass::GetActorLocation,  
+            "ActorRotation", &ThisClass::GetActorRotation,
+            "ActorScale", &ThisClass::GetActorScale
+        );
+        bRegisteredLuaProperties = true;
+    }
+
+    if (LuaComponent)
+    {
+        LuaComponent->GetLuaEnv()["UUID"] = UUID;
+        LuaComponent->GetLuaEnv()["ActorLocation"] = GetActorLocation();
+        LuaComponent->GetLuaEnv()["ActorRotation"] = GetActorRotation();
+        LuaComponent->GetLuaEnv()["ActorScale"] = GetActorScale();
+    }
 }

@@ -252,18 +252,20 @@ void PropertyEditorPanel::RenderForActor(AActor* InActor, USceneComponent* Targe
         Engine->DeselectComponent(Engine->GetSelectedComponent());
     }
 
-    FString SceneName = Engine->ActiveWorld->GetActiveLevel()->GetLevelName();
-    FString Directory = FString("Scripts");
-    FString LuaScriptFilePath = Directory + "/" + SceneName + "/" + InActor->GetClass()->GetName() + ".lua";
-    std::filesystem::path filePath = std::filesystem::path(GetData(LuaScriptFilePath));
-    FString LuaScriptFileName = FString(filePath.filename());
-    
-    
-    if (std::filesystem::exists(GetData(LuaScriptFilePath)))
+    //FString SceneName = Engine->ActiveWorld->GetActiveLevel()->GetLevelName();
+    //FString Directory = FString("Scripts");
+    //FString LuaScriptFilePath = Directory + "/" + SceneName + "/" + InActor->GetClass()->GetName() + ".lua";
+    //std::filesystem::path filePath = std::filesystem::path(GetData(LuaScriptFilePath));
+    //FString LuaScriptFileName = FString(filePath.filename()); 
+
+    FString LuaFilePath = InActor->GetLuaScriptPathName();
+    std::filesystem::path FilePath = std::filesystem::path(GetData(LuaFilePath));
+
+    if (std::filesystem::exists(GetData(LuaFilePath)))
     {
         if (ImGui::Button("Edit Script"))
         {
-            std::filesystem::path AbsPath = std::filesystem::absolute(filePath);
+            std::filesystem::path AbsPath = std::filesystem::absolute(FilePath);
             LPCTSTR LuaFilePath = AbsPath.c_str();
 
             // ShellExecute() -> Windows 확장자 연결(Association)에 따라 파일 열기
@@ -289,7 +291,7 @@ void PropertyEditorPanel::RenderForActor(AActor* InActor, USceneComponent* Targe
         {
             try
             {
-                std::filesystem::path Dir = filePath.parent_path();
+                std::filesystem::path Dir = FilePath.parent_path();
                 if (!std::filesystem::exists(Dir))
                 {
                     std::filesystem::create_directories(Dir);
@@ -297,7 +299,7 @@ void PropertyEditorPanel::RenderForActor(AActor* InActor, USceneComponent* Targe
 
                 std::ifstream luaTemplateFile(TemplateFilePath.ToWideString());
 
-                std::ofstream file(filePath);
+                std::ofstream file(FilePath);
                 if (file.is_open())
                 {
                     if (luaTemplateFile.is_open())
@@ -320,7 +322,7 @@ void PropertyEditorPanel::RenderForActor(AActor* InActor, USceneComponent* Targe
             }
         }
     }
-    ImGui::InputText("Script Name", GetData(LuaScriptFileName), LuaScriptFileName.Len() + 1, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputText("Script Name", GetData(LuaFilePath), LuaFilePath.Len() + 1, ImGuiInputTextFlags_ReadOnly);
 
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성

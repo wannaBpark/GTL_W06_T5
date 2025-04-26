@@ -11,9 +11,10 @@
 #include "UnrealEd/UnrealEd.h"
 #include "World/World.h"
 
-#include "Engine/EditorEngine.h"
 #include "Renderer/DepthPrePass.h"
 #include "Renderer/TileLightCullingPass.h"
+
+#include "Engine/LuaScriptManager.h"
 
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -51,6 +52,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     UIMgr = new UImGuiManager;
     AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
     LevelEditor = new SLevelEditor();
+    LuaScriptManager = new FLuaScriptManager();
 
     UnrealEditor->Initialize();
     GraphicDevice.Initialize(AppWnd);
