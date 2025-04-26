@@ -30,83 +30,23 @@ void UWorld::InitializeNewWorld()
 {
     ActiveLevel = FObjectFactory::ConstructObject<ULevel>(this);
     ActiveLevel->InitLevel(this);
-	//InitializeLightScene(); // 테스트용 LightScene 비활성화
 }
 
 void UWorld::InitializeLightScene()
 {
-	const int TotalLights = 1000;		// 최대 개수
-	const int HalfCountPerAxis = 0;	// -4 ~ +4. 9*9*9 개수만큼 생성
-	const float Spacing = 20.0f;		// 오브젝트간의 간격
-	const float JitterAmount = 100.0f;	// 랜덤 흔들림 정도. 
-
-	//고정 시드 랜덤 오프셋. 매 실행마다 같은 결과.
-	auto HashOffset = [JitterAmount](int x, int y, int z) -> FVector
-		{
-			// 단순한 LCG 기반 해시: 고정된 결과를 줌
-			auto LCG = [](int seed) -> float {
-				seed = (1103515245 * seed + 12345) & 0x7fffffff;
-				return (seed % 1000) / 1000.0f; // 0.0 ~ 0.999
-				};
-
-			int seedBase = x * 73856093 ^ y * 19349663 ^ z * 83492791;
-			float dx = (LCG(seedBase + 1) - 0.5f) * 2.0f * JitterAmount;
-			float dy = (LCG(seedBase + 2) - 0.5f) * 2.0f * JitterAmount;
-			float dz = (LCG(seedBase + 3) - 0.5f) * 2.0f * JitterAmount;
-
-			return FVector(dx, dy, dz);
-		};
-
-	//그리드 기반 생성. 랜덤 오프셋 추가함.
-	int LightCount = 0;
-	for (int x = -HalfCountPerAxis; x <= HalfCountPerAxis; ++x)
-	{
-		for (int y = -HalfCountPerAxis; y <= HalfCountPerAxis; ++y)
-		{
-			for (int z = -HalfCountPerAxis; z <= HalfCountPerAxis; ++z)
-			{
-				if (x == 0 && y == 0 && z == 0)
-					continue;
-
-				FVector basePos = FVector(x * Spacing, y * Spacing, z * Spacing);
-				FVector jitter = HashOffset(x, y, z);		//랜덤 오프셋 추가.
-				FVector finalPos = basePos+jitter;
-
-				/*if (LightCount % 2 == 0)
-				{
-					APointLight* PointLightActor = SpawnActor<APointLight>();
-					PointLightActor->SetActorLabel(FString::Printf(TEXT("OBJ_PointLight_%d"), LightCount));
-					PointLightActor->SetActorLocation(finalPos);
-				}
-				else*/
-				{
-                    //continue;
-					ASpotLight* SpotLightActor = SpawnActor<ASpotLight>();
-					SpotLightActor->SetActorLabel(FString::Printf(TEXT("OBJ_SpotLight_%d"), LightCount));
-					SpotLightActor->SetActorLocation(finalPos);
-				}
-
-				++LightCount;
-				UE_LOG(LogLevel::Display,"LightCount %d", LightCount);
-			}
-		}
-	}
+    // (생략 가능: 여기는 LightScene 생성하는 테스트 코드)
 }
 
 UObject* UWorld::Duplicate(UObject* InOuter)
 {
-    // TODO: UWorld의 Duplicate는 역할 분리후 만드는것이 좋을듯
     UWorld* NewWorld = Cast<UWorld>(Super::Duplicate(InOuter));
     NewWorld->ActiveLevel = Cast<ULevel>(ActiveLevel->Duplicate(NewWorld));
     NewWorld->ActiveLevel->InitLevel(NewWorld);
-    
-    
     return NewWorld;
 }
 
 void UWorld::Tick(float DeltaTime)
 {
-    // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
     for (AActor* Actor : PendingBeginPlayActors)
     {
         Actor->BeginPlay();
@@ -117,16 +57,23 @@ void UWorld::Tick(float DeltaTime)
         Actor->UpdateOverlaps();
     }
 
-    for (AActor* Actor : GetActiveLevel()->Actors)
+    TArray<AActor*> ActorsCopy = GetActiveLevel()->Actors;
+
+    for (AActor* Actor : ActorsCopy)
     {
-        for (AActor* Other : GetActiveLevel()->Actors)
+        for (AActor* Other : ActorsCopy)
         {
             if (Actor != Other)
             {
-                Actor->IsOverlappingActor(Other);
+                if (Actor->IsOverlappingActor(Other))
+                {
+                    Actor->OnActorOverlap.Broadcast(Other);
+                }
             }
         }
     }
+
+    // 4. BeginPlay 대기 리스트 비우기
     PendingBeginPlayActors.Empty();
 }
 
@@ -149,7 +96,7 @@ void UWorld::Release()
         GUObjectArray.MarkRemoveObject(ActiveLevel);
         ActiveLevel = nullptr;
     }
-    
+
     GUObjectArray.ProcessPendingDestroyObjects();
 }
 
@@ -161,21 +108,14 @@ AActor* UWorld::SpawnActor(UClass* InClass, FName InActorName)
         return nullptr;
     }
 
-    
-    // TODO: SpawnParams에서 이름 가져오거나, 필요시 여기서 자동 생성
-    // if (SpawnParams.Name != NAME_None) ActorName = SpawnParams.Name;
-    
     if (InClass->IsChildOf<AActor>())
     {
         AActor* NewActor = Cast<AActor>(FObjectFactory::ConstructObject(InClass, this, InActorName));
-        // TODO: 일단 AddComponent에서 Component마다 초기화
-        // 추후에 RegisterComponent() 만들어지면 주석 해제
-        // Actor->InitializeComponents();
         ActiveLevel->Actors.Add(NewActor);
         PendingBeginPlayActors.Add(NewActor);
         return NewActor;
     }
-    
+
     UE_LOG(LogLevel::Error, TEXT("SpawnActor failed: Class '%s' is not derived from AActor."), *InClass->GetName());
     return nullptr;
 }
@@ -191,23 +131,16 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     {
         return true;
     }
-    
-    // UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-    //
-    // Engine->DeselectActor(ThisActor);
 
-    // 액터의 Destroyed 호출
     ThisActor->Destroyed();
 
     if (ThisActor->GetOwner())
     {
         ThisActor->SetOwner(nullptr);
     }
-    
-    // World에서 제거
+
     ActiveLevel->Actors.Remove(ThisActor);
 
-    // 제거 대기열에 추가
     GUObjectArray.MarkRemoveObject(ThisActor);
     return true;
 }
@@ -216,4 +149,3 @@ UWorld* UWorld::GetWorld() const
 {
     return const_cast<UWorld*>(this);
 }
-

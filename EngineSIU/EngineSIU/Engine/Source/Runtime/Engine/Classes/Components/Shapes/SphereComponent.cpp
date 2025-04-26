@@ -6,6 +6,10 @@
 #include "Components/Shapes/BoxComponent.h"
 #include "Components/Shapes/CapsuleComponent.h"
 
+USphereComponent::USphereComponent()
+{
+    SphereRadius = 1;
+}
 
 UObject* USphereComponent::Duplicate(UObject* InOuter)
 {

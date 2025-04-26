@@ -1,5 +1,6 @@
 #include "Actor.h"
 #include "Components/PrimitiveComponent.h"
+#include "Delegates/DelegateCombination.h"
 #include "World/World.h"
 
 
@@ -86,6 +87,7 @@ void AActor::BeginPlay()
     {
         Comp->BeginPlay();
     }
+    OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
 }
 
 void AActor::Tick(float DeltaTime)
@@ -131,6 +133,8 @@ bool AActor::Destroy()
     {
         if (UWorld* World = GetWorld())
         {
+            UE_LOG(LogLevel::Display, "Delete Component - %s", *GetName());
+
             World->DestroyActor(this);
             bActorIsBeingDestroyed = true;
         }
@@ -293,11 +297,10 @@ bool AActor::IsOverlappingActor(const AActor* Other) const
     {
         if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(OwnedComp))
         {
-            //if ((PrimComp->GetOverlapInfos().Num() > 0) && PrimComp->IsOverlappingActor(Other))
-            //{
-            //    // found one, finished
-            //    return true;
-            //}
+            if ((PrimComp->GetOverlapInfos().Num() > 0) && PrimComp->IsOverlappingActor(Other))
+            {
+                return true;
+            }
         }
     }
     return false;

@@ -10,7 +10,7 @@ class USphereComponent : public UShapeComponent
     DECLARE_CLASS(USphereComponent, UShapeComponent)
 
 public:
-    USphereComponent() = default;
+    USphereComponent();
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 

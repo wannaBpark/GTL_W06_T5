@@ -6,6 +6,11 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
+#include "Delegates/DelegateCombination.h"
+
+
+// Actor가 다른 Actor와 충돌했을 때 호출될 Delegate
+DECLARE_MULTICAST_DELEGATE_OneParam(FActorHitSignature, AActor*);
 
 
 class UActorComponent;
@@ -67,6 +72,10 @@ public:
         requires std::derived_from<T, UActorComponent>
     T* GetComponentByClass();
 
+    template<typename T>
+        requires std::derived_from<T, UActorComponent>
+    T* GetComponentByFName(FName InName);
+
     void InitializeComponents();
     void UninitializeComponents();
 
@@ -93,6 +102,20 @@ public:
 public:
     bool IsOverlappingActor(const AActor* Other) const;
     void UpdateOverlaps() const;
+
+public:
+    // 충돌시 호출되는 Delegate
+    FActorHitSignature OnActorOverlap;
+    void HandleOverlap(AActor* OtherActor)
+    {
+        if (IsActorBeingDestroyed())
+        {
+            return;
+        }
+
+        // 자기 자신을 Destroy
+        Destroy();
+    }
 
 protected:
     UPROPERTY
@@ -154,4 +177,21 @@ T* AActor::GetComponentByClass()
         }
     }
     return nullptr;
+}
+
+template<typename T>
+   requires std::derived_from<T, UActorComponent>
+T* AActor::GetComponentByFName(FName InName)
+{
+   for (UActorComponent* Component : OwnedComponents)
+   {
+       if (Component->GetFName() == InName)
+       {
+           if (T* CastedComponent = Cast<T>(Component))
+           {
+               return CastedComponent;
+           }
+       }
+   }
+   return nullptr;
 }

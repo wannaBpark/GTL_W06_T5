@@ -3,6 +3,7 @@
 #include "UObject/UObjectIterator.h"
 #include "Shapes/ShapeComponent.h"
 #include "Classes/GameFramework/Actor.h"
+
 UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
