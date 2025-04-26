@@ -347,7 +347,7 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
             Axis = Component->GetForwardVector();
         }
 
-        RotationDelta = FQuat(Axis, RotationAmount); // ���� X �� ���� ȸ��
+        RotationDelta = FQuat(Axis, RotationAmount);
     }
     else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleY)
     {
@@ -360,7 +360,7 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
             Axis = Component->GetRightVector();
         }
 
-        RotationDelta = FQuat(Axis, RotationAmount); // ���� Y �� ���� ȸ��
+        RotationDelta = FQuat(Axis, RotationAmount);
     }
     else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleZ)
     {
@@ -372,7 +372,7 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
             Axis = Component->GetUpVector();
         }
         
-        RotationDelta = FQuat(Axis, RotationAmount); // ���� Z �� ���� ȸ��
+        RotationDelta = FQuat(Axis, RotationAmount);
     }
     if (CoordMode == CDM_LOCAL)
     {

@@ -1,5 +1,6 @@
 #pragma once
 #include "MathUtility.h"
+#include "Rotator.h"
 #include "Serialization/Archive.h"
 
 struct FVector;
@@ -46,6 +47,8 @@ struct FQuat
     FMatrix ToMatrix() const;
 
     bool Equals(const FQuat& Q, float Tolerance = KINDA_SMALL_NUMBER) const;
+
+    FRotator Rotator() const;
 };
 
 inline FArchive& operator<<(FArchive& Ar, FQuat& Q)

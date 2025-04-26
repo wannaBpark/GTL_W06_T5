@@ -211,8 +211,12 @@ void USceneComponent::SetWorldLocation(const FVector& InLocation)
 
 void USceneComponent::SetWorldRotation(const FRotator& InRotation)
 {
-    // TODO: 기즈모 문제인지 이 코드가 문제인지는 검증 안됨
-    FMatrix NewRelativeMatrix = FMatrix::CreateRotationMatrix(InRotation.Roll, InRotation.Pitch, InRotation.Yaw);
+    SetWorldRotation(InRotation.ToQuaternion());
+}
+
+void USceneComponent::SetWorldRotation(const FQuat& InQuat)
+{
+    FMatrix NewRelativeMatrix = InQuat.ToMatrix();
     if (AttachParent)
     {
         FMatrix ParentMatrix = AttachParent->GetWorldMatrix().GetMatrixWithoutScale();
@@ -320,6 +324,18 @@ void USceneComponent::DetachFromComponent(USceneComponent* Target)
     }
 
     Target->AttachChildren.Remove(this);
+}
+
+void USceneComponent::SetRelativeRotation(const FRotator& InRotation)
+{
+    SetRelativeRotation(InRotation.ToQuaternion());
+}
+
+void USceneComponent::SetRelativeRotation(const FQuat& InQuat)
+{
+    FQuat NormalizedQuat = InQuat.Normalize();
+
+    RelativeRotation = NormalizedQuat.Rotator();
 }
 
 void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps)

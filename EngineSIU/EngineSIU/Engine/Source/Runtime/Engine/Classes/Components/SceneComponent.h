@@ -41,7 +41,8 @@ public:
     
 public:
     void SetRelativeLocation(const FVector& InLocation) { RelativeLocation = InLocation; }
-    void SetRelativeRotation(const FRotator& InRotation) { RelativeRotation = InRotation; }
+    void SetRelativeRotation(const FRotator& InRotation);
+    void SetRelativeRotation(const FQuat& InQuat);
     void SetRelativeScale3D(const FVector& InScale) { RelativeScale3D = InScale; }
     
     FVector GetRelativeLocation() const { return RelativeLocation; }
@@ -50,6 +51,7 @@ public:
 
     void SetWorldLocation(const FVector& InLocation);
     void SetWorldRotation(const FRotator& InRotation);
+    void SetWorldRotation(const FQuat& InQuat);
     void SetWorldScale3D(const FVector& InScale);
     
     FVector GetWorldLocation() const;
