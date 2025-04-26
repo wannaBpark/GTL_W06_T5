@@ -38,7 +38,7 @@
                         "ComponentOwnerClass": "ADirectionalLight",
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=5.055 Y=0.000 Z=2.650",
+                        "RelativeLocation": "X=5.055 Y=-1.554 Z=2.650",
                         "RelativeRotation": "Pitch=78.607 Yaw=22.771 Roll=-40.440",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",

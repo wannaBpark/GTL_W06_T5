@@ -129,6 +129,8 @@ FMatrix UBillboardComponent::CreateBillboardMatrix() const
 
 bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& quadVertices, float& hitDistance) const
 {
+    // TODO: 이 로직으로는 멀티 뷰포트에서 빌보드 피킹 안됨.
+    
     // 마우스 위치를 클라이언트 좌표로 가져온 후 NDC 좌표로 변환
     POINT mousePos;
     GetCursorPos(&mousePos);
@@ -143,9 +145,10 @@ bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& quadVertices,
     float ndcY = -((2.0f * mousePos.y / viewport.Height) - 1.0f);
 
     // MVP 행렬 계산
+    std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
     FMatrix M = CreateBillboardMatrix();
-    FMatrix V = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
-    FMatrix P = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    FMatrix V = ActiveViewport->GetViewMatrix();
+    FMatrix P = ActiveViewport->GetProjectionMatrix();
     FMatrix MVP = M * V * P;
 
     // quadVertices를 MVP로 변환하여 NDC 공간에서의 최소/최대값 구하기
@@ -172,8 +175,9 @@ bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& quadVertices,
     // 마우스 NDC 좌표가 quad의 NDC 경계 사각형 내에 있는지 검사
     if (ndcX >= minX && ndcX <= maxX && ndcY >= minY && ndcY <= maxY)
     {
-        // 임의로 hitDistance 설정 (필요 시 실제 깊이 계산)
-        hitDistance = 1000.0f;
+        const FVector WorldLocation = GetWorldLocation();
+        const FVector CameraLocation = ActiveViewport->GetCameraLocation();
+        hitDistance = (WorldLocation - CameraLocation).Length();
         return true;
     }
     return false;
