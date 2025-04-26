@@ -132,7 +132,7 @@ void PropertyEditorPanel::Render()
                 // 예: PickedActor에서 스크립트 경로를 받아옴
                 if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
                 {
-                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();                    
+                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();
                     LuaScriptFileUtils::OpenLuaScriptFile(ws.c_str());
                 }
             }
@@ -144,6 +144,7 @@ void PropertyEditorPanel::Render()
             {
                 // Lua Script Component 생성 및 추가
                 ULuaScriptComponent* NewScript = PickedActor->AddComponent<ULuaScriptComponent>();
+                LuaDisplayPath = NewScript->GetDisplayName();
             }
         }
         ImGui::InputText("Script File", GetData(LuaDisplayPath), IM_ARRAYSIZE(*LuaDisplayPath),

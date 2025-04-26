@@ -61,7 +61,12 @@ UObject* AActor::Duplicate(UObject* InOuter)
         }
 
         // 컴포넌트 초기화
-        NewComponent->InitializeComponent();
+        /* ActorComponent가 Actor와 World에 등록이 되었다는 전제하에 호출됩니다 */
+        if (!NewComponent->HasBeenInitialized())
+        {
+            // TODO: RegisterComponent() 생기면 제거
+            NewComponent->InitializeComponent();
+        }
     }
 
     // 부모-자식 관계 복원
@@ -73,6 +78,8 @@ UObject* AActor::Duplicate(UObject* InOuter)
             ChildComp->AttachToComponent(*NewParentComp);
         }
     }
+
+    
 
     return NewActor;
 }
@@ -172,8 +179,12 @@ UActorComponent* AActor::AddComponent(UClass* InClass, FName InName, bool bTryRo
             }
         }
 
-        // TODO: RegisterComponent() 생기면 제거
-        Component->InitializeComponent();
+        /* ActorComponent가 Actor와 World에 등록이 되었다는 전제하에 호출됩니다 */
+        if (!Component->HasBeenInitialized())
+        {
+            // TODO: RegisterComponent() 생기면 제거
+            Component->InitializeComponent();
+        }
 
         return Component;
     }

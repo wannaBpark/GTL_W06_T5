@@ -4,10 +4,12 @@
 #include "World/World.h"
 #include "LuaScriptFileUtils.h"
 #include <tchar.h>
+#include "Engine/EditorEngine.h"
 
 ULuaScriptComponent::ULuaScriptComponent()
 {
     LuaState.open_libraries();
+    //InitializeLuaState();
 }
 
 ULuaScriptComponent::~ULuaScriptComponent()
@@ -17,10 +19,8 @@ ULuaScriptComponent::~ULuaScriptComponent()
 void ULuaScriptComponent::BeginPlay()
 {
     Super::BeginPlay();
-    InitializeLuaState();
+    
     CallLuaFunction("BeginPlay");
-    // GetOwner()->SetActorTickInPIE(true); // Lua 스크립트 대상 - PIE의 tick 호출 대상
-
 }
 
 void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -40,6 +40,16 @@ UObject* ULuaScriptComponent::Duplicate(UObject* InOuter)
     return NewComponent;
 }
 
+/* ActorComponent가 Actor와 World에 등록이 되었다는 전제하에 호출됩니다
+ * So That we can use GetOwner() and GetWorld() safely
+ */
+void ULuaScriptComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+
+    InitializeLuaState();
+}
+
 void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
 {
     ScriptPath = InScriptPath;
@@ -48,10 +58,12 @@ void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
 
 void ULuaScriptComponent::InitializeLuaState()
 {
+    auto w = GetOwner()->GetWorld()->GetName().ToWideString();
+    auto o = GetOwner()->GetName().ToWideString();
     if (ScriptPath.IsEmpty()) {
         bool bSuccess = LuaScriptFileUtils::CopyTemplateToActorScript(
             L"template.lua",
-            GetWorld()->GetName().ToWideString(),
+            GetOwner()->GetWorld()->GetName().ToWideString(),
             GetOwner()->GetName().ToWideString(),
             ScriptPath,
             DisplayName
@@ -78,17 +90,15 @@ void ULuaScriptComponent::InitializeLuaState()
 
 void ULuaScriptComponent::BindEngineAPI()
 {
+    // [1] 바인딩 전 글로벌 키 스냅샷
+    TArray<FString> Before = LuaDebugHelper::CaptureGlobalNames(LuaState);
+
+    // Print / UE_LOG / FVector / Actor / Script 바인딩
+
     LuaBindingHelpers::BindPrint(LuaState);    // 0) Print 바인딩
     LuaBindingHelpers::BindUE_LOG(LuaState);    // 1) UE_LOG 바인딩
     LuaBindingHelpers::BindFVector(LuaState);   // 2) FVector 바인딩
 
-    /*bool bHasFVector = LuaState["FVector"].valid();
-    bool bHasUELOG =   LuaState["UE_LOG"].valid();
-    UE_LOG(LogLevel::Error, TEXT("LuaBindings – FVector valid=%s, UE_LOG valid=%s"),
-        bHasFVector ? TEXT("true") : TEXT("false"),
-        bHasUELOG ? TEXT("true") : TEXT("false"));*/
-
-    // 2) AActor 바인딩 및 Location Property
     auto ActorType = LuaState.new_usertype<AActor>("Actor",
         sol::constructors<>(),
         "Location", sol::property(
@@ -102,6 +112,9 @@ void ULuaScriptComponent::BindEngineAPI()
     // 프로퍼티 바인딩
     LuaState["actor"] = GetOwner();
     LuaState["script"] = this;
+
+    // [2] 바인딩 후, 새로 추가된 글로벌 키만 자동 로그
+    LuaDebugHelper::LogNewBindings(LuaState, Before);
 }
 
 

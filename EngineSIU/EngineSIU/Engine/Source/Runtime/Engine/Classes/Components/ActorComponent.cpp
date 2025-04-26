@@ -66,6 +66,7 @@ void UActorComponent::SetProperties(const TMap<FString, FString>& Properties)
     }
 }
 
+/* ActorComponent가 Actor와 World에 등록이 되었다는 전제하에 호출됩니다 */
 void UActorComponent::InitializeComponent()
 {
     assert(!bHasBeenInitialized);

@@ -20,6 +20,7 @@ public:
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     virtual void TickComponent(float DeltaTime) override;
     virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void InitializeComponent() override;
 
     // Lua 함수 호출 메서드
     void CallLuaFunction(const FString& FunctionName);

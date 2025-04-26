@@ -78,3 +78,43 @@ namespace LuaBindingHelpers
         );
     }
 }
+
+namespace LuaDebugHelper
+{
+    /**
+     * @brief 바인딩 전 sol::state 의 globals() 키를 TArray<FString>로 캡처
+     */
+    inline TArray<FString> CaptureGlobalNames(sol::state& Lua)
+    {
+        TArray<FString> names;
+        sol::table G = Lua.globals();
+        for (auto& kv : G)
+        {
+            if (kv.first.is<std::string>())
+            {
+                names.Add(FString(kv.first.as<std::string>().c_str()));
+            }
+        }
+        return names;
+    }
+
+    /**
+     * @brief 바인딩 후 globals()에서 before에 없던 새 키만 로그로 출력
+     */
+    inline void LogNewBindings(sol::state& Lua, const TArray<FString>& Before)
+    {
+        sol::table G = Lua.globals();
+        for (auto& kv : G)
+        {
+            if (!kv.first.is<std::string>())
+                continue;
+
+            FString name = FString(kv.first.as<std::string>().c_str());
+            // Before 배열에 포함되지 않은 경우만 출력
+            if (!Before.Contains(name))
+            {
+                UE_LOG(LogLevel::Error,TEXT("Lua binding added: %s"), *name);
+            }
+        }
+    }
+}
