@@ -45,7 +45,9 @@ public:
     static FMatrix GetRotationMatrix(const FRotator& InRotation);
     static FMatrix GetRotationMatrix(const FQuat& InRotation);
 
-    FQuat ToQuat(const FMatrix& M) const;
+    FQuat ToQuat() const;
+
+    FVector GetScaleVector(float Tolerance = SMALL_NUMBER) const;
 };
 
 inline FArchive& operator<<(FArchive& Ar, FMatrix& M)

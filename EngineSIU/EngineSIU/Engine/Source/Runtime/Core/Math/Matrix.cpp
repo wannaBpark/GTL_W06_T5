@@ -331,7 +331,28 @@ FMatrix FMatrix::GetRotationMatrix(const FQuat& InRotation)
     return Result;
 }
 
-FQuat FMatrix::ToQuat(const FMatrix& M) const
+FQuat FMatrix::ToQuat() const
 {
-    return FQuat(M);
+    return FQuat(*this);
+}
+
+FVector FMatrix::GetScaleVector(float Tolerance) const
+{
+    FVector Scale3D(1, 1, 1);
+
+    // For each row, find magnitude, and if its non-zero re-scale so its unit length.
+    for (int32 i = 0; i < 3; i++)
+    {
+        const float SquareSum = (M[i][0] * M[i][0]) + (M[i][1] * M[i][1]) + (M[i][2] * M[i][2]);
+        if (SquareSum > Tolerance)
+        {
+            Scale3D[i] = FMath::Sqrt(SquareSum);
+        }
+        else
+        {
+            Scale3D[i] = 0.f;
+        }
+    }
+
+    return Scale3D;
 }
