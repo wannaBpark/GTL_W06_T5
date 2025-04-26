@@ -89,21 +89,32 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         {
             if (const UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine))
             {
-                if (const AActor* SelectedActor = EdEngine->GetSelectedActor())
+                USceneComponent* TargetComponent = nullptr;
+                if (USceneComponent* SelectedComponent = EdEngine->GetSelectedComponent())
                 {
-                    // 초기 Actor와 Cursor의 거리차를 저장
-                    const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewportClient->PerspectiveCamera
-                                                        : &ActiveViewportClient->OrthogonalCamera;
-
-                    FVector RayOrigin, RayDir;
-                    ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
-
-                    const FVector TargetLocation = SelectedActor->GetActorLocation();
-                    const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetLocation);
-                    const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
-                    TargetDiff = TargetLocation - TargetRayEnd;
+                    TargetComponent = SelectedComponent;
                 }
+                else if (AActor* SelectedActor = EdEngine->GetSelectedActor())
+                {
+                    TargetComponent = SelectedActor->GetRootComponent();
+                }
+                else
+                {
+                    return;
+                }
+                    
+                // 초기 Actor와 Cursor의 거리차를 저장
+                const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective
+                                                    ? &ActiveViewportClient->PerspectiveCamera
+                                                    : &ActiveViewportClient->OrthogonalCamera;
+
+                FVector RayOrigin, RayDir;
+                ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
+
+                const FVector TargetLocation = TargetComponent->GetWorldLocation();
+                const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetLocation);
+                const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
+                TargetDiff = TargetLocation - TargetRayEnd;              
             }
             break;
         }
@@ -243,89 +254,78 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
             )
             {
                 // Gizmo control
-                const UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewportClient->GetPickedGizmoComponent());
-                if (!Gizmo)
+                if (const UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine))
                 {
-                    return;
-                }
-                
-                const UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine);
-                if (!EdEngine)
-                {
-                    return;
-                }
-                
-                USceneComponent* TargetComponent = nullptr;
-
-                if (USceneComponent* SelectedComponent = EdEngine->GetSelectedComponent())
-                {
-                    TargetComponent = SelectedComponent;
-                }
-                else if (AActor* SelectedActor = EdEngine->GetSelectedActor())
-                {
-                    TargetComponent = SelectedActor->GetRootComponent();
-                }
-                else
-                {
-                    return;
-                }
-
-                const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewportClient->PerspectiveCamera
-                                                        : &ActiveViewportClient->OrthogonalCamera;
+                    const UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewportClient->GetPickedGizmoComponent());
+                    if (!Gizmo)
+                    {
+                        return;
+                    }
                     
-                FVector RayOrigin, RayDir;
-                ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
+                    USceneComponent* TargetComponent = EdEngine->GetSelectedComponent();
+                    if (!TargetComponent && EdEngine->GetSelectedActor())
+                    {
+                        TargetComponent = EdEngine->GetSelectedActor()->GetRootComponent();
+                    }
+                    else
+                    {
+                        return;
+                    }
 
-                const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetComponent->GetWorldLocation());
-                const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
-                const FVector Result = TargetRayEnd + TargetDiff;
+                    const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective
+                                                            ? &ActiveViewportClient->PerspectiveCamera
+                                                            : &ActiveViewportClient->OrthogonalCamera;
+                        
+                    FVector RayOrigin, RayDir;
+                    ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
 
-                if (EdEngine->GetEditorPlayer()->GetCoordMode() == CDM_WORLD)
-                {
+                    const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetComponent->GetWorldLocation());
+                    const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
+                    const FVector Result = TargetRayEnd + TargetDiff;
+
                     FVector NewLocation = TargetComponent->GetWorldLocation();
-                    // 월드 좌표계에서 카메라 방향을 고려한 이동
-                    if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
+                    if (EdEngine->GetEditorPlayer()->GetCoordMode() == CDM_WORLD)
                     {
-                        // 카메라의 오른쪽 방향을 X축 이동에 사용
-                        NewLocation.X = Result.X;
+                        // 월드 좌표계에서 카메라 방향을 고려한 이동
+                        if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
+                        {
+                            // 카메라의 오른쪽 방향을 X축 이동에 사용
+                            NewLocation.X = Result.X;
+                        }
+                        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
+                        {
+                            // 카메라의 오른쪽 방향을 Y축 이동에 사용
+                            NewLocation.Y = Result.Y;
+                        }
+                        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
+                        {
+                            // 카메라의 위쪽 방향을 Z축 이동에 사용
+                            NewLocation.Z = Result.Z;
+                        }
                     }
-                    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
+                    else
                     {
-                        // 카메라의 오른쪽 방향을 Y축 이동에 사용
-                        NewLocation.Y = Result.Y;
-                    }
-                    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
-                    {
-                        // 카메라의 위쪽 방향을 Z축 이동에 사용
-                        NewLocation.Z = Result.Z;
+                        // Result에서 현재 액터 위치를 빼서 이동 벡터를 구함
+                        const FVector Delta = Result - TargetComponent->GetWorldLocation();
+                        // 각 축에 대해 Local 방향 벡터에 투영하여 이동량 계산
+                        if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
+                        {
+                            const float MoveAmount = FVector::DotProduct(Delta, TargetComponent->GetForwardVector());
+                            NewLocation += TargetComponent->GetForwardVector() * MoveAmount;
+                        }
+                        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
+                        {
+                            const float MoveAmount = FVector::DotProduct(Delta, TargetComponent->GetRightVector());
+                            NewLocation += TargetComponent->GetRightVector() * MoveAmount;
+                            TargetComponent->SetWorldLocation(NewLocation);
+                        }
+                        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
+                        {
+                            const float MoveAmount = FVector::DotProduct(Delta, TargetComponent->GetUpVector());
+                            NewLocation += TargetComponent->GetUpVector() * MoveAmount;
+                        }
                     }
                     TargetComponent->SetWorldLocation(NewLocation);
-                }
-                else
-                {
-                    // Result에서 현재 액터 위치를 빼서 이동 벡터를 구함
-                    const FVector Delta = Result - TargetComponent->GetWorldLocation();
-
-                    // 각 축에 대해 Local 방향 벡터에 투영하여 이동량 계산
-                    if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
-                    {
-                        const float MoveAmount = FVector::DotProduct(Delta, TargetComponent->GetForwardVector());
-                        const FVector NewLocation = TargetComponent->GetWorldLocation() + TargetComponent->GetForwardVector() * MoveAmount;
-                        TargetComponent->SetWorldLocation(NewLocation);
-                    }
-                    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
-                    {
-                        const float MoveAmount = FVector::DotProduct(Delta, TargetComponent->GetRightVector());
-                        const FVector NewLocation = TargetComponent->GetWorldLocation() + TargetComponent->GetRightVector() * MoveAmount;
-                        TargetComponent->SetWorldLocation(NewLocation);
-                    }
-                    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
-                    {
-                        const float MoveAmount = FVector::DotProduct(Delta, TargetComponent->GetUpVector());
-                        const FVector NewLocation = TargetComponent->GetWorldLocation() + TargetComponent->GetUpVector() * MoveAmount;
-                        TargetComponent->SetWorldLocation(NewLocation);
-                    }
                 }
             }
         }

@@ -276,26 +276,22 @@ void AEditorPlayer::PickedObjControl()
     FEditorViewportClient* ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient().get();
     if (Engine && Engine->GetSelectedActor() && ActiveViewport->GetPickedGizmoComponent())
     {
-        POINT currentMousePos;
-        GetCursorPos(&currentMousePos);
-        int32 deltaX = currentMousePos.x - m_LastMousePos.x;
-        int32 deltaY = currentMousePos.y - m_LastMousePos.y;
+        POINT CurrentMousePos;
+        GetCursorPos(&CurrentMousePos);
+        const float DeltaX = static_cast<float>(CurrentMousePos.x - m_LastMousePos.x);
+        const float DeltaY = static_cast<float>(CurrentMousePos.y - m_LastMousePos.y);
 
-        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
-        AActor* SelectedActor = Engine->GetSelectedActor();
-
-        USceneComponent* TargetComponent = nullptr;
-
-        if (SelectedComponent != nullptr)
+        USceneComponent* TargetComponent = Engine->GetSelectedComponent();
+        if (!TargetComponent && Engine->GetSelectedActor())
         {
-            TargetComponent = SelectedComponent;
+            TargetComponent = Engine->GetSelectedActor()->GetRootComponent();
         }
-        else if (SelectedActor != nullptr)
+        else
         {
-            TargetComponent = SelectedActor->GetRootComponent();
+            return;
         }
         
-        UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(ActiveViewport->GetPickedGizmoComponent());
+        UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewport->GetPickedGizmoComponent());
         switch (ControlMode)
         {
         case CM_TRANSLATION:
@@ -303,16 +299,15 @@ void AEditorPlayer::PickedObjControl()
             // SLevelEditor에 있음
             break;
         case CM_SCALE:
-            ControlScale(TargetComponent, Gizmo, deltaX, deltaY);
-
+            ControlScale(TargetComponent, Gizmo, DeltaX, DeltaY);
             break;
         case CM_ROTATION:
-            ControlRotation(TargetComponent, Gizmo, deltaX, deltaY);
+            ControlRotation(TargetComponent, Gizmo, DeltaX, DeltaY);
             break;
         default:
             break;
         }
-        m_LastMousePos = currentMousePos;
+        m_LastMousePos = CurrentMousePos;
     }
 }
 

@@ -6,6 +6,27 @@
             "ActorLabel": "OBJ_DIRECTIONALLGIHT_108",
             "Components": [
                 {
+                    "ComponentClass": "UDirectionalLightComponent",
+                    "ComponentID": "UDirectionalLightComponent_0",
+                    "Properties": {
+                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
+                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
+                        "AttachParentID": "UBillboardComponent_0",
+                        "ComponentClass": "UDirectionalLightComponent",
+                        "ComponentName": "UDirectionalLightComponent_0",
+                        "ComponentOwner": "ADirectionalLight_108",
+                        "ComponentOwnerClass": "ADirectionalLight",
+                        "Direction": "X=-1.000 Y=-0.000 Z=-0.000",
+                        "Intensity": "4.000000",
+                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
                     "ComponentClass": "UBillboardComponent",
                     "ComponentID": "UBillboardComponent_0",
                     "Properties": {
@@ -25,27 +46,6 @@
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": "UBillboardComponent"
-                    }
-                },
-                {
-                    "ComponentClass": "UDirectionalLightComponent",
-                    "ComponentID": "UDirectionalLightComponent_0",
-                    "Properties": {
-                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
-                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
-                        "AttachParentID": "UBillboardComponent_0",
-                        "ComponentClass": "UDirectionalLightComponent",
-                        "ComponentName": "UDirectionalLightComponent_0",
-                        "ComponentOwner": "ADirectionalLight_108",
-                        "ComponentOwnerClass": "ADirectionalLight",
-                        "Direction": "X=-1.000 Y=-0.000 Z=-0.000",
-                        "Intensity": "4.000000",
-                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
                     }
                 }
             ],
@@ -68,7 +68,7 @@
                         "ComponentOwner": "ACube_113",
                         "ComponentOwnerClass": "ACube",
                         "RelativeLocation": "X=-1.743 Y=-2.579 Z=0.288",
-                        "RelativeRotation": "Pitch=-19.407 Yaw=11.498 Roll=22.686",
+                        "RelativeRotation": "Pitch=-4.886 Yaw=16.348 Roll=21.415",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",
                         "bAutoActive": "true",
@@ -90,8 +90,8 @@
                         "Direction": "X=-1.000 Y=-0.000 Z=-0.000",
                         "Intensity": "10.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "RelativeLocation": "X=7.863 Y=15.388 Z=6.219",
-                        "RelativeRotation": "Pitch=14.293 Yaw=-17.738 Roll=-1.892",
+                        "RelativeLocation": "X=17.852 Y=-3.176 Z=-2.086",
+                        "RelativeRotation": "Pitch=14.355 Yaw=-8.392 Roll=-1.068",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true"
@@ -109,14 +109,14 @@
                         "ComponentName": "USpotLightComponent_116",
                         "ComponentOwner": "ACube_113",
                         "ComponentOwnerClass": "ACube",
-                        "Direction": "X=0.817 Y=-0.394 Z=0.422",
+                        "Direction": "X=0.805 Y=-0.249 Z=0.539",
                         "InnerRad": "0.261800",
                         "Intensity": "1000.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
                         "OuterRad": "0.523600",
-                        "Position": "X=2.386 Y=-3.933 Z=-3.654",
+                        "Position": "X=12.712 Y=-7.147 Z=4.259",
                         "Radius": "30.000000",
-                        "RelativeLocation": "X=-0.214 Y=-16.859 Z=-9.012",
+                        "RelativeLocation": "X=-3.580 Y=-7.194 Z=4.851",
                         "RelativeRotation": "Pitch=11.539 Yaw=-33.830 Roll=-132.223",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "Type": "2",
