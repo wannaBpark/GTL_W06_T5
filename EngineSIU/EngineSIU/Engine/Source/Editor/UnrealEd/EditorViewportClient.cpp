@@ -54,10 +54,28 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
-    UpdateEditorCameraMovement(DeltaTime);
-    UpdateViewMatrix();
-    UpdateProjectionMatrix();
-    GizmoActor->Tick(DeltaTime);
+    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    {
+        UWorld* PlayWorld = GEngine->ActiveWorld;
+        if (PlayWorld)
+        {
+            if (APlayerController* PC = PlayWorld->GetFirstPlayerController())
+            {
+                for (EKeys::Type Key : PressedKeys)
+                {
+                    // 키에 대응하는 InputAxis 호출
+                    PC->InputAxis(Key, 1.0f, DeltaTime);
+                }
+            }
+        }
+    }
+    else
+    {
+        UpdateEditorCameraMovement(DeltaTime);
+        UpdateViewMatrix();
+        UpdateProjectionMatrix();
+        GizmoActor->Tick(DeltaTime);
+    }
 }
 
 void FEditorViewportClient::Release() const
@@ -119,11 +137,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PC->InputAxis(EKeys::A, 1.0f, 1.0f);
+                        PressedKeys.Add(EKeys::A);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        //PressedKeys.Remove(EKeys::A);
+                        PressedKeys.Remove(EKeys::A);
                     }
                     break;
                 }
@@ -131,11 +149,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PC->InputAxis(EKeys::D, 1.0f, 1.0f);
+                        PressedKeys.Add(EKeys::D);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        //PressedKeys.Remove(EKeys::D);
+                        PressedKeys.Remove(EKeys::D);
                     }
                     break;
                 }
@@ -143,11 +161,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PC->InputAxis(EKeys::W, 1.0f, 1.0f);
+                        PressedKeys.Add(EKeys::W);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        //PressedKeys.Remove(EKeys::W);
+                        PressedKeys.Remove(EKeys::W);
                     }
                     break;
                 }
@@ -155,11 +173,11 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (InKeyEvent.GetInputEvent() == IE_Pressed)
                     {
-                        PC->InputAxis(EKeys::S, 1.0f, 1.0f);
+                        PressedKeys.Add(EKeys::S);
                     }
                     else if (InKeyEvent.GetInputEvent() == IE_Released)
                     {
-                        //PressedKeys.Remove(EKeys::S);
+                        PressedKeys.Remove(EKeys::S);
                     }
                     break;
                 }

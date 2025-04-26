@@ -46,7 +46,6 @@ void ACharacter::MoveForward(float Value)
 {  
     if (Value != 0.0f)
     {
-        // Move the character forward/backward based on the input value  
         AddMovementInput(GetActorForwardVector(), Value);
     }
 }  
@@ -55,7 +54,6 @@ void ACharacter::MoveRight(float Value)
 {  
     if (Value != 0.0f)
     {
-        // Move the character right/left based on the input value  
         AddMovementInput(GetActorRightVector(), Value);
     }
 }  
@@ -64,7 +62,6 @@ void ACharacter::MoveLeft(float Value)
 {  
     if (Value != 0.0f)
     {
-        // Move the character left/right based on the input value  
         AddMovementInput(-GetActorRightVector(), Value);
     }
 }  
@@ -73,7 +70,6 @@ void ACharacter::MoveBackward(float Value)
 {
     if (Value != 0.0f)
     {
-        // Move the character backward/forward based on the input value  
         AddMovementInput(-GetActorForwardVector(), Value);
     }
 }
