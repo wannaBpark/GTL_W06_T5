@@ -1,6 +1,6 @@
 #include "LuaScriptComponent.h"
 
-#include "Engine/LuaScriptManager.h"
+#include "Engine/Lua/LuaScriptManager.h"
 #include "GameFramework/Actor.h"
 
 #include "World/World.h"
@@ -70,7 +70,7 @@ sol::table& ULuaScriptComponent::LoadScript()
     if (!LuaEnv.valid())
         return LuaEnv;
 
-    LuaEnv["self"] = GetOwner();
+    LuaEnv[sol::metatable_key] = GetOwner();
 
     return LuaEnv;
 }

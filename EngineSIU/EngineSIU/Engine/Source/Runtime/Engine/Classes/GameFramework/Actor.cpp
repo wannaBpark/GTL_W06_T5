@@ -3,7 +3,7 @@
 
 #include "sol/sol.hpp"
 #include "Components/LuaScriptComponent.h"
-#include "Engine/LuaScriptManager.h"
+#include "Engine/Lua/LuaScriptManager.h"
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
@@ -311,7 +311,7 @@ void AActor::InitLuaScriptComponent()
 
     if (LuaScriptComponent)
     {
-        ApplyTypeOnLua(FLuaScriptManager::Get().GetLua());
+        ApplyTypesOnLua(FLuaScriptManager::Get().GetLua());
     }
 }
 
@@ -320,15 +320,16 @@ FString AActor::GetLuaScriptPathName()
     return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : TEXT("");
 }
 
-void AActor::ApplyTypeOnLua(sol::state& Lua)
+void AActor::ApplyTypesOnLua(sol::state& Lua)
 {
+    static bool bRegisteredLuaProperties = false;
     if (!bRegisteredLuaProperties)
     {
         Lua.new_usertype<AActor>("AActor",
-            "UUID", &ThisClass::UUID,
-            "ActorLocation", &ThisClass::GetActorLocation,
-            "ActorRotation", &ThisClass::GetActorRotation,
-            "ActorScale", &ThisClass::GetActorScale
+            "GetUUID", &ThisClass::GetUUID,
+            "GetActorLocation", &ThisClass::GetActorLocation,
+            "GetActorRotation", &ThisClass::GetActorRotation,
+            "GetActorScale", &ThisClass::GetActorScale
         );
         bRegisteredLuaProperties = true;
     }
@@ -339,12 +340,14 @@ void AActor::SetupLuaProperties()
     if (!LuaScriptComponent)
         return;
 
+    // TODO: Script 로드는 처음에만 한번.
     sol::table& LuaEnv = LuaScriptComponent->LoadScript();
     if (!LuaEnv.valid())
         return;
 
-    LuaEnv["UUID"] = UUID;
+    // TODO: 매 프레임마다 table의 정보를 덮어 써줘야 함.
+    /*LuaEnv["UUID"] = UUID;
     LuaEnv["ActorLocation"] = GetActorLocation();
     LuaEnv["ActorRotation"] = GetActorRotation();
-    LuaEnv["ActorScale"] = GetActorScale();
+    LuaEnv["ActorScale"] = GetActorScale();*/
 }

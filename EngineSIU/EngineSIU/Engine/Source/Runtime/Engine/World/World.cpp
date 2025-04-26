@@ -118,7 +118,7 @@ void UWorld::Tick(float DeltaTime)
     PendingBeginPlayActors.Empty();
 }
 
-void UWorld::BeginPlay()
+void UWorld::BeginPlay()  
 {
     for (AActor* Actor : ActiveLevel->Actors)
     {

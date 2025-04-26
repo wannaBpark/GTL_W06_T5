@@ -1,4 +1,4 @@
-﻿#include "Vector.h"
+#include "Vector.h"
 #include "Misc/Parse.h"
 
 const FVector2D FVector2D::ZeroVector = FVector2D(0, 0);
@@ -34,6 +34,16 @@ bool FVector2D::InitFromString(const FString& InSourceString)
     return bSuccessful;
 }
 
+float FVector::SizeSquared() const
+{
+    return SquaredLength();
+}
+
+bool FVector::IsNormalized() const
+{
+    constexpr float ThreshVectorNormalized = 0.01f;
+    return (FMath::Abs(1.f - SizeSquared()) < ThreshVectorNormalized);
+}
 
 FString FVector::ToString() const
 {

@@ -810,7 +810,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\SphereComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\CapsuleComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\LuaScriptManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaScriptManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaTypes\LuaUserTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1014,7 +1015,9 @@
     <ClInclude Include="Engine\Source\ThirdParty\sol2\sol\version.hpp" />
     <ClInclude Include="Engine\Source\ThirdParty\sol2\sol\wrapper.hpp" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\LuaScriptManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaUtils\LuaBindUtils.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaScriptManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaTypes\LuaUserTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
