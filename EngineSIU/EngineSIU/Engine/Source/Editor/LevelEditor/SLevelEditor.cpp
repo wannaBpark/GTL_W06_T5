@@ -263,13 +263,16 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
                     }
                     
                     USceneComponent* TargetComponent = EdEngine->GetSelectedComponent();
-                    if (!TargetComponent && EdEngine->GetSelectedActor())
+                    if (!TargetComponent)
                     {
-                        TargetComponent = EdEngine->GetSelectedActor()->GetRootComponent();
-                    }
-                    else
-                    {
-                        return;
+                        if (AActor* SelectedActor = EdEngine->GetSelectedActor())
+                        {
+                            TargetComponent = SelectedActor->GetRootComponent();
+                        }
+                        else
+                        {
+                            return;
+                        }
                     }
 
                     const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective

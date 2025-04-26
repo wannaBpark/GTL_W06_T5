@@ -197,7 +197,7 @@ void USceneComponent::AttachToComponent(USceneComponent* InParent)
 
 void USceneComponent::SetWorldLocation(const FVector& InLocation)
 {
-    // TODO: 기즈모 문제인지 이 코드가 문제인지는 검증 안됨
+    // TODO: 코드 최적화 방법 생각하기
     FMatrix NewRelativeMatrix = FMatrix::CreateTranslationMatrix(InLocation);
     if (AttachParent)
     {
@@ -215,6 +215,7 @@ void USceneComponent::SetWorldRotation(const FRotator& InRotation)
 
 void USceneComponent::SetWorldRotation(const FQuat& InQuat)
 {
+    // TODO: 코드 최적화 방법 생각하기
     FMatrix NewRelativeMatrix = InQuat.ToMatrix();
     if (AttachParent)
     {
@@ -228,7 +229,7 @@ void USceneComponent::SetWorldRotation(const FQuat& InQuat)
 
 void USceneComponent::SetWorldScale3D(const FVector& InScale)
 {
-    // TODO: 기즈모 문제인지 이 코드가 문제인지는 검증 안됨
+    // TODO: 코드 최적화 방법 생각하기
     FMatrix NewRelativeMatrix = FMatrix::CreateScaleMatrix(InScale.X, InScale.Y, InScale.Z);
     if (AttachParent)
     {

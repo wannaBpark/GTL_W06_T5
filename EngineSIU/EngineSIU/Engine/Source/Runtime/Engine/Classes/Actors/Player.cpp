@@ -282,13 +282,16 @@ void AEditorPlayer::PickedObjControl()
         const float DeltaY = static_cast<float>(CurrentMousePos.y - m_LastMousePos.y);
 
         USceneComponent* TargetComponent = Engine->GetSelectedComponent();
-        if (!TargetComponent && Engine->GetSelectedActor())
+        if (!TargetComponent)
         {
-            TargetComponent = Engine->GetSelectedActor()->GetRootComponent();
-        }
-        else
-        {
-            return;
+            if (AActor* SelectedActor = Engine->GetSelectedActor())
+            {
+                TargetComponent = SelectedActor->GetRootComponent();
+            }
+            else
+            {
+                return;
+            }
         }
         
         UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewport->GetPickedGizmoComponent());
