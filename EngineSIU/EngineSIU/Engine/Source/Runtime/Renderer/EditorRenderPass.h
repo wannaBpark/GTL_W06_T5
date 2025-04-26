@@ -1,92 +1,59 @@
 #pragma once
 #define _TCHAR_DEFINED
 #include <d3d11.h>
-#include "Math/Matrix.h"
-#include "Container/Set.h"
+
+#include "IRenderPass.h"
 #include "RenderResources.h"
+#include "D3D11RHI/DXDBufferManager.h"
 
 class FDXDBufferManager;
-class FGraphicsDevice;
 class UWorld;
-class FEditorViewportClient;
 class FDXDShaderManager;
 
-class FEditorRenderPass
+class FEditorRenderPass : public IRenderPass
 {
 public:
-    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager);
-    void Render(std::shared_ptr<FEditorViewportClient> Viewport);
-    void Release();
-
-    void PrepareRender();
-
-    void ClearRenderArr();
+    void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
+    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    void PrepareRenderArr() override;
+    void ClearRenderArr() override;
 
 private:
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
-    FRenderResourcesDebug Resources;
+    FDXDBufferManager* BufferManager = nullptr;
+    FGraphicsDevice* Graphics = nullptr;
+    FDXDShaderManager* ShaderManager = nullptr;
+    
+    FRenderResourcesDebug Resources = FRenderResourcesDebug();
 
+private:
     void CreateShaders();
-    void PrepareShader(FShaderResource ShaderResource) const;
-    void ReleaseShaders();
-
     void CreateBuffers();
     void CreateConstantBuffers();
-
-    void LazyLoad();
     
-    void PrepareRendertarget(std::shared_ptr<FEditorViewportClient> Viewport);
+    void LazyLoad();
 
-    void PrepareConstantbufferGlobal();
-    void UpdateConstantbufferGlobal(FConstantBufferCamera Buffer);
-
-    // Gizmo 관련 함수
-    //void RenderGizmos(const UWorld* World);
-    void PrepareShaderGizmo();
-    void PrepareConstantbufferGizmo();
-
-    // Axis
-    void RenderAxis();
-
-    // AABB
-    //void RenderAABBInstanced(const UWorld* World);
-    void PrepareConstantbufferAABB();
-    void UdpateConstantbufferAABBInstanced(TArray<FConstantBufferDebugAABB> Buffer);
-
-    // Sphere
+    void BindRenderTarget(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void BindShaderResource(const std::wstring& VertexKey, const std::wstring& PixelKey, D3D_PRIMITIVE_TOPOLOGY Topology) const;
+    void BindBuffers(const FDebugPrimitiveData& InPrimitiveData) const;
+    
     void RenderPointlightInstanced(uint64 ShowFlag);
-    void PrepareConstantbufferPointlight();
-    void UdpateConstantbufferPointlightInstanced(TArray<FConstantBufferDebugSphere> Buffer);
-     
-    // Cone
     void RenderSpotlightInstanced(uint64 ShowFlag);
-    void PrepareConstantbufferSpotlight();
-    void UdpateConstantbufferSpotlightInstanced(TArray<FConstantBufferDebugCone> Buffer);
+    void RenderArrowInstanced();
+    void RenderBoxInstanced(uint64 ShowFlag);
+    void RenderSphereInstanced(uint64 ShowFlag);
+    void RenderCapsuleInstanced(uint64 ShowFlag);
 
     // Grid
     // void RenderGrid(std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    // void PrepareConstantbufferGrid();
-    // void UpdateConstantbufferGrid(FConstantBufferDebugGrid Buffer);
 
     // Icon
-    void RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void PrepareConstantbufferIcon();
-    void UdpateConstantbufferIcon(FConstantBufferDebugIcon Buffer);
+    void RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);   // 사용 X
     void UpdateTextureIcon(IconType type);
 
-    // Arrow
-    void RenderArrowsInstanced();
-    void PrepareConstantbufferArrowInstanced() const;
-    void UdpateConstantbufferArrowInstanced(TArray<FConstantBufferDebugArrow>& Buffer) const;
-
-    // ShaderManager의 Hot Reload에 대응하기 위한 함수
-    void SetShaderAndPrepare(const std::wstring& VertexKey, const std::wstring& PixelKey, FShaderResource& ShaderSlot);
-
-    const UINT32 ConstantBufferSizeAABB = 8;
-    const UINT32 ConstantBufferSizeSphere = 8;
-    const UINT32 ConstantBufferSizeCone = 100;
-    const UINT32 ConstantBufferSizeArrow = 100;
+    static constexpr UINT32 ConstantBufferSizeBox = 8;
+    static constexpr UINT32 ConstantBufferSizeSphere = 8;
+    static constexpr UINT32 ConstantBufferSizeCone = 100;
+    static constexpr UINT32 ConstantBufferSizeArrow = 100;
+    static constexpr UINT32 ConstantBufferSizeCapsule = 8;
 };
 

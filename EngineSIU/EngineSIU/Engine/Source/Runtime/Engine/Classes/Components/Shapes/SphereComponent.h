@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShapeComponent.h"
+#include "Renderer/ShaderConstants.h"
 
 class USphereComponent : public UShapeComponent
 {
@@ -14,8 +15,10 @@ public:
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
 
-private:
-    float SphereRadius;
+    void SetRadius(float InRadius) { SphereRadius = InRadius; }
+    float GetRadius() const { return SphereRadius; }
 
+private:
+    float SphereRadius = 0;
 };
 

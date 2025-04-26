@@ -398,6 +398,7 @@ HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::ws
     hr = D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "ps_5_0", shaderFlags, 0, &PsBlob, &ErrorBlob);
     if (FAILED(hr))
     {
+        MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Pixel Shader Compile Error", MB_OK | MB_ICONERROR);
         std::string error = (char*)ErrorBlob->GetBufferPointer();
         return hr;
     }
@@ -410,6 +411,7 @@ HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::ws
     }
     if (FAILED(hr))
     {
+        MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Pixel Shader Create Error", MB_OK | MB_ICONERROR);
         return hr;
     }
 
@@ -498,6 +500,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     if (FAILED(hr))
     {
         if (ErrorBlob) {
+            MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Vertex Shader Compile Error", MB_OK | MB_ICONERROR);
             OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
             ErrorBlob->Release();
         }
@@ -508,6 +511,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     hr = DXDDevice->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &NewVertexShader);
     if (FAILED(hr))
     {
+        MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Vertex Shader Create Error", MB_OK | MB_ICONERROR);
         VertexShaderCSO->Release();
         return hr;
     }
@@ -537,6 +541,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     if (FAILED(hr))
     {
         if (ErrorBlob) {
+            MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Vertex Shader Compile Error", MB_OK | MB_ICONERROR);
             OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
             ErrorBlob->Release();
         }
@@ -547,6 +552,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     hr = DXDDevice->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &NewVertexShader);
     if (FAILED(hr))
     {
+        MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Vertex Shader Create Error", MB_OK | MB_ICONERROR);
         VertexShaderCSO->Release();
         return hr;
     }
@@ -559,11 +565,6 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
         RegisterShaderForReload(Key, FileName, EntryPoint, true, const_cast<D3D_SHADER_MACRO*>(defines));
     }
 
-    return S_OK;
-}
-
-HRESULT FDXDShaderManager::AddInputLayout(const std::wstring& Key, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
-{
     return S_OK;
 }
 
@@ -693,6 +694,7 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     if (FAILED(hr))
     {
         if (ErrorBlob) {
+            MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Vertex Shader & InputLayout Compile Error", MB_OK | MB_ICONERROR);
             OutputDebugStringA((char*)ErrorBlob->GetBufferPointer());
             ErrorBlob->Release();
         }
@@ -703,6 +705,7 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     hr = DXDDevice->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &NewVertexShader);
     if (FAILED(hr))
     {
+        MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Vertex Shader Create Error", MB_OK | MB_ICONERROR);
         return hr;
     }
 
@@ -710,6 +713,7 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     hr = DXDDevice->CreateInputLayout(Layout, LayoutSize, VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &NewInputLayout);
     if (FAILED(hr))
     {
+        MessageBox(nullptr, (FileName + FString((char*)(ErrorBlob->GetBufferPointer())).ToWideString()).c_str(), L"Input Layout Create Error", MB_OK | MB_ICONERROR);
         VertexShaderCSO->Release();
         return hr;
     }
