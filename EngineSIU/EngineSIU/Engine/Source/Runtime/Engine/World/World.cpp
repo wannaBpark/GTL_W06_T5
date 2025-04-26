@@ -110,6 +110,10 @@ void UWorld::Tick(float DeltaTime)
     // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
     for (AActor* Actor : PendingBeginPlayActors)
     {
+        if (Actor->bUseScript)
+        {
+            Actor->InitLuaScriptComponent();
+        }
         Actor->BeginPlay();
     }
     PendingBeginPlayActors.Empty();
@@ -121,6 +125,10 @@ void UWorld::BeginPlay()
     {
         if (Actor->GetWorld() == this)
         {
+            if (Actor->bUseScript)
+            {
+                Actor->InitLuaScriptComponent();
+            }
             Actor->BeginPlay();
         }
     }
@@ -188,13 +196,7 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     {
         ThisActor->SetOwner(nullptr);
     }
-
-    TSet<UActorComponent*> Components = ThisActor->GetComponents();
-    for (UActorComponent* Component : Components)
-    {
-        Component->DestroyComponent();
-    }
-
+    
     // World에서 제거
     ActiveLevel->Actors.Remove(ThisActor);
 

@@ -7,10 +7,15 @@
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
 
-
 class UActorComponent;
 class UInputComponent;
 class APlayerController;
+class ULuaScriptComponent;
+
+namespace sol
+{
+	class state;
+}
 
 class AActor : public UObject
 {
@@ -114,6 +119,7 @@ private:
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1 = false;
 
+
 #if 1 // TODO: WITH_EDITOR 추가
 public:
     /** Actor의 기본 Label을 가져옵니다. */
@@ -137,6 +143,18 @@ public:
 
 private:
     bool bTickInEditor = false;
+
+
+public: // Lua Script.
+	// 자기 자신이 가진 정보들 Lua에 등록.
+	void InitLuaScriptComponent();
+	FString GetLuaScriptPathName();
+	virtual void SetupLuaProperties(sol::state& Lua, ULuaScriptComponent* LuaComponent);
+
+	bool bUseScript = true;
+private:
+	bool bRegisteredLuaProperties = false;
+	ULuaScriptComponent* LuaScriptComponent = nullptr;
 
 };
 

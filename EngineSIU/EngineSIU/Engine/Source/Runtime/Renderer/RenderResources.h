@@ -3,8 +3,11 @@
 #include <memory>
 #define _TCHAR_DEFINED
 #include <d3d11.h>
+
+#include "Define.h"
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
+
 #include "ShaderConstants.h"
 #include "Engine/Classes/Engine/Texture.h"
 
@@ -20,7 +23,6 @@ struct FShaderResource
     ID3D11InputLayout* Layout = nullptr;
     D3D11_PRIMITIVE_TOPOLOGY Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };
-
 
 struct FRenderResources
 {
@@ -52,11 +54,8 @@ struct FRenderResources
 
 struct FDebugPrimitiveData
 {
-    ID3D11Buffer* Vertex;
-    ID3D11Buffer* Index;
-    UINT32 NumVertices;
-    UINT32 VertexStride;
-    UINT32 NumIndices;
+    FVertexInfo VertexInfo;
+    FIndexInfo IndexInfo;
 };
 
 // Icon
@@ -75,33 +74,14 @@ struct FRenderResourcesDebug
 {
     struct FWorldComponentContainer
     {
-        TArray<class UStaticMeshComponent*> StaticMesh;
+        TArray<class UStaticMeshComponent*> StaticMeshComponent;
         TArray<class ULightComponentBase*> Light;
         TArray<class UHeightFogComponent*> Fog;
+
+        TArray<class UBoxComponent*> BoxComponents;
+        TArray<class USphereComponent*> SphereComponents;
+        TArray<class UCapsuleComponent*> CapsuleComponents;
     } Components;
-
-    struct FShaderResourceContainer
-    {
-        FShaderResource Gizmo;
-        FShaderResource AxisLine;
-        FShaderResource AABB;
-        FShaderResource Sphere;
-        FShaderResource Grid;
-        FShaderResource Cone;
-        FShaderResource Icon;
-        FShaderResource Arrow;
-    } Shaders;
-
-    struct FConstantBuffers
-    {
-        ID3D11Buffer* Camera00;
-        ID3D11Buffer* AABB11;
-        ID3D11Buffer* Sphere11;
-        ID3D11Buffer* Cone11;
-        ID3D11Buffer* Grid11;
-        ID3D11Buffer* Icon11;
-        ID3D11Buffer* Arrow11;
-    } ConstantBuffers;
 
     struct FPrimitiveResourceContainer
     {
@@ -109,7 +89,8 @@ struct FRenderResourcesDebug
         FDebugPrimitiveData Sphere;
         FDebugPrimitiveData Cone;
         FDebugPrimitiveData Arrow;
+        FDebugPrimitiveData Capsule;
     } Primitives;
 
-    TMap<IconType, std::shared_ptr<FTexture>> IconTextures;
+    TMap<IconType, std::shared_ptr<FTexture>> IconTextures; // 사용 X
 };

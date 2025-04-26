@@ -20,4 +20,10 @@ public:
 
     TArray<AActor*> Actors;
     UWorld* OwningWorld;
+
+    FString GetLevelName() const { return LevelName; }
+    void SetLevelName(const FString& InLevelName) { LevelName = InLevelName; }
+    
+private:
+    FString LevelName = "DefaultLevel";
 };

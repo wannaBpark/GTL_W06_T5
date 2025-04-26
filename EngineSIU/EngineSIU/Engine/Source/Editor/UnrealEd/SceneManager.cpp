@@ -131,7 +131,7 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
         return ;
     }
 
-    LoadWorldFromData(SceneData, &OutWorld);
+    LoadWorldFromData(SceneData, FString(FilePath.stem()), &OutWorld);
 }
 
 bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, const UWorld& InWorld)
@@ -227,14 +227,16 @@ FSceneData SceneManager::WorldToSceneData(const UWorld& InWorld)
     return sceneData;
 }
 
-bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* targetWorld)
+bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const FString& SceneName, UWorld* targetWorld)
 {
-        if (targetWorld == nullptr)
+    if (targetWorld == nullptr)
     {
         UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Target World is null!"));
         return false;
     }
 
+    targetWorld->GetActiveLevel()->SetLevelName(SceneName);
+    
     // 임시 맵: 저장된 ID와 새로 생성된 객체 포인터를 매핑
     TMap<FString, AActor*> SpawnedActorsMap;
     //TMap<FString, UActorComponent*> SpawnedComponentsMap;
@@ -350,11 +352,6 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
                 continue;
             }
 
-            if (componentData.ComponentID == "USpotLightComponent_156")
-            {
-                int a= 0;
-            }
-
             // --- 이제 TargetComponent는 유효한 기존 컴포넌트 또는 새로 생성된 컴포넌트 ---
             if (TargetComponent)
             {
@@ -388,10 +385,6 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
         for (const FComponentSaveData& componentData : actorData.Components) // 다시 컴포넌트 데이터 순회
         {
             UActorComponent** FoundCompPtr = ActorComponentsMap.Find(componentData.ComponentID);
-            if (componentData.ComponentID == "USpotLightComponent_156")
-            {
-                int a= 0;
-            }
             
             if (FoundCompPtr == nullptr || *FoundCompPtr == nullptr) continue; // 위에서 생성/찾기 실패한 경우
 

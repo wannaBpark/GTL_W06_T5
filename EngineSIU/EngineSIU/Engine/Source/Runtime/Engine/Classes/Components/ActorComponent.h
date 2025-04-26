@@ -53,7 +53,7 @@ public:
     AActor* GetOwner() const { return OwnerPrivate; }
 
     /** 이 컴포넌트를 제거합니다. */
-    virtual void DestroyComponent();
+    virtual void DestroyComponent(bool bPromoteChildren = false);
 
     /** Component의 BeginPlay가 호출 되었는지 여부를 반환합니다. */
     bool HasBegunPlay() const { return bHasBegunPlay; }

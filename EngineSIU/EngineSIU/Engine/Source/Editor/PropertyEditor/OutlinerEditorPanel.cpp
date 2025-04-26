@@ -37,20 +37,16 @@ void OutlinerEditorPanel::Render()
     ImGui::BeginChild("Objects");
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
+    {
+        ImGui::EndChild();
+        ImGui::End();
+
         return;
+    }
 
     std::function<void(USceneComponent*)> CreateNode = [&CreateNode, &Engine](USceneComponent* InComp)->void
         {
-            FString Name;
-
-            if (InComp == InComp->GetOwner()->GetRootComponent())
-            {
-                Name = InComp->GetOwner()->GetActorLabel();
-            }
-            else
-            {
-                Name = InComp->GetName();
-            }
+            FString Name = InComp->GetName();
 
             ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_None;
             if (InComp->GetAttachChildren().Num() == 0)
@@ -77,9 +73,23 @@ void OutlinerEditorPanel::Render()
     for (AActor* Actor : Engine->ActiveWorld->GetActiveLevel()->Actors)
     {
         if (Actor->GetRootComponent() == nullptr)
-            continue;
+        continue;
 
-        CreateNode(Actor->GetRootComponent());
+        ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_None;
+
+        bool NodeOpen = ImGui::TreeNodeEx(*Actor->GetName(), Flags);
+
+        if (ImGui::IsItemClicked())
+        {
+            Engine->SelectActor(Actor);
+            Engine->DeselectComponent(Engine->GetSelectedComponent());
+        }
+
+        if (NodeOpen)
+        {
+            CreateNode(Actor->GetRootComponent());
+            ImGui::TreePop();
+        }
     }
 
     ImGui::EndChild();

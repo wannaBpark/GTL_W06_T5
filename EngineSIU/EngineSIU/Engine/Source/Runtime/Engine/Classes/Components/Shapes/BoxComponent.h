@@ -14,8 +14,10 @@ public:
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
 
+    FVector GetBoxExtent() const { return BoxExtent; }
+    void SetBoxExtent(FVector InExtent) { BoxExtent = InExtent; }
+    
 private:
-    FVector BoxExtent;
-
+    FVector BoxExtent = FVector::ZeroVector;
 };
 

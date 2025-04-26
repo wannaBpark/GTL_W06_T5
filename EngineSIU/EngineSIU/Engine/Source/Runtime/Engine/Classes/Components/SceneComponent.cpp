@@ -1,4 +1,6 @@
 #include "Components/SceneComponent.h"
+
+#include "GameFramework/Actor.h"
 #include "Math/Rotator.h"
 #include "Math/JungleMath.h"
 #include "UObject/Casts.h"
@@ -28,7 +30,15 @@ void USceneComponent::GetProperties(TMap<FString, FString>& OutProperties) const
     OutProperties.Add(TEXT("RelativeLocation"), *RelativeLocation.ToString());
     OutProperties.Add(TEXT("RelativeRotation"), *RelativeRotation.ToString());
     OutProperties.Add(TEXT("RelativeScale3D"), *RelativeScale3D.ToString());
-    
+
+    USceneComponent* ParentComp = GetAttachParent();
+    if (ParentComp != nullptr) {
+        OutProperties.Add(TEXT("AttachParentID"), ParentComp->GetName());
+    }
+    else
+    {
+        OutProperties.Add(TEXT("AttachParentID"), "nullptr");
+    }
 }
 
 void USceneComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -71,14 +81,53 @@ int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDi
     return nIntersections;
 }
 
-void USceneComponent::DestroyComponent()
+void USceneComponent::DestroyComponent(bool bPromoteChildren)
 {
+    TArray<USceneComponent*> ChildrenCopy = AttachChildren;
+    for (auto& Child : ChildrenCopy)
+    {
+        if (Child == nullptr)
+        {
+            continue;
+        }
+
+        if (bPromoteChildren)
+        {
+            Child->DestroyComponent(bPromoteChildren);
+        }
+        else
+        {
+            AActor* Owner = GetOwner();
+            if (AttachParent)
+            {
+                Child->DetachFromComponent(this);
+                // 자식 컴포넌트들을 부모에 어태치
+                Child->SetupAttachment(AttachParent);
+            }
+            else if (Owner != nullptr)
+            {
+                if (Owner->GetRootComponent())
+                {
+                    Child->DetachFromComponent(this);
+                    // 부모가 nullptr인 경우 Owner의 Root에라도 어태치
+                    Child->SetupAttachment(Owner->GetRootComponent());
+                }
+                else
+                {
+                    // 루트 컴포넌트도 없는 경우, 아무거나 하나를 루트로 지정해줌
+                    Owner->SetRootComponent(Child);       
+                }
+            }
+        }
+    }
+
+    AttachChildren.Empty();
+
     if (AttachParent)
     {
-        AttachParent->AttachChildren.Remove(this);
-        AttachParent = nullptr;
+        DetachFromComponent(AttachParent);
     }
-    Super::DestroyComponent();
+    Super::DestroyComponent(bPromoteChildren);
 }
 
 FVector USceneComponent::GetForwardVector()
@@ -145,6 +194,18 @@ void USceneComponent::AttachToComponent(USceneComponent* InParent)
     {
         InParent->AttachChildren.Add(this);
     }
+}
+
+void USceneComponent::DetachFromComponent(USceneComponent* Target)
+{
+    // TODO: Detachment Rule 필요
+
+    if (!Target || !Target->AttachChildren.Contains(this))
+    {
+        return;
+    }
+
+    Target->AttachChildren.Remove(this);
 }
 
 FVector USceneComponent::GetWorldLocation() const

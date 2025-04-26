@@ -18,6 +18,7 @@ class SSplitterH;
 class FGraphicDevice;
 class SLevelEditor;
 class FDXDBufferManager;
+class FLuaScriptManager;
 
 class FEngineLoop
 {
@@ -63,6 +64,9 @@ private:
     bool bIsExit = false;
     // @todo Option으로 선택 가능하도록
     int32 TargetFPS = 999;
+
+private:
+    FLuaScriptManager* LuaScriptManager = nullptr;
 
 public:
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }

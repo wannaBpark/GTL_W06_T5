@@ -2,6 +2,8 @@
 #include "World/World.h"
 #include "PlayerController.h"
 #include "Components/InputComponent.h"
+#include "sol/sol.hpp"
+#include "Components/LuaScriptComponent.h"
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
@@ -15,10 +17,10 @@ UObject* AActor::Duplicate(UObject* InOuter)
     //임시용 디폴트 컴포넌트 이름 저장
     //TODO: 디퐅트 컴포넌트를 삭제하지 않고 그 컴포넌트에 프로퍼티를 복사하는 방법으로 변경 필요
     TArray<FName> DefaultCopiedComponentNames;
-    for (UActorComponent* Components : CopiedComponents)
+    for (UActorComponent* Component : CopiedComponents)
     {
-        DefaultCopiedComponentNames.Add(Components->GetFName());
-        Components->DestroyComponent();
+        DefaultCopiedComponentNames.Add(Component->GetFName());
+        Component->DestroyComponent();
     }
     NewActor->OwnedComponents.Empty();
 
@@ -75,6 +77,8 @@ UObject* AActor::Duplicate(UObject* InOuter)
         }
     }
 
+    LuaScriptComponent = GetComponentByClass<ULuaScriptComponent>();
+
     return NewActor;
 }
 
@@ -83,7 +87,7 @@ void AActor::BeginPlay()
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
     const auto CopyComponents = OwnedComponents;
     for (UActorComponent* Comp : CopyComponents)
-    {
+    {  
         Comp->BeginPlay();
     }
 }
@@ -104,6 +108,12 @@ void AActor::Destroyed()
 {
     // Actor가 제거되었을 때 호출하는 EndPlay
     EndPlay(EEndPlayReason::Destroyed);
+    
+    TSet<UActorComponent*> Components = OwnedComponents;
+    for (UActorComponent* Component : Components)
+    {
+        Component->DestroyComponent(true);
+    }
 }
 
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -311,4 +321,44 @@ void AActor::DisableInput(APlayerController* PlayerController)
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)
 {
     bTickInEditor = InbInTickInEditor;
+}
+
+void AActor::InitLuaScriptComponent()
+{
+    if (!LuaScriptComponent)
+    {
+        LuaScriptComponent = AddComponent<ULuaScriptComponent>("LuaComponent");
+    }
+
+    if (LuaScriptComponent)
+    {
+        LuaScriptComponent->LoadScript();
+    }
+}
+
+FString AActor::GetLuaScriptPathName()
+{
+    return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : TEXT("");
+}
+
+void AActor::SetupLuaProperties(sol::state& Lua, ULuaScriptComponent* LuaComponent)
+{
+    if (!bRegisteredLuaProperties)
+    {
+        Lua.new_usertype<AActor>("AActor",
+            "UUID", &ThisClass::UUID,
+            "ActorLocation", &ThisClass::GetActorLocation,  
+            "ActorRotation", &ThisClass::GetActorRotation,
+            "ActorScale", &ThisClass::GetActorScale
+        );
+        bRegisteredLuaProperties = true;
+    }
+
+    if (LuaComponent)
+    {
+        LuaComponent->GetLuaEnv()["UUID"] = UUID;
+        LuaComponent->GetLuaEnv()["ActorLocation"] = GetActorLocation();
+        LuaComponent->GetLuaEnv()["ActorRotation"] = GetActorRotation();
+        LuaComponent->GetLuaEnv()["ActorScale"] = GetActorScale();
+    }
 }
