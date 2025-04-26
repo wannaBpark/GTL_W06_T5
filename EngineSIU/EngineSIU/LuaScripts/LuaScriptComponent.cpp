@@ -17,13 +17,18 @@ ULuaScriptComponent::~ULuaScriptComponent()
 void ULuaScriptComponent::BeginPlay()
 {
     Super::BeginPlay();
+
+    KeyDownDelegateHandles.Empty();
+    
+    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
     
     CallLuaFunction("BeginPlay");
 }
 
 void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
+{ 
     Super::EndPlay(EndPlayReason);
+    
     CallLuaFunction("EndPlay");
 }
 
@@ -145,28 +150,11 @@ void ULuaScriptComponent::ReloadScript()
     CallLuaFunction("BeginPlay");
 }
 
-void ULuaScriptComponent::CallLuaFunction(const FString& FunctionName)
-{
-    if (!bScriptValid) return;
-
-    sol::protected_function func = LuaState[FunctionName];
-    if (func.valid()) {
-        auto result = func();
-        if (!result.valid()) {
-            sol::error err = result;
-            UE_LOG(LogLevel::Error, TEXT("Lua Function Error: %s"), err.what());
-        }
-    }
-}
-
 void ULuaScriptComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    if (bScriptValid && LuaState["Tick"].valid()) {
-        LuaState["Tick"](DeltaTime);
-        CallLuaFunction("Tick");
-    }
+    CallLuaFunction("Tick", DeltaTime);
 
     if (CheckFileModified()) {
         try {

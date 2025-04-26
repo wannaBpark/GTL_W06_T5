@@ -1,12 +1,10 @@
 function BeginPlay()
-    local currentPos = actor.Location
-    currentPos.X = currentPos.X + 100
-    actor.Location = currentPos
+    print("Begin")
     -- UE_LOG("Error", "actor:SetLocation")
 end
 
 function EndPlay()
-    print("[EndPlay] " .. actor.UUID)
+    print("[EndPlay] ")
     -- obj:PrintLocation()
 end
 

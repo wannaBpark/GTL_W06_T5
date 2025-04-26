@@ -4,6 +4,8 @@
 #include <sol/sol.hpp>
 #include <filesystem>
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLocationTenUp, const FVector);
+
 class ULuaScriptComponent : public UActorComponent
 {
     DECLARE_CLASS(ULuaScriptComponent, UActorComponent)
@@ -23,15 +25,21 @@ public:
     virtual void InitializeComponent() override;
 
     // Lua 함수 호출 메서드
-    void CallLuaFunction(const FString& FunctionName);
-
+    template<typename... Arguments> void CallLuaFunction(const FString& FunctionName, Arguments... args);
+    
     FString GetScriptPath() const { return ScriptPath; }
     void SetScriptPath(const FString& InScriptPath);
 
     FString GetDisplayName() const { return DisplayName; }
     void SetDisplayName(const FString& InDisplayName) { DisplayName = InDisplayName; }
 
+    void OnPressSpacebar()
+    {
+        UE_LOG(LogLevel::Error, "Deligate Space Press");
+    }
 
+    FOnLocationTenUp FOnLocationTenUp;
+    
 private:
     // Lua 환경 초기화
     void InitializeLuaState();
@@ -42,6 +50,9 @@ private:
     FString ScriptPath;
     FString DisplayName;
 
+    TArray<FDelegateHandle> KeyDownDelegateHandles;
+    TArray<FDelegateHandle> FOnLocationDelegateHandles;
+    
     sol::state LuaState;
     bool bScriptValid = false;
 
@@ -49,3 +60,12 @@ private:
     bool CheckFileModified();
     void ReloadScript();
 };
+
+template <typename ... Arguments>
+void ULuaScriptComponent::CallLuaFunction(const FString& FunctionName, Arguments... args)
+{
+    if (bScriptValid && LuaState[*FunctionName].valid())
+    {
+        LuaState[*FunctionName](args...);
+    }
+}
