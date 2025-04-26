@@ -29,6 +29,17 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     CallLuaFunction("EndPlay");
 }
 
+UObject* ULuaScriptComponent::Duplicate(UObject* InOuter)
+{
+    ULuaScriptComponent* NewComponent = Cast<ULuaScriptComponent>(Super::Duplicate(InOuter));
+    if (NewComponent)
+    {
+        NewComponent->ScriptPath = ScriptPath;
+        NewComponent->DisplayName = DisplayName;
+    }
+    return NewComponent;
+}
+
 void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
 {
     ScriptPath = InScriptPath;
@@ -37,21 +48,28 @@ void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
 
 void ULuaScriptComponent::InitializeLuaState()
 {
-    LuaScriptFileUtils::CopyTemplateToActorScript(
-        L"template.lua",
-        GetWorld()->GetName().ToWideString(),
-        GetOwner()->GetName().ToWideString(),
-        ScriptPath,
-        DisplayName
-        ) ;
+    if (ScriptPath.IsEmpty()) {
+        bool bSuccess = LuaScriptFileUtils::CopyTemplateToActorScript(
+            L"template.lua",
+            GetWorld()->GetName().ToWideString(),
+            GetOwner()->GetName().ToWideString(),
+            ScriptPath,
+            DisplayName
+        );
+        if (!bSuccess) {
+            UE_LOG(LogLevel::Error, TEXT("Failed to create script from template"));
+            return;
+        }
+    }
 
     LuaState.open_libraries();
-
     BindEngineAPI();
 
     try {
         LuaState.script_file((*ScriptPath));
         bScriptValid = true;
+        const std::wstring FilePath = ScriptPath.ToWideString();
+        LastWriteTime = std::filesystem::last_write_time(FilePath);
     }
     catch (const sol::error& err) {
         UE_LOG(LogLevel::Error, TEXT("Lua Initialization error: %s"), err.what());
@@ -86,6 +104,44 @@ void ULuaScriptComponent::BindEngineAPI()
     LuaState["script"] = this;
 }
 
+
+bool ULuaScriptComponent::CheckFileModified()
+{
+    if (ScriptPath.IsEmpty()) return false;
+
+    try {
+        std::wstring FilePath = ScriptPath.ToWideString();
+        const auto CurrentTime = std::filesystem::last_write_time(FilePath);
+
+        if (CurrentTime > LastWriteTime) {
+            LastWriteTime = CurrentTime;
+            return true;
+        }
+    }
+    catch (const std::exception& e) {
+        UE_LOG(LogLevel::Error, TEXT("Failed to check lua script file"));
+    }
+    return false;
+}
+
+void ULuaScriptComponent::ReloadScript()
+{
+    sol::table PersistentData;
+    if (bScriptValid && LuaState["PersistentData"].valid()) {
+        PersistentData = LuaState["PersistentData"];
+    }
+
+    LuaState = sol::state();
+    InitializeLuaState();
+
+    if (PersistentData.valid()) {
+        LuaState["PersistentData"] = PersistentData;
+    }
+
+    CallLuaFunction("OnHotReload");
+    CallLuaFunction("BeginPlay");
+}
+
 void ULuaScriptComponent::CallLuaFunction(const FString& FunctionName)
 {
     if (!bScriptValid) return;
@@ -107,6 +163,16 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
     if (bScriptValid && LuaState["Tick"].valid()) {
         LuaState["Tick"](DeltaTime);
         CallLuaFunction("Tick");
+    }
+
+    if (CheckFileModified()) {
+        try {
+            ReloadScript();
+            UE_LOG(LogLevel::Display, TEXT("Lua script reloaded"));
+        }
+        catch (const sol::error& e) {
+            UE_LOG(LogLevel::Error, TEXT("Failed to reload lua script"));
+        }
     }
 }
 

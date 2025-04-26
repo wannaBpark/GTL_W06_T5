@@ -2,6 +2,7 @@
 #include "Runtime/CoreUObject/UObject/ObjectMacros.h"
 #include "Components/ActorComponent.h"
 #include <sol/sol.hpp>
+#include <filesystem>
 
 class ULuaScriptComponent : public UActorComponent
 {
@@ -18,6 +19,7 @@ public:
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     virtual void TickComponent(float DeltaTime) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
 
     // Lua 함수 호출 메서드
     void CallLuaFunction(const FString& FunctionName);
@@ -41,4 +43,8 @@ private:
 
     sol::state LuaState;
     bool bScriptValid = false;
+
+    std::filesystem::file_time_type LastWriteTime;
+    bool CheckFileModified();
+    void ReloadScript();
 };
