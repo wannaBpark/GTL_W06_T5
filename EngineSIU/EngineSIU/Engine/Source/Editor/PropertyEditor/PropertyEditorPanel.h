@@ -4,6 +4,16 @@
 #include "UnrealEd/EditorPanel.h"
 #include "Math/Rotator.h"
 
+class ULightComponentBase;
+class AEditorPlayer;
+class USceneComponent;
+class USpotLightComponent;
+class UPointLightComponent;
+class UDirectionalLightComponent;
+class UAmbientLightComponent;
+class UProjectileMovementComponent;
+class UTextComponent;
+class UHeightFogComponent;
 class UStaticMeshComponent;
 
 // 헬퍼 함수 예시
@@ -37,21 +47,36 @@ private:
     static void RGBToHSV(float R, float G, float B, float& H, float& S, float& V);
     static void HSVToRGB(float H, float S, float V, float& R, float& G, float& B);
 
-    void RenderForActor(AActor* InActor);
+    void RenderForSceneComponent(USceneComponent* SceneComponent, AEditorPlayer* Player) const;
+    void RenderForActor(AActor* InActor, USceneComponent* TargetComponent) const;
+
     /* Static Mesh Settings */
-    static void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
+    void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const;
+
+    void RenderForAmbientLightComponent(UAmbientLightComponent* LightComp) const;
+    void RenderForDirectionalLightComponent(UDirectionalLightComponent* LightComponent) const;
+    void RenderForPointLightComponent(UPointLightComponent* LightComponent) const;
+    void RenderForSpotLightComponent(USpotLightComponent* LightComponent) const;
+
+    void RenderForLightShadowCommon(ULightComponentBase* LightComponent) const;
+
+    
+    void RenderForProjectileMovementComponent(UProjectileMovementComponent* ProjectileComp) const;
+    void RenderForTextComponent(UTextComponent* TextComponent) const;
     
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
     void RenderMaterialView(UMaterial* Material);
     void RenderCreateMaterialView();
 
+    void RenderForExponentialHeightFogComponent(UHeightFogComponent* ExponentialHeightFogComp) const;
+
+    template<typename T>
+        requires std::derived_from<T, UActorComponent>
+    T* GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent);
+
 private:
     float Width = 0, Height = 0;
-    FVector Location = FVector(0, 0, 0);
-    FRotator Rotation = FRotator(0, 0, 0);
-    FVector Scale = FVector(0, 0, 0);
-    FVector LightDirection = FVector(0, 0, 0);
     /* Material Property */
     int SelectedMaterialIndex = -1;
     int CurMaterialIndex = -1;
