@@ -3,6 +3,7 @@
 
 #include "sol/sol.hpp"
 #include "Components/LuaScriptComponent.h"
+#include "Engine/LuaScriptManager.h"
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
@@ -76,7 +77,7 @@ UObject* AActor::Duplicate(UObject* InOuter)
         }
     }
 
-    LuaScriptComponent = GetComponentByClass<ULuaScriptComponent>();
+    NewActor->LuaScriptComponent = NewActor->GetComponentByClass<ULuaScriptComponent>();
 
     return NewActor;
 }
@@ -84,6 +85,12 @@ UObject* AActor::Duplicate(UObject* InOuter)
 void AActor::BeginPlay()
 {
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
+
+    if (bUseScript)
+    {
+        InitLuaScriptComponent();
+    }
+
     const auto CopyComponents = OwnedComponents;
     for (UActorComponent* Comp : CopyComponents)
     {  
@@ -304,7 +311,7 @@ void AActor::InitLuaScriptComponent()
 
     if (LuaScriptComponent)
     {
-        LuaScriptComponent->LoadScript();
+        ApplyTypeOnLua(FLuaScriptManager::Get().GetLua());
     }
 }
 
@@ -313,24 +320,31 @@ FString AActor::GetLuaScriptPathName()
     return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : TEXT("");
 }
 
-void AActor::SetupLuaProperties(sol::state& Lua, ULuaScriptComponent* LuaComponent)
+void AActor::ApplyTypeOnLua(sol::state& Lua)
 {
     if (!bRegisteredLuaProperties)
     {
         Lua.new_usertype<AActor>("AActor",
             "UUID", &ThisClass::UUID,
-            "ActorLocation", &ThisClass::GetActorLocation,  
+            "ActorLocation", &ThisClass::GetActorLocation,
             "ActorRotation", &ThisClass::GetActorRotation,
             "ActorScale", &ThisClass::GetActorScale
         );
         bRegisteredLuaProperties = true;
     }
+}
 
-    if (LuaComponent)
-    {
-        LuaComponent->GetLuaEnv()["UUID"] = UUID;
-        LuaComponent->GetLuaEnv()["ActorLocation"] = GetActorLocation();
-        LuaComponent->GetLuaEnv()["ActorRotation"] = GetActorRotation();
-        LuaComponent->GetLuaEnv()["ActorScale"] = GetActorScale();
-    }
+void AActor::SetupLuaProperties()
+{
+    if (!LuaScriptComponent)
+        return;
+
+    sol::table& LuaEnv = LuaScriptComponent->LoadScript();
+    if (!LuaEnv.valid())
+        return;
+
+    LuaEnv["UUID"] = UUID;
+    LuaEnv["ActorLocation"] = GetActorLocation();
+    LuaEnv["ActorRotation"] = GetActorRotation();
+    LuaEnv["ActorScale"] = GetActorScale();
 }

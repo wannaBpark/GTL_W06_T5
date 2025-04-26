@@ -126,7 +126,7 @@ void UWorld::BeginPlay()
         {
             if (Actor->bUseScript)
             {
-                Actor->InitLuaScriptComponent();
+                Actor->SetupLuaProperties();
             }
             Actor->BeginPlay();
         }

@@ -43,10 +43,27 @@ sol::table FLuaScriptManager::CreateLuaTable(const FString& ScriptName)
         return sol::table();
     }
     
+    
     if (!ScriptCacheMap.Contains(ScriptName))
     {
-        sol::table LuaTable = LuaState.script_file(*ScriptName);
-        ScriptCacheMap.Add(ScriptName, LuaTable);
+        sol::protected_function_result Result = LuaState.script_file(*ScriptName);
+        if (!Result.valid())
+        {
+            sol::error err = Result;
+            UE_LOG(LogLevel::Error, TEXT("Lua Error: %s"), *FString(err.what()));
+            return sol::table();
+        }
+        
+        sol::object ReturnValue = Result.get<sol::object>();
+        if (!ReturnValue.is<sol::table>())
+        {
+            UE_LOG(LogLevel::Error, TEXT("Lua Error: %s"), *FString("Script file did not return a table."));
+            return sol::table();
+        }
+        else
+        {
+            ScriptCacheMap.Add(ScriptName, ReturnValue.as<sol::table>());
+        }
     }
     
     sol::table& ScriptClass = ScriptCacheMap[ScriptName];

@@ -3,6 +3,9 @@
 #include "ActorComponent.h"
 #include "sol/sol.hpp"
 
+//#pragma comment( linker, "/entry:WinMainCRTStartup /subsystem:console" )
+
+
 class AActor;
 
 class ULuaScriptComponent : public UActorComponent
@@ -20,10 +23,9 @@ public:
     virtual void TickComponent(float DeltaTime) override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-
 public:
     FString GetScriptName() const { return ScriptName; }
-    void LoadScript();
+    sol::table& LoadScript();
 
     template<typename... Args>
     void ActivateFunction(const FString& FunctionName, Args&&... args);
