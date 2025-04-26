@@ -84,35 +84,6 @@ void PropertyEditorPanel::Render()
             AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
             Engine->SelectActor(NewActor);
         }
-
-        FString BasePath = FString(L"LuaScripts\\");
-        FString LuaDisplayPath;
-        if (PickedActor->GetComponentByClass<ULuaScriptComponent>())
-        {
-            LuaDisplayPath = PickedActor->GetComponentByClass<ULuaScriptComponent>()->GetDisplayName();
-            if (ImGui::Button("Edit Script"))
-            {
-                // 예: PickedActor에서 스크립트 경로를 받아옴
-                if (auto* ScriptComp = PickedActor->GetComponentByClass<ULuaScriptComponent>())
-                {
-                    std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();
-                    LuaScriptFileUtils::OpenLuaScriptFile(ws.c_str());
-                }
-            }
-        }
-        else
-        {
-            // Add Lua Script
-            if (ImGui::Button("Create Script"))
-            {
-                // Lua Script Component 생성 및 추가
-                ULuaScriptComponent* NewScript = PickedActor->AddComponent<ULuaScriptComponent>();
-                LuaDisplayPath = NewScript->GetDisplayName();
-            }
-        }
-        ImGui::InputText("Script File", GetData(LuaDisplayPath), IM_ARRAYSIZE(*LuaDisplayPath),
-            ImGuiInputTextFlags_ReadOnly);
-
         
         AEditorPlayer* Player = Engine->GetEditorPlayer();
         RenderForSceneComponent(TargetComponent, Player);
@@ -270,6 +241,34 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
         Engine->DeselectComponent(Engine->GetSelectedComponent());
     }
     
+    FString BasePath = FString(L"LuaScripts\\");
+    FString LuaDisplayPath;
+    if (SelectedActor->GetComponentByClass<ULuaScriptComponent>())
+    {
+        LuaDisplayPath = SelectedActor->GetComponentByClass<ULuaScriptComponent>()->GetDisplayName();
+        if (ImGui::Button("Edit Script"))
+        {
+            // 예: PickedActor에서 스크립트 경로를 받아옴
+            if (auto* ScriptComp = SelectedActor->GetComponentByClass<ULuaScriptComponent>())
+            {
+                std::wstring ws = (BasePath + ScriptComp->GetDisplayName()).ToWideString();
+                LuaScriptFileUtils::OpenLuaScriptFile(ws.c_str());
+            }
+        }
+    }
+    else
+    {
+        // Add Lua Script
+        if (ImGui::Button("Create Script"))
+        {
+            // Lua Script Component 생성 및 추가
+            ULuaScriptComponent* NewScript = SelectedActor->AddComponent<ULuaScriptComponent>();
+            LuaDisplayPath = NewScript->GetDisplayName();
+        }
+    }
+    ImGui::InputText("Script File", GetData(LuaDisplayPath), IM_ARRAYSIZE(*LuaDisplayPath),
+        ImGuiInputTextFlags_ReadOnly);
+
     if (ImGui::TreeNodeEx("Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
         ImGui::Text("Add");

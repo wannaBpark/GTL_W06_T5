@@ -8,8 +8,6 @@
 
 ULuaScriptComponent::ULuaScriptComponent()
 {
-    LuaState.open_libraries();
-    //InitializeLuaState();
 }
 
 ULuaScriptComponent::~ULuaScriptComponent()
@@ -58,8 +56,6 @@ void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
 
 void ULuaScriptComponent::InitializeLuaState()
 {
-    auto w = GetOwner()->GetWorld()->GetName().ToWideString();
-    auto o = GetOwner()->GetName().ToWideString();
     if (ScriptPath.IsEmpty()) {
         bool bSuccess = LuaScriptFileUtils::CopyTemplateToActorScript(
             L"template.lua",
@@ -93,10 +89,7 @@ void ULuaScriptComponent::BindEngineAPI()
     // [1] 바인딩 전 글로벌 키 스냅샷
     TArray<FString> Before = LuaDebugHelper::CaptureGlobalNames(LuaState);
 
-    // Print / UE_LOG / FVector / Actor / Script 바인딩
-
     LuaBindingHelpers::BindPrint(LuaState);    // 0) Print 바인딩
-    LuaBindingHelpers::BindUE_LOG(LuaState);    // 1) UE_LOG 바인딩
     LuaBindingHelpers::BindFVector(LuaState);   // 2) FVector 바인딩
 
     auto ActorType = LuaState.new_usertype<AActor>("Actor",
@@ -104,14 +97,11 @@ void ULuaScriptComponent::BindEngineAPI()
         "Location", sol::property(
             &AActor::GetActorLocation,
             &AActor::SetActorLocation
-        ),
-        "GetLocation", &AActor::GetActorLocation,
-        "SetLocation", &AActor::SetActorLocation
+        )
     );
     
     // 프로퍼티 바인딩
     LuaState["actor"] = GetOwner();
-    LuaState["script"] = this;
 
     // [2] 바인딩 후, 새로 추가된 글로벌 키만 자동 로그
     LuaDebugHelper::LogNewBindings(LuaState, Before);
