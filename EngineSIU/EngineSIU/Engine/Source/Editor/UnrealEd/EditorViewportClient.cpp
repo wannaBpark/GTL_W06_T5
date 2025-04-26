@@ -54,6 +54,7 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
+    // 임시적, PlayerController로 위임 예정
     if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
         UWorld* PlayWorld = GEngine->ActiveWorld;
@@ -69,7 +70,8 @@ void FEditorViewportClient::Tick(const float DeltaTime)
             }
         }
     }
-    else
+
+    if(GEngine->ActiveWorld->WorldType == EWorldType::Editor)
     {
         UpdateEditorCameraMovement(DeltaTime);
         UpdateViewMatrix();
