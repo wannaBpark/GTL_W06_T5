@@ -72,9 +72,6 @@ void OutlinerEditorPanel::Render()
 
     for (AActor* Actor : Engine->ActiveWorld->GetActiveLevel()->Actors)
     {
-        if (Actor->GetRootComponent() == nullptr)
-        continue;
-
         ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_None;
 
         bool NodeOpen = ImGui::TreeNodeEx(*Actor->GetName(), Flags);
