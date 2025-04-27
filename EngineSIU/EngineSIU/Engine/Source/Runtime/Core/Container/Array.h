@@ -95,6 +95,36 @@ public:
     SizeType Find(const T& Item);
     bool Find(const T& Item, SizeType& Index);
 
+    /**
+     * Finds an item by predicate.
+     *
+     * @param Pred The predicate to match.
+     * @returns Index to the first matching element, or INDEX_NONE if none is found.
+     */
+    template <typename Predicate>
+    SizeType IndexOfByPredicate(Predicate Pred) const
+    {
+/*
+        const ElementType* Start = GetData();
+        for (const ElementType* Data = Start, DataEnd = (Start + Num()); Data != DataEnd; ++Data)
+        {
+            if (std::invoke(Pred, *Data))
+            {
+                return static_cast<SizeType>(Data - Start);
+            }
+        }
+*/
+        for (int32 i = 0; i < Num(); ++i)
+        {
+            const ElementType* Data = &ContainerPrivate[i];
+            if (std::invoke(Pred, *Data))
+            {
+                return static_cast<SizeType>(i);
+            }
+        }
+        return INDEX_NONE;
+    }
+
     /** 요소가 존재하는지 확인합니다. */
     bool Contains(const T& Item) const;
 

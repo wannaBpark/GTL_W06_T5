@@ -30,3 +30,31 @@ struct FOverlapInfo
       * If bFromSweep is false only FHitResult::Component, FHitResult::Actor, FHitResult::Item are valid as this is really just an FOverlapResult*/
     FHitResult OverlapInfo;
 };
+
+/*
+ * Predicate for comparing FOverlapInfos when exact weak object pointer index/serial numbers should match, assuming one is not null and not invalid.
+ * Compare to operator== for WeakObjectPtr which does both HasSameIndexAndSerialNumber *and* IsValid() checks on both pointers.
+ */
+struct FFastOverlapInfoCompare
+{
+    FFastOverlapInfoCompare(const FOverlapInfo& BaseInfo)
+        : MyBaseInfo(BaseInfo)
+    {
+    }
+
+    bool operator() (const FOverlapInfo& Info) const
+    {
+        return MyBaseInfo.OverlapInfo.Component == Info.OverlapInfo.Component
+            /* && MyBaseInfo.GetBodyIndex() == Info.GetBodyIndex() */;
+    }
+
+    bool operator() (const FOverlapInfo* Info) const
+    {
+        return MyBaseInfo.OverlapInfo.Component == Info->OverlapInfo.Component
+            /* && MyBaseInfo.GetBodyIndex() == Info->GetBodyIndex() */;
+    }
+
+private:
+    const FOverlapInfo& MyBaseInfo;
+
+};

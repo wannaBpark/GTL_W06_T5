@@ -130,21 +130,21 @@ void USceneComponent::DestroyComponent(bool bPromoteChildren)
     Super::DestroyComponent(bPromoteChildren);
 }
 
-FVector USceneComponent::GetForwardVector()
+FVector USceneComponent::GetForwardVector() const
 {
 	FVector Forward = FVector::ForwardVector;
 	Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
 	return Forward;
 }
 
-FVector USceneComponent::GetRightVector()
+FVector USceneComponent::GetRightVector() const
 {
 	FVector Right = FVector::RightVector;
 	Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
 	return Right;
 }
 
-FVector USceneComponent::GetUpVector()
+FVector USceneComponent::GetUpVector() const
 {
 	FVector Up = FVector::UpVector;
 	Up = JungleMath::FVectorRotate(Up, GetWorldRotation());

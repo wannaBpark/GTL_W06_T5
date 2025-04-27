@@ -394,18 +394,21 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                 {
                     SpawnedActor = World->SpawnActor<ACubeActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_BOX_COLLISION"));
+                    SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }
                 case OBJ_SPHERE_COLLISION:
                 {
                     SpawnedActor = World->SpawnActor<ASphereActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_SPHERE_COLLISION"));
+                    SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }
                 case OBJ_CAPSULE_COLLISION:
                 {
                     SpawnedActor = World->SpawnActor<ACapsuleActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_CAPSULE_COLLISION"));
+                    SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }
                 case OBJ_TRIANGLE:

@@ -39,3 +39,10 @@ void UCapsuleComponent::GetProperties(TMap<FString, FString>& OutProperties) con
     OutProperties.Add(TEXT("CapsuleHalfHeight"), FString::SanitizeFloat(CapsuleHalfHeight));
     OutProperties.Add(TEXT("CapsuleRadius"), FString::SanitizeFloat(CapsuleRadius));
 }
+
+void UCapsuleComponent::GetEndPoints(FVector& OutStart, FVector& OutEnd) const
+{
+    const float LineHalfLength = CapsuleHalfHeight - CapsuleRadius;
+    OutStart = GetWorldLocation() + GetUpVector() * LineHalfLength;
+    OutEnd = GetWorldLocation() - GetUpVector() * LineHalfLength;
+}

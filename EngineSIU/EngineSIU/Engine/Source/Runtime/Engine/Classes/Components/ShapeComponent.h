@@ -17,6 +17,8 @@ class UShapeComponent : public UPrimitiveComponent
 
 public:
     UShapeComponent();
+
+    virtual void TickComponent(float DeltaTime) override;
     
     FColor ShapeColor = FColor(180, 180, 180, 255);
     bool bDrawOnlyIfSelected = true;

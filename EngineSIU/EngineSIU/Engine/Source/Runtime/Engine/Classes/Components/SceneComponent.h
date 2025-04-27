@@ -24,9 +24,9 @@ public:
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const;
     virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
-    virtual FVector GetForwardVector();
-    virtual FVector GetRightVector();
-    virtual FVector GetUpVector();
+    FVector GetForwardVector() const;
+    FVector GetRightVector() const;
+    FVector GetUpVector() const;
     
     void AddLocation(const FVector& InAddValue);
     void AddRotation(const FRotator& InAddValue);

@@ -18,6 +18,20 @@ FOverlapInfo::FOverlapInfo(UPrimitiveComponent* InComponent, int32 InBodyIndex)
     OverlapInfo.Item = InBodyIndex;
 }
 
+// Helper for finding the index of an FOverlapInfo in an Array using the FFastOverlapInfoCompare predicate, knowing that at least one overlap is valid (non-null).
+template<class AllocatorType>
+int32 IndexOfOverlapFast(const TArray<FOverlapInfo, AllocatorType>& OverlapArray, const FOverlapInfo& SearchItem)
+{
+    return OverlapArray.IndexOfByPredicate(FFastOverlapInfoCompare(SearchItem));
+}
+
+// Version that works with arrays of pointers and pointers to search items.
+template<class AllocatorType>
+int32 IndexOfOverlapFast(const TArray<const FOverlapInfo*, AllocatorType>& OverlapPtrArray, const FOverlapInfo* SearchItem)
+{
+    return OverlapPtrArray.IndexOfByPredicate(FFastOverlapInfoCompare(*SearchItem));
+}
+
 template <class ElementType, class AllocatorType1, class AllocatorType2>
 static void GetPointersToArrayData(TArray<const ElementType*, AllocatorType1>& Pointers, const TArray<ElementType, AllocatorType2>& DataArray)
 {
@@ -148,6 +162,20 @@ UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 void UPrimitiveComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+    OnComponentBeginOverlap.AddLambda(
+        [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
+        {
+            UE_LOG(LogLevel::Display, "Component [%s] Begin overlap with [%s]", *OverlappedComponent->GetName(), *OtherComp->GetName());
+        }
+    );
+
+    OnComponentEndOverlap.AddLambda(
+        [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+        {
+            UE_LOG(LogLevel::Display, "Component [%s] End overlap with [%s]", *OverlappedComponent->GetName(), *OtherComp->GetName());
+        }
+    );
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)
@@ -233,7 +261,7 @@ void UPrimitiveComponent::BeginComponentOverlap(const FOverlapInfo& OtherOverlap
 	    return;
     }
 
-    const bool bComponentsAlreadyTouching = OverlappingComponents.Contains(OtherOverlap);
+    const bool bComponentsAlreadyTouching = (IndexOfOverlapFast(OverlappingComponents, OtherOverlap) != INDEX_NONE);
     if (!bComponentsAlreadyTouching)
     {
 	    UPrimitiveComponent* OtherComp = OtherOverlap.OverlapInfo.Component;
@@ -291,13 +319,13 @@ void UPrimitiveComponent::EndComponentOverlap(const FOverlapInfo& OtherOverlap, 
 	    return;
     }
 
-    const int32 OtherOverlapIdx = OtherComp->OverlappingComponents.Find(FOverlapInfo(this, INDEX_NONE));
+    const int32 OtherOverlapIdx = IndexOfOverlapFast(OtherComp->OverlappingComponents, FOverlapInfo(this, INDEX_NONE));
     if (OtherOverlapIdx != INDEX_NONE)
     {
 	    OtherComp->OverlappingComponents.RemoveAt(OtherOverlapIdx);
     }
 
-    const int32 OverlapIdx = OverlappingComponents.Find(OtherOverlap);
+    const int32 OverlapIdx = IndexOfOverlapFast(OverlappingComponents, OtherOverlap);
     if (OverlapIdx != INDEX_NONE)
     {
 	    OverlappingComponents.RemoveAt(OverlapIdx);
@@ -520,7 +548,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 for (int32 CompIdx = 0; CompIdx < OldOverlappingComponentPtrs.Num() && NewOverlappingComponentPtrs.Num() > 0; ++CompIdx)
                 {
 				    const FOverlapInfo* SearchItem = OldOverlappingComponentPtrs[CompIdx];
-				    const int32 NewElementIdx = NewOverlappingComponentPtrs.Find(SearchItem);
+				    const int32 NewElementIdx = IndexOfOverlapFast(NewOverlappingComponentPtrs, SearchItem);
 				    if (NewElementIdx != INDEX_NONE)
 				    {
 					    NewOverlappingComponentPtrs.RemoveAt(NewElementIdx);
@@ -549,7 +577,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
 					    }
 					    else
 					    {
-						    const int32 StaleElementIndex = OverlappingComponents.Find(OtherOverlap);
+						    const int32 StaleElementIndex = IndexOfOverlapFast(OverlappingComponents, OtherOverlap);
 						    if (StaleElementIndex != INDEX_NONE)
 						    {
 							    OverlappingComponents.RemoveAt(StaleElementIndex);
