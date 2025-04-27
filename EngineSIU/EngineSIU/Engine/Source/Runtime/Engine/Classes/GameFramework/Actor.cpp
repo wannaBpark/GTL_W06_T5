@@ -1,4 +1,5 @@
 #include "Actor.h"
+#include "Actor.h"
 #include "Components/PrimitiveComponent.h"
 #include "Delegates/DelegateCombination.h"
 #include "World/World.h"
@@ -110,11 +111,11 @@ void AActor::SetProperties(const TMap<FString, FString>& InProperties)
 
 void AActor::BeginPlay()
 {
-    // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
-
     if (bUseScript)
     {
+        ApplyTypesOnLua(FLuaScriptManager::Get().GetLua());
         InitLuaScriptComponent();
+        SetupLuaProperties();
     }
 
     const auto CopyComponents = OwnedComponents;
@@ -400,11 +401,6 @@ void AActor::InitLuaScriptComponent()
             LuaScriptComponent = AddComponent<ULuaScriptComponent>("LuaComponent_0");
         }
     }
-
-    if (LuaScriptComponent)
-    {
-        ApplyTypesOnLua(FLuaScriptManager::Get().GetLua());
-    }
 }
 
 FString AActor::GetLuaScriptPathName()
@@ -433,9 +429,7 @@ void AActor::SetupLuaProperties()
         return;
 
     // TODO: Script 로드는 처음에만 한번.
-    sol::table& LuaEnv = LuaScriptComponent->LoadScript();
-    if (!LuaEnv.valid())
-        return;
+    LuaScriptComponent->LoadScript();
 
     // TODO: 매 프레임마다 table의 정보를 덮어 써줘야 함.
     /*LuaEnv["UUID"] = UUID;
