@@ -1,14 +1,17 @@
 #pragma once
-
 #include "ShapeComponent.h"
 #include "Renderer/ShaderConstants.h"
+
+struct FCollisionMath;
+class UBoxComponent;
+class UCapsuleComponent;
 
 class USphereComponent : public UShapeComponent
 {
     DECLARE_CLASS(USphereComponent, UShapeComponent)
 
 public:
-    USphereComponent() = default;
+    USphereComponent();
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
@@ -18,6 +21,8 @@ public:
     void SetRadius(float InRadius) { SphereRadius = InRadius; }
     float GetRadius() const { return SphereRadius; }
 
+public:
+    virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
 private:
     float SphereRadius = 0;
 };

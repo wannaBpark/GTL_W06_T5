@@ -1,6 +1,15 @@
 #include "SphereComponent.h"
 
 #include "UObject/Casts.h"
+#include "Math/CollisionMath.h"
+#include "Math/ShapeInfo.h"
+#include "Components/Shapes/BoxComponent.h"
+#include "Components/Shapes/CapsuleComponent.h"
+
+USphereComponent::USphereComponent()
+{
+    SphereRadius = 1;
+}
 
 UObject* USphereComponent::Duplicate(UObject* InOuter)
 {
@@ -11,6 +20,38 @@ UObject* USphereComponent::Duplicate(UObject* InOuter)
     }
     return NewComponent;
 }
+
+bool USphereComponent::CheckOverlap(const UPrimitiveComponent* Other) const
+{
+    if (const USphereComponent* Sphere = Cast<USphereComponent>(Other))
+    {
+        // Sphere vs Sphere
+        return FCollisionMath::IntersectSphereSphere(
+            FSphere(this->GetWorldLocation(), SphereRadius),
+            FSphere(Sphere->GetWorldLocation(), Sphere->SphereRadius)
+        );
+    }
+    else if (const UBoxComponent* Box = Cast<UBoxComponent>(Other))
+    {
+        // Sphere vs Box
+        return FCollisionMath::IntersectBoxSphere(
+            Box->GetWorldBox(), this->GetWorldLocation(), SphereRadius
+        );
+    }
+    else if (const UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Other))
+    {
+        // Sphere vs Capsule
+        return FCollisionMath::IntersectCapsuleSphere(
+            Capsule->ToFCapsule(),
+            this->GetWorldLocation(),
+            SphereRadius
+        );
+
+    }
+
+    return false;
+}
+
 
 void USphereComponent::SetProperties(const TMap<FString, FString>& InProperties)
 {

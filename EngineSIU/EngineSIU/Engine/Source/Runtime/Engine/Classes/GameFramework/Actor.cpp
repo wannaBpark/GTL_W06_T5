@@ -1,4 +1,6 @@
 #include "Actor.h"
+#include "Components/PrimitiveComponent.h"
+#include "Delegates/DelegateCombination.h"
 #include "World/World.h"
 #include "PlayerController.h"
 #include "Components/InputComponent.h"
@@ -97,6 +99,7 @@ void AActor::BeginPlay()
     {  
         Comp->BeginPlay();
     }
+    OnActorOverlapHandle = OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
 }
 
 void AActor::Tick(float DeltaTime)
@@ -126,6 +129,12 @@ void AActor::Destroyed()
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     // 본인이 소유하고 있는 모든 컴포넌트의 EndPlay 호출
+    if (OnActorOverlapHandle.IsValid())
+    {
+        OnActorOverlap.Remove(OnActorOverlapHandle);
+        OnActorOverlapHandle.Invalidate();
+    }
+
     for (UActorComponent* Component : GetComponents())
     {
         if (Component->HasBegunPlay())
@@ -142,6 +151,8 @@ bool AActor::Destroy()
     {
         if (UWorld* World = GetWorld())
         {
+            UE_LOG(LogLevel::Display, "Delete Component - %s", *GetName());
+
             World->DestroyActor(this);
             bActorIsBeingDestroyed = true;
         }
@@ -323,6 +334,32 @@ void AActor::DisableInput(APlayerController* PlayerController)
 
     // 입력 스택에서 제거
     PlayerController->PopInputComponent(InputComponent);
+}
+
+bool AActor::IsOverlappingActor(const AActor* Other) const
+{
+    for (UActorComponent* OwnedComp : OwnedComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(OwnedComp))
+        {
+            if ((PrimComp->GetOverlapInfos().Num() > 0) && PrimComp->IsOverlappingActor(Other))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void AActor::UpdateOverlaps() const
+{
+    for (UActorComponent* Comp : OwnedComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
+        {
+            PrimComp->UpdateOverlaps();
+        }
+    }
 }
 
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)

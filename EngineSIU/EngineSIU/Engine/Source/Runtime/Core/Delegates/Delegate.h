@@ -14,6 +14,8 @@ class FDelegateHandle
 	friend class std::hash<FDelegateHandle>;
 
 	uint64 HandleId;
+
+public: 
 	explicit FDelegateHandle() : HandleId(0) {}
 	explicit FDelegateHandle(uint64 HandleId) : HandleId(HandleId) {}
 
@@ -32,7 +34,7 @@ class FDelegateHandle
 		return Result;
 	}
 
-public:
+
 	static FDelegateHandle CreateHandle()
 	{
 		return FDelegateHandle{GenerateNewID()};

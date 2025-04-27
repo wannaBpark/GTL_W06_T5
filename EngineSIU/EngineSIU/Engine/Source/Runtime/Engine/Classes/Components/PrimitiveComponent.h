@@ -1,5 +1,7 @@
 #pragma once
 #include "Components/SceneComponent.h"
+#include "OverlapInfo.h"
+
 
 class UPrimitiveComponent : public USceneComponent
 {
@@ -37,5 +39,14 @@ public:
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
     FBoundingBox GetBoundingBox() const { return AABB; }
+
+protected:
+    TArray<FOverlapInfo> OverlapInfos;
+
+public:
+    const TArray<FOverlapInfo>& GetOverlapInfos() const { return OverlapInfos; }
+    bool IsOverlappingActor(const AActor* Other) const;
+    void UpdateOverlaps();
+    virtual bool CheckOverlap(const UPrimitiveComponent* Other) const { return false;}
 };
 

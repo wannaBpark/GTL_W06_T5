@@ -2,12 +2,14 @@
 
 #include "ShapeComponent.h"
 
+struct FBox;
+
 class UBoxComponent : public UShapeComponent
 {
     DECLARE_CLASS(UBoxComponent, UShapeComponent)
 
 public:
-    UBoxComponent() = default;
+    UBoxComponent();
     
     virtual UObject* Duplicate(UObject* InOuter) override;
 
@@ -17,6 +19,12 @@ public:
     FVector GetBoxExtent() const { return BoxExtent; }
     void SetBoxExtent(FVector InExtent) { BoxExtent = InExtent; }
     
+   
+public:
+    virtual bool CheckOverlap(const UPrimitiveComponent* Other) const override;
+
+    FBox GetWorldBox() const;
+  
 private:
     FVector BoxExtent = FVector::ZeroVector;
 };
