@@ -893,7 +893,7 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
                 if (Actor && Actor->GetComponents().Contains(CapsuleComponent))
                 {
                     FConstantBufferDebugCapsule b;
-                    b.WorldMatrix = CapsuleComponent->GetRotationMatrix()* CapsuleComponent->GetTranslationMatrix();
+                    b.WorldMatrix = CapsuleComponent->GetWorldMatrix();
                     b.Height = CapsuleComponent->GetHalfHeight();
                     b.Radius = CapsuleComponent->GetRadius();
                     BufferAll.Add(b);
@@ -902,7 +902,7 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
             else
             {
                 FConstantBufferDebugCapsule b;
-                b.WorldMatrix = CapsuleComponent->GetRotationMatrix() * CapsuleComponent->GetTranslationMatrix();
+                b.WorldMatrix = CapsuleComponent->GetWorldMatrix();
                 b.Height = CapsuleComponent->GetHalfHeight();
                 b.Radius = CapsuleComponent->GetRadius();
                 BufferAll.Add(b);
