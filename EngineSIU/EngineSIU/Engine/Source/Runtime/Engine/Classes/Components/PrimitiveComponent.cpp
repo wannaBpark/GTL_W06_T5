@@ -2,15 +2,26 @@
 
 #include "UObject/Casts.h"
 #include "Engine/OverlapInfo.h"
-#include "Engine/OverlapResult.h""
+#include "Engine/OverlapResult.h"
 #include "GameFramework/Actor.h"
 #include "World/World.h"
+
+FOverlapInfo::FOverlapInfo(UPrimitiveComponent* InComponent, int32 InBodyIndex)
+    : bFromSweep(false)
+{
+    if (InComponent)
+    {
+        // OverlapInfo.HitObjectHandle = FActorInstanceHandle(InComponent->GetOwner(), InComponent, InBodyIndex);
+    }
+    OverlapInfo.Component = InComponent;
+    OverlapInfo.Item = InBodyIndex;
+}
 
 template <class ElementType, class AllocatorType1, class AllocatorType2>
 static void GetPointersToArrayData(TArray<const ElementType*, AllocatorType1>& Pointers, const TArray<ElementType, AllocatorType2>& DataArray)
 {
     const int32 NumItems = DataArray.Num();
-    Pointers.SetNumUninitialized(NumItems);
+    Pointers.SetNum(NumItems);
     for (int32 i=0; i < NumItems; i++)
     {
         Pointers[i] = &(DataArray[i]);
@@ -21,7 +32,7 @@ template <class ElementType, class AllocatorType1>
 static void GetPointersToArrayData(TArray<const ElementType*, AllocatorType1>& Pointers, const TArray<const ElementType>& DataArray)
 {
     const int32 NumItems = DataArray.Num();
-    Pointers.SetNumUninitialized(NumItems);
+    Pointers.SetNum(NumItems);
     for (int32 i=0; i < NumItems; i++)
     {
         Pointers[i] = &(DataArray[i]);
@@ -35,10 +46,12 @@ static void GetPointersToArrayDataByPredicate(TArray<const ElementType*, Allocat
     Pointers.Reserve(Pointers.Num() + DataArray.Num());
     for (const ElementType& Item : DataArray)
     {
+        /*
         if (Invoke(Predicate, Item))
         {
             Pointers.Add(&Item);
         }
+        */
     }
 }
 
@@ -48,10 +61,12 @@ static void GetPointersToArrayDataByPredicate(TArray<const ElementType*, Allocat
     Pointers.Reserve(Pointers.Num() + DataArray.Num());
     for (const ElementType& Item : DataArray)
     {
+        /*
         if (Invoke(Predicate, Item))
         {
             Pointers.Add(&Item);
         }
+        */
     }
 }
 
@@ -429,7 +444,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                     if (bCheckForInvalid)
                     {
                         // BeginComponentOverlap may have disabled what we thought were valid overlaps at the end (collision response or overlap flags could change).
-                        GetPointersToArrayDataByPredicate(NewOverlappingComponentPtrs, *OverlapsAtEndLocation, FPredicateFilterCanOverlap(*this));
+                        // GetPointersToArrayDataByPredicate(NewOverlappingComponentPtrs, *OverlapsAtEndLocation, FPredicateFilterCanOverlap(*this));
                     }
                     else
                     {
@@ -477,7 +492,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 TArray<const FOverlapInfo*> OldOverlappingComponentPtrs;
                 if (bIgnoreChildren)
                 {
-				    GetPointersToArrayDataByPredicate(OldOverlappingComponentPtrs, OverlappingComponents, FPredicateOverlapHasDifferentActor(*MyActor));
+				    // GetPointersToArrayDataByPredicate(OldOverlappingComponentPtrs, OverlappingComponents, FPredicateOverlapHasDifferentActor(*MyActor));
                 }
                 else
                 {
