@@ -10,5 +10,7 @@ public:
     ~FCollisionManager() = default;
 
     void CheckOverlap(const UWorld* World, const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
-    
+
+protected:
+    bool IsOverlapped(const UPrimitiveComponent* Component, const UPrimitiveComponent* OtherComponent, FOverlapResult& OutResult) const;
 };

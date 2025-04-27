@@ -6,12 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "World/World.h"
 
+// 언리얼 엔진에서도 여기에서 FOverlapInfo의 생성자를 정의하고 있음.
 FOverlapInfo::FOverlapInfo(UPrimitiveComponent* InComponent, int32 InBodyIndex)
     : bFromSweep(false)
 {
     if (InComponent)
     {
-        // OverlapInfo.HitObjectHandle = FActorInstanceHandle(InComponent->GetOwner(), InComponent, InBodyIndex);
+        OverlapInfo.HitActor = InComponent->GetOwner();
     }
     OverlapInfo.Component = InComponent;
     OverlapInfo.Item = InBodyIndex;
@@ -46,12 +47,10 @@ static void GetPointersToArrayDataByPredicate(TArray<const ElementType*, Allocat
     Pointers.Reserve(Pointers.Num() + DataArray.Num());
     for (const ElementType& Item : DataArray)
     {
-        /*
-        if (Invoke(Predicate, Item))
+        if (std::invoke(Predicate, Item))
         {
             Pointers.Add(&Item);
         }
-        */
     }
 }
 
@@ -61,12 +60,10 @@ static void GetPointersToArrayDataByPredicate(TArray<const ElementType*, Allocat
     Pointers.Reserve(Pointers.Num() + DataArray.Num());
     for (const ElementType& Item : DataArray)
     {
-        /*
-        if (Invoke(Predicate, Item))
+        if (std::invoke(Predicate, Item))
         {
             Pointers.Add(&Item);
         }
-        */
     }
 }
 
@@ -92,6 +89,22 @@ static bool CanComponentsGenerateOverlap(const UPrimitiveComponent* MyComponent,
         && MyComponent->bGenerateOverlapEvents
         /* && MyComponent->GetCollisionResponseToComponent(OtherComp) == ECR_Overlap */;
 }
+
+struct FPredicateFilterCanOverlap
+{
+    FPredicateFilterCanOverlap(const UPrimitiveComponent& OwningComponent)
+        : MyComponent(OwningComponent)
+    {
+    }
+
+    bool operator() (const FOverlapInfo& Info) const
+    {
+        return CanComponentsGenerateOverlap(&MyComponent, Info.OverlapInfo.GetComponent());
+    }
+
+private:
+    const UPrimitiveComponent& MyComponent;
+};
 
 static bool ShouldIgnoreOverlapResult(const UWorld* World, const AActor* ThisActor, const UPrimitiveComponent& ThisComponent, const AActor* OtherActor, const UPrimitiveComponent& OtherComponent, bool bCheckOverlapFlags)
 {
@@ -444,7 +457,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                     if (bCheckForInvalid)
                     {
                         // BeginComponentOverlap may have disabled what we thought were valid overlaps at the end (collision response or overlap flags could change).
-                        // GetPointersToArrayDataByPredicate(NewOverlappingComponentPtrs, *OverlapsAtEndLocation, FPredicateFilterCanOverlap(*this));
+                        GetPointersToArrayDataByPredicate(NewOverlappingComponentPtrs, *OverlapsAtEndLocation, FPredicateFilterCanOverlap(*this));
                     }
                     else
                     {
@@ -492,7 +505,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 TArray<const FOverlapInfo*> OldOverlappingComponentPtrs;
                 if (bIgnoreChildren)
                 {
-				    // GetPointersToArrayDataByPredicate(OldOverlappingComponentPtrs, OverlappingComponents, FPredicateOverlapHasDifferentActor(*MyActor));
+				    GetPointersToArrayDataByPredicate(OldOverlappingComponentPtrs, OverlappingComponents, FPredicateOverlapHasDifferentActor(*MyActor));
                 }
                 else
                 {

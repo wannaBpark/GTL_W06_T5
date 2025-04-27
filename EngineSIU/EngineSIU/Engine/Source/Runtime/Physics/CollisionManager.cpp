@@ -20,23 +20,48 @@ void FCollisionManager::CheckOverlap(const UWorld* World, const UPrimitiveCompon
 
     const bool bComponentHasValidBox = Component->AABB.IsValidBox();
     
-    for (const auto iter : TObjectRange<UPrimitiveComponent>())
+    for (const auto Iter : TObjectRange<UPrimitiveComponent>())
     {
-        if (!iter || iter->GetWorld() != World || iter == Component)
+        if (!Iter || Iter->GetWorld() != World || Iter == Component)
         {
             continue;            
         }
+
+        bool bCanSkip = true;
         
-        if (iter->AABB.IsValidBox() && bComponentHasValidBox)
+        if (Iter->AABB.IsValidBox() && bComponentHasValidBox)
         {
-            if (FBoundingBox::CheckOverlap(Component->AABB, iter->AABB))
+            if (FBoundingBox::CheckOverlap(Component->AABB, Iter->AABB))
             {
-                // 
+                bCanSkip = false;
             }
         }
         else
         {
-            
+            bCanSkip = false;
+        }
+
+        if (!bCanSkip)
+        {
+            FOverlapResult OverlapResult;
+            if (IsOverlapped(Component, Iter, OverlapResult))
+            {
+                OutOverlaps.Add(OverlapResult);
+            }
         }
     }
+}
+
+bool FCollisionManager::IsOverlapped(const UPrimitiveComponent* Component, const UPrimitiveComponent* OtherComponent, FOverlapResult& OutResult) const
+{
+    if (!Component || !OtherComponent)
+    {
+        return false;
+    }
+    if (!Component->IsA<UShapeComponent>() || !OtherComponent->IsA<UShapeComponent>())
+    {
+        return false;
+    }
+
+    return false;
 }

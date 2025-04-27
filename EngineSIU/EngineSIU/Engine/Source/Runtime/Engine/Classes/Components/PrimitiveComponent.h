@@ -118,3 +118,20 @@ public:
     FBoundingBox GetBoundingBox() const { return AABB; }
 };
 
+
+struct FPredicateOverlapHasDifferentActor
+{
+    FPredicateOverlapHasDifferentActor(const AActor& Owner)
+        : MyOwnerPtr(&Owner)
+    {
+    }
+
+    bool operator() (const FOverlapInfo& Info)
+    {
+        // MyOwnerPtr is always valid, so we don't need the IsValid() checks in the WeakObjectPtr comparison operator.
+        return MyOwnerPtr != Info.OverlapInfo.HitActor;
+    }
+
+private:
+    const AActor* const MyOwnerPtr;
+};
