@@ -1,7 +1,5 @@
-
 #pragma once
 #include "ShapeComponent.h"
-#include "Math/Vector.h"
 
 class UBoxComponent : public UShapeComponent
 {
@@ -9,6 +7,15 @@ class UBoxComponent : public UShapeComponent
 
 public:
     UBoxComponent();
-    
-    FVector BoxExtent;
+
+    virtual UObject* Duplicate(UObject* InOuter) override;
+
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+
+    FVector GetBoxExtent() const { return BoxExtent; }
+    void SetBoxExtent(FVector InExtent) { BoxExtent = InExtent; }
+
+private:
+    FVector BoxExtent = FVector::OneVector;
 };
