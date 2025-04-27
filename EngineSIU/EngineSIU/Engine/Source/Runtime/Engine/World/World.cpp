@@ -57,7 +57,7 @@ void UWorld::BeginPlay()
 
 void UWorld::Tick(float DeltaTime)
 {
-    if (WorldType == EWorldType::Editor)
+    if (WorldType != EWorldType::Editor)
     {
         for (AActor* Actor : PendingBeginPlayActors)
         {
