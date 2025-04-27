@@ -70,7 +70,7 @@ SceneData FSceneMgr::ParseSceneData(const FString& jsonStr)
             if (value.contains("Location")) sceneComp->SetRelativeLocation(FVector(value["Location"].get<std::vector<float>>()[0],
                 value["Location"].get<std::vector<float>>()[1],
                 value["Location"].get<std::vector<float>>()[2]));
-            if (value.contains("Rotation")) sceneComp->SetRelativeRotation(FVector(value["Rotation"].get<std::vector<float>>()[0],
+            if (value.contains("Rotation")) sceneComp->SetRelativeRotation(FRotator(value["Rotation"].get<std::vector<float>>()[0],
                                                                                    value["Rotation"].get<std::vector<float>>()[1],
                                                                                    value["Rotation"].get<std::vector<float>>()[2]));
             if (value.contains("Scale")) sceneComp->SetRelativeScale3D(FVector(value["Scale"].get<std::vector<float>>()[0],

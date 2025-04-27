@@ -177,6 +177,7 @@ FVector JungleMath::QuaternionToEuler(const FQuat& quat)
     euler.X = FMath::RadiansToDegrees(atan2(sinRoll, cosRoll));
     return euler;
 }
+
 FVector JungleMath::FVectorRotate(FVector& origin, const FRotator& InRotation)
 {
     return InRotation.ToQuaternion().RotateVector(origin);
