@@ -8,6 +8,7 @@
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "SlateCore/Widgets/SWindow.h"
+#include "UnrealEd/EditorConfigManager.h"
 #include "UnrealEd/EditorViewportClient.h"
 
 
@@ -372,7 +373,6 @@ void SLevelEditor::Tick(float DeltaTime)
 
 void SLevelEditor::Release()
 {
-    SaveConfig();
     delete VSplitter;
     delete HSplitter;
 }
@@ -443,14 +443,14 @@ bool SLevelEditor::IsMultiViewport() const
 
 void SLevelEditor::LoadConfig()
 {
-    auto Config = ReadIniFile(IniFilePath);
-    FEditorViewportClient::Pivot.X = GetValueFromConfig(Config, "OrthoPivotX", 0.0f);
-    FEditorViewportClient::Pivot.Y = GetValueFromConfig(Config, "OrthoPivotY", 0.0f);
-    FEditorViewportClient::Pivot.Z = GetValueFromConfig(Config, "OrthoPivotZ", 0.0f);
-    FEditorViewportClient::OrthoSize = GetValueFromConfig(Config, "OrthoZoomSize", 10.0f);
+    auto Config = FEditorConfigManager::GetInstance().Read();
+    FEditorViewportClient::Pivot.X = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotX", 0.0f);
+    FEditorViewportClient::Pivot.Y = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotY", 0.0f);
+    FEditorViewportClient::Pivot.Z = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotZ", 0.0f);
+    FEditorViewportClient::OrthoSize = FEditorConfigManager::GetValueFromConfig(Config, "OrthoZoomSize", 10.0f);
 
-    SetActiveViewportClient(GetValueFromConfig(Config, "ActiveViewportIndex", 0));
-    bMultiViewportMode = GetValueFromConfig(Config, "bMultiView", false);
+    SetActiveViewportClient(FEditorConfigManager::GetValueFromConfig(Config, "ActiveViewportIndex", 0));
+    bMultiViewportMode = FEditorConfigManager::GetValueFromConfig(Config, "bMultiView", false);
     if (bMultiViewportMode)
     {
         SetEnableMultiViewport(true);
@@ -473,7 +473,7 @@ void SLevelEditor::LoadConfig()
     {
         VSplitter->LoadConfig(Config);
     }
-
+    
     ResizeViewports();
 }
 
@@ -501,37 +501,5 @@ void SLevelEditor::SaveConfig()
     config["OrthoPivotY"] = std::to_string(ActiveViewportClient->Pivot.Y);
     config["OrthoPivotZ"] = std::to_string(ActiveViewportClient->Pivot.Z);
     config["OrthoZoomSize"] = std::to_string(ActiveViewportClient->OrthoSize);
-    WriteIniFile(IniFilePath, config);
+    FEditorConfigManager::GetInstance().AddConfig(config);
 }
-
-TMap<FString, FString> SLevelEditor::ReadIniFile(const FString& FilePath)
-{
-    TMap<FString, FString> config;
-    std::ifstream file(*FilePath);
-    std::string line;
-
-    while (std::getline(file, line))
-    {
-        if (line.empty() || line[0] == '[' || line[0] == ';')
-        {
-            continue;
-        }
-        std::istringstream ss(line);
-        std::string key, value;
-        if (std::getline(ss, key, '=') && std::getline(ss, value))
-        {
-            config[key] = value;
-        }
-    }
-    return config;
-}
-
-void SLevelEditor::WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config)
-{
-    std::ofstream file(*FilePath);
-    for (const auto& pair : Config)
-    {
-        file << *pair.Key << "=" << *pair.Value << "\n";
-    }
-}
-
