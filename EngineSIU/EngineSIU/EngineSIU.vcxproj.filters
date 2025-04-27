@@ -893,6 +893,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapInfo.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\HitResult.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\CollisionManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapResult.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />

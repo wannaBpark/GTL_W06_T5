@@ -217,3 +217,11 @@ UWorld* UWorld::GetWorld() const
     return const_cast<UWorld*>(this);
 }
 
+void UWorld::CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const
+{
+    if (CollisionManager)
+    {
+        CollisionManager->CheckOverlap(this, Component, OutOverlaps);
+    }
+}
+

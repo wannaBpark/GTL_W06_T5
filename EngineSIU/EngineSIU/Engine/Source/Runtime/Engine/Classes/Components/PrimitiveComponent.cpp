@@ -2,7 +2,9 @@
 
 #include "UObject/Casts.h"
 #include "Engine/OverlapInfo.h"
+#include "Engine/OverlapResult.h""
 #include "GameFramework/Actor.h"
+#include "World/World.h"
 
 template <class ElementType, class AllocatorType1, class AllocatorType2>
 static void GetPointersToArrayData(TArray<const ElementType*, AllocatorType1>& Pointers, const TArray<ElementType, AllocatorType2>& DataArray)
@@ -76,6 +78,36 @@ static bool CanComponentsGenerateOverlap(const UPrimitiveComponent* MyComponent,
         /* && MyComponent->GetCollisionResponseToComponent(OtherComp) == ECR_Overlap */;
 }
 
+static bool ShouldIgnoreOverlapResult(const UWorld* World, const AActor* ThisActor, const UPrimitiveComponent& ThisComponent, const AActor* OtherActor, const UPrimitiveComponent& OtherComponent, bool bCheckOverlapFlags)
+{
+    // Don't overlap with self
+    if (&ThisComponent == &OtherComponent)
+    {
+        return true;
+    }
+
+    if (bCheckOverlapFlags)
+    {
+        // Both components must set GetGenerateOverlapEvents()
+        if (!ThisComponent.GetGenerateOverlapEvents() || !OtherComponent.GetGenerateOverlapEvents())
+        {
+            return true;
+        }
+    }
+
+    if (!ThisActor || !OtherActor)
+    {
+        return true;
+    }
+
+    if (!World /* || OtherActor == World->GetWorldSettings() || (OtherActor.GetCachedActor() && !OtherActor.GetCachedActor()->IsActorInitialized()) */)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
@@ -138,8 +170,8 @@ void UPrimitiveComponent::GetProperties(TMap<FString, FString>& OutProperties) c
 {
     Super::GetProperties(OutProperties);
     OutProperties.Add(TEXT("m_Type"), m_Type);
-    OutProperties.Add(TEXT("AABB_min"), AABB.min.ToString());
-    OutProperties.Add(TEXT("AABB_max"), AABB.max.ToString());
+    OutProperties.Add(TEXT("AABB_min"), AABB.MinLocation.ToString());
+    OutProperties.Add(TEXT("AABB_max"), AABB.MaxLocation.ToString());
 }
 
 void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -158,11 +190,11 @@ void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperti
     }
 
     const FString* AABBminStr = InProperties.Find(TEXT("AABB_min"));
-    if (AABBminStr) AABB.min.InitFromString(*AABBminStr); 
+    if (AABBminStr) AABB.MinLocation.InitFromString(*AABBminStr); 
 
     
     const FString* AABBmaxStr = InProperties.Find(TEXT("AABB_max"));
-    if (AABBmaxStr) AABB.max.InitFromString(*AABBmaxStr); 
+    if (AABBmaxStr) AABB.MaxLocation.InitFromString(*AABBmaxStr); 
 }
 
 void UPrimitiveComponent::BeginComponentOverlap(const FOverlapInfo& OtherOverlap, bool bDoNotifies)
@@ -368,7 +400,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
 {
     const AActor* const MyActor = GetOwner();
     
-    if (bGenerateOverlapEvents)
+    if (GetGenerateOverlapEvents())
     {
         if (MyActor)
         {
@@ -388,7 +420,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
             TArray<FOverlapInfo> OverlapMultiResult;
             TArray<const FOverlapInfo*> NewOverlappingComponentPtrs;
 
-            if (this && bGenerateOverlapEvents)
+            if (this && GetGenerateOverlapEvents())
             {
                 // Might be able to avoid testing for new overlaps at the end location.
                 if (OverlapsAtEndLocation != nullptr && PrevTransform.Equals(GetWorldMatrix()))
@@ -408,22 +440,27 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 {
                     UWorld* const MyWorld = GetWorld();
                     TArray<FOverlapResult> Overlaps;
+
+                    /*
                     // note this will optionally include overlaps with components in the same actor (depending on bIgnoreChildren). 
                     FComponentQueryParams Params(SCENE_QUERY_STAT(UpdateOverlaps), bIgnoreChildren ? MyActor : nullptr);
                     Params.bIgnoreBlocks = true;	//We don't care about blockers since we only route overlap events to real overlaps
                     FCollisionResponseParams ResponseParam;
                     InitSweepCollisionParams(Params, ResponseParam);
                     ComponentOverlapMulti(Overlaps, MyWorld, GetComponentLocation(), GetComponentQuat(), GetCollisionObjectType(), Params);
-
+                    */
+                    
+                    MyWorld->CheckOverlap(this, Overlaps);
+                    
                     for (int32 ResultIdx=0; ResultIdx < Overlaps.Num(); ResultIdx++)
                     {
                         const FOverlapResult& Result = Overlaps[ResultIdx];
 
-                        UPrimitiveComponent* const HitComp = Result.Component.Get();
+                        UPrimitiveComponent* const HitComp = Result.Component;
                         if (HitComp && (HitComp != this) && HitComp->GetGenerateOverlapEvents())
                         {
                             const bool bCheckOverlapFlags = false; // Already checked above
-                            if (!ShouldIgnoreOverlapResult(MyWorld, MyActor, *this, Result.OverlapObjectHandle, *HitComp, bCheckOverlapFlags))
+                            if (!ShouldIgnoreOverlapResult(MyWorld, MyActor, *this, Result.Actor, *HitComp, bCheckOverlapFlags))
                             {
                                 OverlapMultiResult.Emplace(HitComp, Result.ItemIndex);		// don't need to add unique unless the overlap check can return dupes
                             }

@@ -3,8 +3,8 @@
 
 ULightComponentBase::ULightComponentBase()
 {
-    AABB.max = { 1.f,1.f,0.1f };
-    AABB.min = { -1.f,-1.f,-0.1f };
+    AABB.MaxLocation = { 1.f,1.f,0.1f };
+    AABB.MinLocation = { -1.f,-1.f,-0.1f };
 
     ViewMatrices.SetNum(1);
 }
@@ -29,8 +29,8 @@ UObject* ULightComponentBase::Duplicate(UObject* InOuter)
 void ULightComponentBase::GetProperties(TMap<FString, FString>& OutProperties) const
 {
     Super::GetProperties(OutProperties);
-    OutProperties.Add(TEXT("AABB_Min"), AABB.min.ToString());
-    OutProperties.Add(TEXT("AABB_Max"), AABB.max.ToString());
+    OutProperties.Add(TEXT("AABB_Min"), AABB.MinLocation.ToString());
+    OutProperties.Add(TEXT("AABB_Max"), AABB.MaxLocation.ToString());
 }
 
 void ULightComponentBase::SetProperties(const TMap<FString, FString>& InProperties)
@@ -40,12 +40,12 @@ void ULightComponentBase::SetProperties(const TMap<FString, FString>& InProperti
     TempStr = InProperties.Find(TEXT("AABB_Min"));
     if (TempStr)
     {
-        AABB.min.InitFromString(*TempStr);
+        AABB.MinLocation.InitFromString(*TempStr);
     }
     TempStr = InProperties.Find(TEXT("AABB_Max"));
     if (TempStr)
     {
-        AABB.max.InitFromString(*TempStr);
+        AABB.MaxLocation.InitFromString(*TempStr);
     }
 }
 

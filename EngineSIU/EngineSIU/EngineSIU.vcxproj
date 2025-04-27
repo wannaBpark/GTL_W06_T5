@@ -499,6 +499,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FObjLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\HitResult.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapResult.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceMgr.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Texture.h" />

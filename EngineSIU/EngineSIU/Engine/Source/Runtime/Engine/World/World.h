@@ -6,6 +6,8 @@
 #include "WorldType.h"
 #include "Level.h"
 
+class UPrimitiveComponent;
+struct FOverlapResult;
 class FObjectFactory;
 class AActor;
 class UObject;
@@ -58,6 +60,7 @@ public:
 
     EWorldType WorldType = EWorldType::None;
 
+    void CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
     
 private:
     FString WorldName = "DefaultWorld";
