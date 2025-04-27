@@ -58,7 +58,7 @@ FBox UBoxComponent::GetWorldBox() const
 {
     FBox Box;
     Box.Center = GetWorldLocation();
-    Box.Extent = BoxExtent;
+    Box.Extent = BoxExtent * GetWorldScale3D();
     Box.Rotation = GetWorldRotation().ToQuaternion();
     return Box;
 }

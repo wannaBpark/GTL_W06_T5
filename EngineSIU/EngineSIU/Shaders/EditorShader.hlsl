@@ -634,14 +634,14 @@ PS_INPUT CapsuleVS(VS_INPUT_POS_ONLY Input, uint InstanceID : SV_InstanceID)
 {
     PS_INPUT output;
     
-    float3 Height = DataCapsule[InstanceID].Height;
-    float3 Radius = DataCapsule[InstanceID].Radius;
+    float Height = DataCapsule[InstanceID].Height;
+    float Radius = DataCapsule[InstanceID].Radius;
     
 
     float3 ScaledPos = float3(
-        Input.position.x * Radius.x,
-        Input.position.y * Radius.y,
-        Input.position.z * Height.z
+        Input.position.x * Radius,
+        Input.position.y * Radius,
+        Input.position.z * Height
     );
     
     float4 WorldPosition = mul(float4(ScaledPos, 1.f), DataCapsule[InstanceID].WorldMatrix);
