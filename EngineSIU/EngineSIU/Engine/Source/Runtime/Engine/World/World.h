@@ -6,6 +6,7 @@
 #include "WorldType.h"
 #include "Level.h"
 #include "Actors/Player.h"
+#include "Components/CameraComponent.h"
 #include "Engine/EventManager.h"
 
 class UCameraComponent;
@@ -62,9 +63,9 @@ public:
     
     FEventManager EventManager;
 
-    void SetMainCamera(UCameraComponent* InCamera) {MainCamera = InCamera;}
+    void SetMainCamera(UCameraComponent* InCamera) { MainCamera = InCamera; }
     UCameraComponent* GetMainCamera(){ return MainCamera; }
-    void SetMainPlayer(APlayer* InPlayer){MainPlayer = InPlayer;}
+    void SetMainPlayer(APlayer* InPlayer){ MainPlayer = InPlayer; }
     APlayer* GetMainPlayer(){ return MainPlayer; }
     
 private:

@@ -184,7 +184,6 @@
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\PrimitiveDrawBatch.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneManager.cpp" />
-    <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneMgr.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEd.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Casts.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Class.cpp" />
@@ -410,7 +409,6 @@
     <ClInclude Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveDrawBatch.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneManager.h" />
-    <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEd.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Casts.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Class.h" />

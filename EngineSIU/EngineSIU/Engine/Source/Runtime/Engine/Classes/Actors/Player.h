@@ -49,6 +49,7 @@ class APlayer : public AActor
 {
     DECLARE_CLASS(APlayer, AActor)
 
+public:
     APlayer() = default;
 
     virtual UObject* Duplicate(UObject* InOuter) override;
