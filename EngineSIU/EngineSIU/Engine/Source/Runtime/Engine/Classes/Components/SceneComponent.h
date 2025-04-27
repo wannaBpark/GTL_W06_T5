@@ -54,6 +54,7 @@ public:
     FMatrix GetTranslationMatrix() const;
 
     FMatrix GetWorldMatrix() const;
+    FMatrix GetWorldRTMatrix() const;
 
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
