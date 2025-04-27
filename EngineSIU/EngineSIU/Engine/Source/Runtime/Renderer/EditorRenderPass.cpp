@@ -6,6 +6,7 @@
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EditorEngine.h"
 #include <D3D11RHI/DXDShaderManager.h>
 
+#include "ShowFlag.h"
 #include "UnrealClient.h"
 #include "Engine/Source/Runtime/Engine/World/World.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -15,14 +16,12 @@
 #include "Components/Shapes/CapsuleComponent.h"
 #include "Components/Shapes/SphereComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
-#include "Engine/Classes/Actors/Player.h"
 #include "Engine/Classes/Components/Light/LightComponent.h"
 #include "Engine/Classes/Components/Light/DirectionalLightComponent.h"
 #include "Engine/Classes/Components/Light/SpotLightComponent.h"
 #include "Engine/Classes/Components/Light/PointLightComponent.h"
 #include "Engine/Classes/Components/HeightFogComponent.h"
 #include "Engine/FLoaderOBJ.h"
-#include "PropertyEditor/ShowFlags.h"
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -359,7 +358,7 @@ void FEditorRenderPass::CreateConstantBuffers()
     BufferManager->CreateBufferGeneric<FConstantBufferDebugArrow>("ArrowConstantBuffer", nullptr, sizeof(FConstantBufferDebugArrow) * ConstantBufferSizeArrow, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 }
 
-void FEditorRenderPass::BindRenderTarget(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FEditorRenderPass::BindRenderTarget(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     constexpr EResourceType ResourceType = EResourceType::ERT_Editor;
 
@@ -472,7 +471,7 @@ void FEditorRenderPass::LazyLoad()
     Resources.Primitives.Arrow.IndexInfo.NumIndices = Mesh->GetRenderData()->Indices.Num();
 }
 
-void FEditorRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FEditorRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     static bool isLoaded = false;
     if (!isLoaded)
@@ -886,7 +885,7 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
                 if (Actor && Actor->GetComponents().Contains(CapsuleComponent))
                 {
                     FConstantBufferDebugCapsule b;
-                    b.WorldMatrix = CapsuleComponent->GetRotationMatrix()* CapsuleComponent->GetTranslationMatrix();
+                    b.WorldMatrix = CapsuleComponent->GetWorldRTMatrix();
                     b.Height = CapsuleComponent->GetHalfHeight();
                     b.Radius = CapsuleComponent->GetRadius();
                     BufferAll.Add(b);
@@ -895,7 +894,7 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
             else
             {
                 FConstantBufferDebugCapsule b;
-                b.WorldMatrix = CapsuleComponent->GetRotationMatrix() * CapsuleComponent->GetTranslationMatrix();
+                b.WorldMatrix = CapsuleComponent->GetWorldRTMatrix();
                 b.Height = CapsuleComponent->GetHalfHeight();
                 b.Radius = CapsuleComponent->GetRadius();
                 BufferAll.Add(b);

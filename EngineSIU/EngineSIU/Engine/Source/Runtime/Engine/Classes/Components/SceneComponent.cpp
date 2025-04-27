@@ -288,6 +288,26 @@ FMatrix USceneComponent::GetWorldMatrix() const
     return ScaleMat * RTMat;
 }
 
+FMatrix USceneComponent::GetWorldRTMatrix() const
+{
+    FMatrix RotationMat = FMatrix::GetRotationMatrix(RelativeRotation);
+    FMatrix TranslationMat = FMatrix::GetTranslationMatrix(RelativeLocation);
+
+    FMatrix RTMat = RotationMat * TranslationMat;
+
+    if (AttachParent)
+    {
+        FMatrix ParentRotationMat = AttachParent->GetRotationMatrix();
+        FMatrix ParentTranslationMat = AttachParent->GetTranslationMatrix();
+        FMatrix ParentRTMat = ParentRotationMat * ParentTranslationMat;
+
+        RTMat = RTMat * ParentRTMat;
+    }
+
+    return RTMat;
+}
+
+
 void USceneComponent::SetupAttachment(USceneComponent* InParent)
 {
     if (

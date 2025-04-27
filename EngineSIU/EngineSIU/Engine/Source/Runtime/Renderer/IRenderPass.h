@@ -1,14 +1,12 @@
 #pragma once
 #include <memory>
 
-#include "HAL/PlatformType.h"
-
 class FViewportResource;
 class UWorld;
 class FDXDBufferManager;
 class FGraphicsDevice;
 class FDXDShaderManager;
-class FEditorViewportClient;
+class FViewportClient;
 
 class IRenderPass {
 public:
@@ -18,7 +16,7 @@ public:
 
     virtual void PrepareRenderArr() = 0;
     
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) = 0;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) = 0;
 
     virtual void ClearRenderArr() = 0;
 };

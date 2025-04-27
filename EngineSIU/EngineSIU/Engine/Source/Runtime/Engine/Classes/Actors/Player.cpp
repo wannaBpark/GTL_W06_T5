@@ -1,5 +1,6 @@
 #include "Player.h"
 
+#include "ShowFlag.h"
 #include "UnrealClient.h"
 #include "World/World.h"
 #include "BaseGizmos/GizmoArrowComponent.h"
@@ -9,8 +10,6 @@
 #include "Components/Light/LightComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
-#include "Math/MathUtility.h"
-#include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 #include "Engine/EditorEngine.h"
@@ -55,7 +54,7 @@ void AEditorPlayer::Input()
             std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
             ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport, pickPosition);
             bool res = PickGizmo(pickPosition, ActiveViewport.get());
-            if (!res) PickActor(pickPosition);
+            if (!res) PickActor(pickPosition, ActiveViewport);
         }
         else
         {
@@ -131,9 +130,9 @@ bool AEditorPlayer::PickGizmo(FVector& pickPosition, FEditorViewportClient* InAc
     return isPickedGizmo;
 }
 
-void AEditorPlayer::PickActor(const FVector& pickPosition)
+void AEditorPlayer::PickActor(const FVector& pickPosition, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    if (!(ShowFlags::GetInstance().CurrentFlags & EEngineShowFlags::SF_Primitives)) return;
+    if (!(ActiveViewport->GetShowFlag() & EEngineShowFlags::SF_Primitives)) return;
 
     USceneComponent* Possible = nullptr;
     int maxIntersect = 0;
@@ -231,7 +230,7 @@ int AEditorPlayer::RayIntersectsObject(const FVector& PickPosition, USceneCompon
         // 오쏘에서는 픽킹 원점은 unproject된 픽셀의 위치
         FVector rayOrigin = worldPickPos;
         // 레이 방향은 카메라의 정면 방향 (평행)
-        FVector orthoRayDir = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->OrthogonalCamera.GetForwardVector().GetSafeNormal();
+        FVector orthoRayDir = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetOrthogonalCamera().GetForwardVector().GetSafeNormal();
 
         // 객체의 로컬 좌표계로 변환
         FMatrix LocalMatrix = FMatrix::Inverse(WorldMatrix);
@@ -321,8 +320,8 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
 {
     const auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
     const FViewportCamera* ViewTransform = ActiveViewport->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewport->PerspectiveCamera
-                                                        : &ActiveViewport->OrthogonalCamera;
+                                                        ? &ActiveViewport->GetPerspectiveCamera()
+                                                        : &ActiveViewport->GetOrthogonalCamera();
 
     FVector CameraForward = ViewTransform->GetForwardVector();
     FVector CameraRight = ViewTransform->GetRightVector();
@@ -365,8 +364,8 @@ void AEditorPlayer::ControlScale(USceneComponent* Component, UGizmoBaseComponent
 {
     const auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
     const FViewportCamera* ViewTransform = ActiveViewport->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewport->PerspectiveCamera
-                                                        : &ActiveViewport->OrthogonalCamera;
+                                                        ? &ActiveViewport->GetPerspectiveCamera()
+                                                        : &ActiveViewport->GetOrthogonalCamera();
     FVector CameraRight = ViewTransform->GetRightVector();
     FVector CameraUp = ViewTransform->GetUpVector();
     

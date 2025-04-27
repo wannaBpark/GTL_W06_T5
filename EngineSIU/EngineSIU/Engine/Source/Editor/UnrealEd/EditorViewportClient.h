@@ -1,97 +1,23 @@
 #pragma once
-#include <sstream>
-
+#include "ViewportClient.h"
 #include "Define.h"
 #include "Container/Map.h"
-#include "ViewportClient.h"
-#include "EngineLoop.h"
-#include "EngineBaseTypes.h"
+#include "Container/Set.h"
+#include "InputCore/InputCoreTypes.h"
+#include "SlateCore/Input/Events.h"
 
-#define MIN_ORTHOZOOM (1.0)  // 2D ortho viewport zoom >= MIN_ORTHOZOOM
-#define MAX_ORTHOZOOM (1e25)
 
-struct FPointerEvent;
-enum class EViewScreenLocation : uint8;
-class FViewportResource;
 class ATransformGizmo;
 class USceneComponent;
-
-struct FViewportCamera
-{
-public:
-    FViewportCamera() = default;
-
-    /** Sets the transform's location */
-    void SetLocation(const FVector& Position)
-    {
-        ViewLocation = Position;
-    }
-
-    /** Sets the transform's rotation */
-    void SetRotation(const FVector& Rotation)
-    {
-        ViewRotation = Rotation;
-    }
-
-    /** Sets the location to look at during orbit */
-    void SetLookAt(const FVector& InLookAt)
-    {
-        LookAt = InLookAt;
-    }
-
-    /** Set the ortho zoom amount */
-    void SetOrthoZoom(float InOrthoZoom)
-    {
-        assert(InOrthoZoom >= MIN_ORTHOZOOM && InOrthoZoom <= MAX_ORTHOZOOM);
-        OrthoZoom = InOrthoZoom;
-    }
-
-    /** Check if transition curve is playing. */
-    /*    bool IsPlaying();*/
-
-    /** @return The transform's location */
-    FORCEINLINE const FVector& GetLocation() const { return ViewLocation; }
-
-    /** @return The transform's rotation */
-    FORCEINLINE const FVector& GetRotation() const { return ViewRotation; }
-
-    /** @return The look at point for orbiting */
-    FORCEINLINE const FVector& GetLookAt() const { return LookAt; }
-
-    /** @return The ortho zoom amount */
-    FORCEINLINE float GetOrthoZoom() const { return OrthoZoom; }
-
-    FVector GetForwardVector() const;
-    FVector GetRightVector() const;
-    FVector GetUpVector() const;
-
-public:
-    /** Current viewport Position. */
-    FVector ViewLocation;
-    /** Current Viewport orientation; valid only for perspective projections. */
-    FVector ViewRotation;
-    FVector DesiredLocation;
-    /** When orbiting, the point we are looking at */
-    FVector LookAt;
-    /** Viewport start location when animating to another location */
-    FVector StartLocation;
-    /** Ortho zoom amount */
-    float OrthoZoom;
-};
+enum class EViewScreenLocation : uint8;
 
 class FEditorViewportClient : public FViewportClient
 {
 public:
     FEditorViewportClient();
-    virtual ~FEditorViewportClient() override;
-
-    virtual void Draw(FViewport* Viewport) override;
-    virtual UWorld* GetWorld() const override { return nullptr; }
+    virtual void Tick(float DeltaTime) override;
     void Initialize(EViewScreenLocation InViewportIndex, const FRect& InRect);
-    void Tick(float DeltaTime);
-    void Release() const;
 
-    void Input();
     void UpdateEditorCameraMovement(float DeltaTime);
     void InputKey(const FKeyEvent& InKeyEvent);
     void MouseMove(const FPointerEvent& InMouseEvent);
@@ -116,39 +42,6 @@ protected:
     float GridSize;
 
 public:
-    FViewport* Viewport;
-    int32 ViewportIndex;
-    FViewport* GetViewport() const { return Viewport; }
-    
-    D3D11_VIEWPORT& GetD3DViewport() const;
-
-    FViewportResource* GetViewportResource();
-
-private:
-    FViewportResource* ViewportResourceCache = nullptr;
-
-public:
-    
-    //카메라
-    /** Viewport camera transform data for perspective viewports */
-    FViewportCamera PerspectiveCamera;
-    FViewportCamera OrthogonalCamera;
-    // Viewport 분리전 임시적으로 PIE모드에서 Player를 따라다니는 카메라
-    FViewportCamera PlayerCamera;
-    // 카메라 정보 
-    float ViewFOV = 90.0f;
-    float AspectRatio;
-    float NearClip = 0.1f;
-    float FarClip = 1000.0f;
-    static FVector Pivot;
-    static float OrthoSize;
-    ELevelViewportType ViewportType;
-    uint64 ShowFlag;
-    EViewModeIndex ViewMode;
-
-    FMatrix View;
-    FMatrix Projection;
-
     //Camera Movement
     void CameraMoveForward(float InValue);
     void CameraMoveRight(float InValue);
@@ -157,37 +50,8 @@ public:
     void CameraRotatePitch(float InValue);
     void PivotMoveRight(float InValue) const;
     void PivotMoveUp(float InValue) const;
-
-    FMatrix& GetViewMatrix() { return View; }
-    FMatrix& GetProjectionMatrix() { return Projection; }
-    void UpdateViewMatrix();
-    void UpdateProjectionMatrix();
-
-    bool IsOrthographic() const;
-    bool IsPerspective() const;
-
-    FVector GetCameraLocation() const;
-
-    float GetCameraFOV() const;
-
-    float GetCameraNearClip() const;
-    float GetCameraFarClip() const;
-    
-    ELevelViewportType GetViewportType() const;
-    void SetViewportType(ELevelViewportType InViewportType);
-    
-    void UpdateOrthoCameraLoc();
-    
-    EViewModeIndex GetViewMode() const { return ViewMode; }
-    void SetViewMode(EViewModeIndex InViewMode) { ViewMode = InViewMode; }
-    
-    uint64 GetShowFlag() const { return ShowFlag; }
-    void SetShowFlag(uint64 InShowFlag) { ShowFlag = InShowFlag; }
     
     bool GetIsOnRBMouseClick() const { return bRightMouseDown; }
-
-    // Flag Test Code
-    static void SetOthoSize(float InValue);
 
 private: // Input
     POINT PrevMousePos;
@@ -211,22 +75,6 @@ public:
     float GetGridSize() const { return GridSize; }
     float GetCameraSpeedScalar() const { return CameraSpeed; }
     void SetCameraSpeed(float InValue);
-
-private:
-    template <typename T>
-    T GetValueFromConfig(const TMap<FString, FString>& config, const FString& key, T defaultValue)
-    {
-        if (const FString* Value = config.Find(key))
-        {
-            std::istringstream iss(**Value);
-            T value;
-            if (iss >> value)
-            {
-                return value;
-            }
-        }
-        return defaultValue;
-    }
 
 public:
     // Gizmo

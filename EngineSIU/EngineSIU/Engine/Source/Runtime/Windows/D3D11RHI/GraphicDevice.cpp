@@ -1,9 +1,6 @@
 #include "GraphicDevice.h"
-#include <cwchar>
 #include <Components/HeightFogComponent.h>
 #include <UObject/UObjectIterator.h>
-#include <Engine/Engine.h>
-#include "PropertyEditor/ShowFlags.h"
 
 void FGraphicsDevice::Initialize(HWND hWindow)
 {

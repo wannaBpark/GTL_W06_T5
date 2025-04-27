@@ -25,12 +25,12 @@ public:
 
 public:
     FString GetScriptName() const { return ScriptName; }
-    sol::table& LoadScript();
+    void LoadScript();
 
     template<typename... Args>
     void ActivateFunction(const FString& FunctionName, Args&&... args);
 
-    sol::table& GetLuaEnv() { return LuaEnv; }
+    const sol::table& GetLuaEnv() { return LuaEnv; }
 
 private:
     FString ScriptName;

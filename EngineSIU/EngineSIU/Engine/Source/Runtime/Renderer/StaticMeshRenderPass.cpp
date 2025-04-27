@@ -8,6 +8,7 @@
 #include "RendererHelpers.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
+#include "ShowFlag.h"
 #include "UnrealClient.h"
 #include "Math/JungleMath.h"
 
@@ -21,22 +22,10 @@
 #include "Components/StaticMeshComponent.h"
 
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Components/Light/LightComponent.h"
 #include "Engine/EditorEngine.h"
 
-#include "PropertyEditor/ShowFlags.h"
-
 #include "UnrealEd/EditorViewportClient.h"
-#include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "ShadowRenderPass.h"
-
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
     : VertexShader(nullptr)
@@ -188,7 +177,7 @@ void FStaticMeshRenderPass::PrepareRenderArr()
     }
 }
 
-void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport) 
+void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FViewportClient>& Viewport) 
 {
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
@@ -325,7 +314,7 @@ void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT nu
     Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
 }
 
-void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FViewportClient>& Viewport)
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -373,7 +362,7 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
     }
 }
 
-void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FStaticMeshRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     //if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
     //{
@@ -414,7 +403,7 @@ void FStaticMeshRenderPass::ClearRenderArr()
 }
 
 
-void FStaticMeshRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+void FStaticMeshRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {

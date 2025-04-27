@@ -10,8 +10,8 @@
 #include <Engine/Engine.h>
 
 #include "RendererHelpers.h"
+#include "ShowFlag.h"
 #include "UnrealClient.h"
-#include "PropertyEditor/ShowFlags.h"
 
 FFogRenderPass::FFogRenderPass()
 {
@@ -98,7 +98,7 @@ void FFogRenderPass::PrepareRenderState()
     BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
 }
 
-void FFogRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FFogRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();

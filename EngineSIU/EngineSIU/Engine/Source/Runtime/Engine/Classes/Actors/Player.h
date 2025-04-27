@@ -22,7 +22,7 @@ class AEditorPlayer : public AActor
     void Input();
     bool PickGizmo(FVector& RayOrigin, FEditorViewportClient* InActiveViewport);
     void ProcessGizmoIntersection(UStaticMeshComponent* Component, const FVector& PickPosition, FEditorViewportClient* InActiveViewport, bool& bIsPickedGizmo);
-    void PickActor(const FVector& pickPosition);
+    void PickActor(const FVector& pickPosition, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void AddControlMode();
     void AddCoordiMode();
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "IRenderPass.h"
-#include "EngineBaseTypes.h"
 #include "Container/Set.h"
 
 #include "Define.h"
@@ -25,7 +24,7 @@ public:
     virtual void PrepareRenderArr() override;
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
 
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
 

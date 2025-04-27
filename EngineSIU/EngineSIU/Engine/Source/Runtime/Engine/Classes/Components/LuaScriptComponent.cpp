@@ -20,7 +20,7 @@ UObject* ULuaScriptComponent::Duplicate(UObject* InOuter)
 
     NewComponent->ScriptName = ScriptName;
     NewComponent->LuaEnv = LuaEnv;
-
+ 
     return NewComponent;
 }
 
@@ -45,7 +45,13 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
     if (LuaEnv.valid() && LuaEnv["Tick"].valid())
     {
-        LuaEnv["Tick"](DeltaTime);
+        // For Debug
+        if (LuaEnv["TestInt"].valid())
+        {
+        }
+        LuaEnv["TestInt"] = 5;
+        std::string a = LuaEnv["Tick"](DeltaTime);
+        int b = 0;
     }
 }
 
@@ -57,7 +63,7 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     }
 }
 
-sol::table& ULuaScriptComponent::LoadScript()
+void ULuaScriptComponent::LoadScript()
 {
     if (ScriptName.IsEmpty())
     {
@@ -68,9 +74,21 @@ sol::table& ULuaScriptComponent::LoadScript()
     LuaEnv = FLuaScriptManager::Get().CreateLuaTable(ScriptName);
 
     if (!LuaEnv.valid())
-        return LuaEnv;
+    {
+        return;
+    }
 
-    LuaEnv[sol::metatable_key] = GetOwner();
-
-    return LuaEnv;
+    // For Debug
+    int cc, bb;
+    LuaEnv["obj"] = GetOwner();
+    if (LuaEnv["TestInt"].valid())
+    {
+        cc = LuaEnv["TestInt"];
+    }
+    LuaEnv["TestInt"] = 5;
+    if (LuaEnv["TestInt"].valid())
+    {
+        bb = LuaEnv["TestInt"];
+    }
+    auto a = LuaEnv["obj"];
 }

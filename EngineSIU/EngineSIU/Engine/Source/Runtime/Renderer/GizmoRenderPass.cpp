@@ -115,8 +115,21 @@ void FGizmoRenderPass::PrepareRenderArr()
 {
 }
 
-void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FGizmoRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    if (Engine == nullptr)
+    {
+        UE_LOG(LogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
+        return;
+    }
+
+    FEditorViewportClient* EditorViewport = dynamic_cast<FEditorViewportClient*>(Viewport.get());
+    if (EditorViewport == nullptr)
+    {
+        return;
+    }
+    
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_Editor);
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Gizmo);
@@ -133,36 +146,29 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     ViewportSize.ViewportSize.Y = Viewport->GetViewport()->GetRect().Height;
     BufferManager->UpdateConstantBuffer(TEXT("FViewportSize"), ViewportSize);
     
-    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-    if (!Engine)
-    {
-        UE_LOG(LogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
-        return;
-    }
-    
     EControlMode Mode = Engine->GetEditorPlayer()->GetControlMode();
     if (Mode == CM_TRANSLATION)
     {
-        for (UStaticMeshComponent* StaticMeshComp : Viewport->GetGizmoActor()->GetArrowArr())
+        for (UStaticMeshComponent* StaticMeshComp : EditorViewport->GetGizmoActor()->GetArrowArr())
         {
             UGizmoBaseComponent* GizmoComp = Cast<UGizmoBaseComponent>(StaticMeshComp);
-            RenderGizmoComponent(GizmoComp, Viewport);
+            RenderGizmoComponent(GizmoComp, EditorViewport);
         }
     }
     else if (Mode == CM_SCALE)
     {
-        for (UStaticMeshComponent* StaticMeshComp : Viewport->GetGizmoActor()->GetScaleArr())
+        for (UStaticMeshComponent* StaticMeshComp : EditorViewport->GetGizmoActor()->GetScaleArr())
         {
             UGizmoBaseComponent* GizmoComp = Cast<UGizmoBaseComponent>(StaticMeshComp);
-            RenderGizmoComponent(GizmoComp, Viewport);
+            RenderGizmoComponent(GizmoComp, EditorViewport);
         }
     }
     else if (Mode == CM_ROTATION)
     {
-        for (UStaticMeshComponent* StaticMeshComp : Viewport->GetGizmoActor()->GetDiscArr())
+        for (UStaticMeshComponent* StaticMeshComp : EditorViewport->GetGizmoActor()->GetDiscArr())
         {
             UGizmoBaseComponent* GizmoComp = Cast<UGizmoBaseComponent>(StaticMeshComp);
-            RenderGizmoComponent(GizmoComp, Viewport);
+            RenderGizmoComponent(GizmoComp, EditorViewport);
         }
     }
     
@@ -184,7 +190,7 @@ void FGizmoRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FV
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
-void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, const FEditorViewportClient* Viewport)
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (Engine == nullptr)
