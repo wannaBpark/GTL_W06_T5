@@ -57,10 +57,11 @@ void FEditorViewportClient::Tick(const float DeltaTime)
     if(GEngine->ActiveWorld->WorldType == EWorldType::Editor)
     {
         UpdateEditorCameraMovement(DeltaTime);
-        UpdateViewMatrix();
-        UpdateProjectionMatrix();
         GizmoActor->Tick(DeltaTime);
     }
+
+    UpdateViewMatrix();
+    UpdateProjectionMatrix();
 }
 
 void FEditorViewportClient::Release() const
@@ -530,6 +531,15 @@ void FEditorViewportClient::PivotMoveUp(const float InValue) const
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
+    if (IsPIEMode())
+    {
+        View = JungleMath::CreateViewMatrix(PlayerCamera.GetLocation(),
+            PlayerCamera.GetLocation() + PlayerCamera.GetForwardVector(),
+            FVector{ 0.0f, 0.0f, 1.0f }
+        );
+
+        return;
+    }
 
     if (IsPerspective())
     {

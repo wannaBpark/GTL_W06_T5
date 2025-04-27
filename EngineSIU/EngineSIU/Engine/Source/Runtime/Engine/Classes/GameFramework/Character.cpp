@@ -4,6 +4,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/FLoaderOBJ.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "Editor/UnrealEd/EditorViewportClient.h"
 
 ACharacter::ACharacter()  
 {  
@@ -30,7 +32,20 @@ void ACharacter::BeginPlay()
 void ACharacter::Tick(float DeltaTime)  
 {  
    Super::Tick(DeltaTime);  
-}  
+
+   // Editor-PIE Viewport 분리 전 임시적으로 Player를 따라다니는 카메라 세팅
+   std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();  
+   if (ActiveViewport)  
+   {  
+       FVector Forward = GetActorForwardVector();
+       FVector BackOffset = -Forward * 3.0f;
+       FVector UpOffset = FVector(0.0f, 0.0f, 3.0f);
+       FVector CamLocation = GetActorLocation() + BackOffset + UpOffset;
+
+       ActiveViewport->PlayerCamera.SetLocation(CamLocation);
+       ActiveViewport->PlayerCamera.SetRotation(GetActorRotation());
+   }  
+}
 
 void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)  
 {  
