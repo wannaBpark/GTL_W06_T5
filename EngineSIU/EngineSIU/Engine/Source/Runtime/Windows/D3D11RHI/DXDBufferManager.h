@@ -32,16 +32,16 @@ public:
     FDXDBufferManager() = default;
     void Initialize(ID3D11Device* DXDevice, ID3D11DeviceContext* DXDeviceContext);
 
-    // 템플릿을 활용한 버텍스 버퍼 생성 (정적/동적)
+    // 템플릿을 활용한 버텍스 버퍼 생성 (정적/동적) - FString / FWString
     template<typename T>
-    HRESULT CreateVertexBuffer(const FString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo);
+    HRESULT CreateVertexBuffer(const FString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0);
     template<typename T>
-    HRESULT CreateVertexBuffer(const FWString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo);
+    HRESULT CreateVertexBuffer(const FWString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0);
 
     template<typename T>
-    HRESULT CreateIndexBuffer(const FString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo);
+    HRESULT CreateIndexBuffer(const FString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0);
     template<typename T>
-    HRESULT CreateIndexBuffer(const FWString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo);
+    HRESULT CreateIndexBuffer(const FWString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0);
 
     template<typename T>
     HRESULT CreateDynamicVertexBuffer(const FString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo);
@@ -67,6 +67,9 @@ public:
 
     template<typename T>
     void UpdateConstantBuffer(const FString& key, const T& data) const;
+
+    template<typename T>
+    void UpdateConstantBuffer(const FString& key, const TArray<T>& data) const;
 
     template<typename T>
     void UpdateDynamicVertexBuffer(const FString& KeyName, const TArray<T>& vertices) const;
@@ -137,7 +140,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FString& KeyName, co
     return S_OK;
 }
 template<typename T>
-HRESULT FDXDBufferManager::CreateIndexBuffer(const FString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo)
+HRESULT FDXDBufferManager::CreateIndexBuffer(const FString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo, D3D11_USAGE Usage, UINT CpuAccessFlags)
 {
     if (!KeyName.IsEmpty() && IndexBufferPool.Contains(KeyName))
     {
@@ -146,9 +149,10 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FString& KeyName, const TArra
     }
 
     D3D11_BUFFER_DESC indexBufferDesc = {};
-    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufferDesc.Usage = Usage;
     indexBufferDesc.ByteWidth = indices.Num() * sizeof(uint32);
     indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.CPUAccessFlags = CpuAccessFlags;
 
     D3D11_SUBRESOURCE_DATA indexInitData = {};
     indexInitData.pSysMem = indices.GetData();
@@ -167,9 +171,9 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FString& KeyName, const TArra
 }
 
 template<typename T>
-HRESULT FDXDBufferManager::CreateVertexBuffer(const FString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo)
+HRESULT FDXDBufferManager::CreateVertexBuffer(const FString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo, D3D11_USAGE Usage, UINT CpuAccessFlags)
 {
-    return CreateVertexBufferInternal(KeyName, vertices, OutVertexInfo, D3D11_USAGE_DEFAULT, 0);
+    return CreateVertexBufferInternal(KeyName, vertices, OutVertexInfo, Usage, CpuAccessFlags);
 }
 
 
@@ -208,7 +212,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FWString& KeyName, c
 
 // FWString 전용 인덱스 버퍼 생성
 template<typename T>
-HRESULT FDXDBufferManager::CreateIndexBuffer(const FWString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo)
+HRESULT FDXDBufferManager::CreateIndexBuffer(const FWString& KeyName, const TArray<T>& indices, FIndexInfo& OutIndexInfo, D3D11_USAGE Usage, UINT CpuAccessFlags)
 {
     if (!KeyName.empty() && TextAtlasIndexBufferPool.Contains(KeyName))
     {
@@ -217,9 +221,10 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FWString& KeyName, const TArr
     }
 
     D3D11_BUFFER_DESC indexBufferDesc = {};
-    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufferDesc.Usage = Usage;
     indexBufferDesc.ByteWidth = indices.Num() * sizeof(uint32);
     indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.CPUAccessFlags = CpuAccessFlags;
 
     D3D11_SUBRESOURCE_DATA indexInitData = {};
     indexInitData.pSysMem = indices.GetData();
@@ -237,9 +242,9 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FWString& KeyName, const TArr
 }
 
 template<typename T>
-HRESULT FDXDBufferManager::CreateVertexBuffer(const FWString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo)
+HRESULT FDXDBufferManager::CreateVertexBuffer(const FWString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo, D3D11_USAGE Usage, UINT CpuAccessFlags)
 {
-    return CreateVertexBufferInternal(KeyName, vertices, OutVertexInfo, D3D11_USAGE_DEFAULT, 0);
+    return CreateVertexBufferInternal(KeyName, vertices, OutVertexInfo, Usage, CpuAccessFlags);
 }
 
 
@@ -297,8 +302,30 @@ void FDXDBufferManager::UpdateConstantBuffer(const FString& key, const T& data) 
         UE_LOG(LogLevel::Error, TEXT("Buffer Map 실패, HRESULT: 0x%X"), hr);
         return;
     }
-
+    auto a = sizeof(T);
     memcpy(mappedResource.pData, &data, sizeof(T));
+    DXDeviceContext->Unmap(buffer, 0);
+}
+
+template<typename T>
+void FDXDBufferManager::UpdateConstantBuffer(const FString& key, const TArray<T>& data) const
+{
+    ID3D11Buffer* buffer = GetConstantBuffer(key);
+    if (!buffer)
+    {
+        UE_LOG(LogLevel::Error, TEXT("UpdateConstantBuffer 호출: 키 %s에 해당하는 buffer가 없습니다."), *key);
+        return;
+    }
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT hr = DXDeviceContext->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Buffer Map 실패, HRESULT: 0x%X"), hr);
+        return;
+    }
+    auto a = sizeof(T) * data.Num();
+    memcpy(mappedResource.pData, data.GetData(), sizeof(T) * data.Num());
     DXDeviceContext->Unmap(buffer, 0);
 }
 

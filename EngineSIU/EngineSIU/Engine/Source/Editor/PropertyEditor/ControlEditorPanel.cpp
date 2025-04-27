@@ -30,6 +30,10 @@
 #include "Actors/SpotLightActor.h"
 #include "Actors/AmbientLightActor.h"
 
+#include "Actors/CubeActor.h"
+#include "Actors/SphereActor.h"
+#include "Actors/CapsuleActor.h"
+
 void ControlEditorPanel::Render()
 {
     /* Pre Setup */
@@ -296,7 +300,10 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             { .Label= "Particle",  .OBJ= OBJ_PARTICLE },
             { .Label= "Text",      .OBJ= OBJ_TEXT },
             { .Label= "Fireball",  .OBJ = OBJ_FIREBALL},
-            { .Label= "Fog",       .OBJ= OBJ_FOG }
+            { .Label= "Fog",       .OBJ= OBJ_FOG },
+            {.Label = "BoxCol", .OBJ = OBJ_BOX_COLLISION},
+            {.Label = "SphereCol", .OBJ = OBJ_SPHERE_COLLISION},
+            {.Label = "CapsuleCol", .OBJ = OBJ_CAPSULE_COLLISION},
         };
 
         for (const auto& primitive : primitives)
@@ -381,6 +388,24 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                 {
                     SpawnedActor = World->SpawnActor<AHeightFogActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
+                    break;
+                }
+                case OBJ_BOX_COLLISION:
+                {
+                    SpawnedActor = World->SpawnActor<ACubeActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_BOX_COLLISION"));
+                    break;
+                }
+                case OBJ_SPHERE_COLLISION:
+                {
+                    SpawnedActor = World->SpawnActor<ASphereActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_SPHERE_COLLISION"));
+                    break;
+                }
+                case OBJ_CAPSULE_COLLISION:
+                {
+                    SpawnedActor = World->SpawnActor<ACapsuleActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_CAPSULE_COLLISION"));
                     break;
                 }
                 case OBJ_TRIANGLE:

@@ -98,15 +98,14 @@ struct VS_INPUT_POS_ONLY
     float4 position : POSITION0;
 };
 
-PS_INPUT aabbVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
+PS_INPUT BoxVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
 {
     PS_INPUT output;
     
-    float3 pos = DataAABB[instanceID].Position;
-    float3 scale = DataAABB[instanceID].Extent;
+    float3 Scale = DataBox[instanceID].Extent;
     //scale = float3(1, 1, 1);
     
-    float4 localPos = float4(input.position.xyz * scale + pos, 1.f);
+    float4 localPos = mul(float4(input.position.xyz * Scale, 1.f), DataBox[instanceID].WorldMatrix);
         
     localPos = mul(localPos, ViewMatrix);
     localPos = mul(localPos, ProjectionMatrix);
@@ -117,14 +116,14 @@ PS_INPUT aabbVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
     return output;
 }
 
-float4 aabbPS(PS_INPUT input) : SV_Target
+float4 BoxPS(PS_INPUT input) : SV_Target
 {
-    return float4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 AABB
+    return float4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 Box Collider
 }
 
 /////////////////////////////////////////////
 // Sphere
-PS_INPUT sphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
+PS_INPUT SphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
 {
     PS_INPUT output;
     
@@ -142,14 +141,14 @@ PS_INPUT sphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
     return output;
 }
 
-float4 spherePS(PS_INPUT input) : SV_Target
+float4 SpherePS(PS_INPUT input) : SV_Target
 {
     return input.color;
 }
 
 /////////////////////////////////////////////
 // Cone
-struct coneVSInput
+struct ConeVSInput
 {
     uint vertexID : SV_VertexID;
     uint instanceID : SV_InstanceID;
@@ -200,7 +199,7 @@ float3x3 CreateRotationMatrixFromX(float3 targetDir)
     return R;
 }
 
-PS_INPUT coneVS(coneVSInput input)
+PS_INPUT ConeVS(ConeVSInput Input)
 {
     PS_INPUT output;
 
@@ -208,11 +207,11 @@ PS_INPUT coneVS(coneVSInput input)
     int NumSphereSegments = 10;
     const float PI = 3.1415926535897932f;
 
-    float Angle = DataCone[input.instanceID].Angle;
+    float Angle = DataCone[Input.instanceID].Angle;
     float TangentAngle = tan(Angle);
     float SinAngle = sin(Angle);
     float CosAngle = cos(Angle);
-    float Radius = DataCone[input.instanceID].Radius;
+    float Radius = DataCone[Input.instanceID].Radius;
 
     int NumSide = 2 * NumConeSegments;
     int NumBase = 2 * NumConeSegments;
@@ -223,11 +222,11 @@ PS_INPUT coneVS(coneVSInput input)
     int SegmentIndex;
 
     // ConeSide
-    if (input.vertexID < NumSide)
+    if (Input.vertexID < NumSide)
     {
-        int LineIndex = input.vertexID / 2;
+        int LineIndex = Input.vertexID / 2;
         // ConeApex
-        if (input.vertexID % 2 == 0)
+        if (Input.vertexID % 2 == 0)
         {
             LocalPos3 = float3(0, 0, 0);
         }
@@ -236,7 +235,7 @@ PS_INPUT coneVS(coneVSInput input)
         {
             float ConeBaseRadius = Radius * SinAngle;
             float ConeHeight = Radius * CosAngle;
-            SegmentIndex = (input.vertexID / 2);  // Start After Apex
+            SegmentIndex = (Input.vertexID / 2);  // Start After Apex
             // Angle = Index * 2PI / NumSegments
             float SegmentAngle = SegmentIndex * (2.0f * PI / (float)NumConeSegments);
             LocalPos3 = float3(ConeHeight, ConeBaseRadius, ConeBaseRadius);
@@ -244,32 +243,32 @@ PS_INPUT coneVS(coneVSInput input)
         }
     }
     // ConeBase
-    else if (input.vertexID < NumSide + NumBase)
+    else if (Input.vertexID < NumSide + NumBase)
     {
         float ConeBaseRadius = Radius * SinAngle;
         float ConeHeight = Radius * CosAngle;
-        if (input.vertexID % 2 == 0)
+        if (Input.vertexID % 2 == 0)
         {
-            SegmentIndex = ((input.vertexID - (2 * NumConeSegments)) / 2);
+            SegmentIndex = ((Input.vertexID - (2 * NumConeSegments)) / 2);
         }
         else
         {
-            SegmentIndex = ((input.vertexID - (2 * NumConeSegments) + 1) / 2);
+            SegmentIndex = ((Input.vertexID - (2 * NumConeSegments) + 1) / 2);
         }
         float SegmentAngle = SegmentIndex / (float)NumConeSegments * 2.0f * PI;
         LocalPos3 = float3(ConeHeight, ConeBaseRadius, ConeBaseRadius);
         LocalPos3 = LocalPos3 * float3(1.f, cos(SegmentAngle), sin(SegmentAngle));
     }
     // XZ Plane Sphere
-    else if (input.vertexID < NumSide + NumBase + NumXZ)
+    else if (Input.vertexID < NumSide + NumBase + NumXZ)
     {
-        if (input.vertexID % 2 == 0)
+        if (Input.vertexID % 2 == 0)
         {
-            SegmentIndex = ((input.vertexID - (4 * NumConeSegments)) / 2);
+            SegmentIndex = ((Input.vertexID - (4 * NumConeSegments)) / 2);
         }
         else
         {
-            SegmentIndex = ((input.vertexID - (4 * NumConeSegments) + 1) / 2);
+            SegmentIndex = ((Input.vertexID - (4 * NumConeSegments) + 1) / 2);
         }
         float SegmentAngle = SegmentIndex / (float)(NumSphereSegments) * (2 * Angle);
         float angleOffset = -Angle;
@@ -279,13 +278,13 @@ PS_INPUT coneVS(coneVSInput input)
     // YZ Plane Sphere
     else// if (vertexID < NumSphereSegments + 1 + 2 * (NumConeSegments + 1))
     {
-        if (input.vertexID % 2 == 0)
+        if (Input.vertexID % 2 == 0)
         {
-            SegmentIndex = ((input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments)) / 2);
+            SegmentIndex = ((Input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments)) / 2);
         }
         else
         {
-            SegmentIndex = ((input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments) + 1) / 2);
+            SegmentIndex = ((Input.vertexID - (4 * NumConeSegments + 2 * NumSphereSegments) + 1) / 2);
         }
         float SegmentAngle = SegmentIndex / (float)(NumSphereSegments) * (2 * Angle);
         float angleOffset = -Angle;
@@ -293,8 +292,8 @@ PS_INPUT coneVS(coneVSInput input)
         LocalPos3 = LocalPos3 * float3(Radius, Radius, Radius) * 1;
     }
 
-    float3 pos = DataCone[input.instanceID].ApexPosiiton;
-    float3x3 rot = CreateRotationMatrixFromX(DataCone[input.instanceID].Direction);
+    float3 pos = DataCone[Input.instanceID].ApexPosition;
+    float3x3 rot = CreateRotationMatrixFromX(DataCone[Input.instanceID].Direction);
 
     LocalPos3 = mul(LocalPos3, rot);
     LocalPos3 = LocalPos3 + pos;
@@ -305,7 +304,7 @@ PS_INPUT coneVS(coneVSInput input)
     localPos = mul(localPos, ProjectionMatrix);
     output.position = localPos;
 
-    if (input.instanceID % 2 == 0)
+    if (Input.instanceID % 2 == 0)
     {
         //Inner
         output.color = float4(40.f / 255.f, 100.f / 255.f, 255.f / 255.f, 1.0f);
@@ -319,7 +318,7 @@ PS_INPUT coneVS(coneVSInput input)
     return output;
 }
 
-float4 conePS(PS_INPUT input) : SV_Target
+float4 ConePS(PS_INPUT input) : SV_Target
 {
     return input.color;
 }
@@ -550,7 +549,7 @@ const static float2 QuadTexCoord[6] =
 };
 
 
-PS_INPUT_ICON iconVS(uint vertexID : SV_VertexID)
+PS_INPUT_ICON IconVS(uint vertexID : SV_VertexID)
 {
     PS_INPUT_ICON output;
 
@@ -574,9 +573,8 @@ PS_INPUT_ICON iconVS(uint vertexID : SV_VertexID)
     output;
 }
 
-
 // 픽셀 셰이더
-float4 iconPS(PS_INPUT_ICON input) : SV_Target
+float4 IconPS(PS_INPUT_ICON input) : SV_Target
 {
     float4 col = gTexture.Sample(gSampler, input.TexCoord);
     float threshold = 0.01; // 필요한 경우 임계값을 조정
@@ -588,7 +586,7 @@ float4 iconPS(PS_INPUT_ICON input) : SV_Target
 
 /////////////////////////////////////////////
 // Arrow
-PS_INPUT arrowVS(VS_INPUT input, uint instanceID : SV_InstanceID)
+PS_INPUT ArrowVS(VS_INPUT input, uint instanceID : SV_InstanceID)
 {
     PS_INPUT output;
 
@@ -624,7 +622,39 @@ PS_INPUT arrowVS(VS_INPUT input, uint instanceID : SV_InstanceID)
     return output;
 }
 
-float4 arrowPS(PS_INPUT input) : SV_Target
+float4 ArrowPS(PS_INPUT input) : SV_Target
 {
     return input.color;
+}
+
+/////////////////////////////////////////////
+// Capsule
+
+PS_INPUT CapsuleVS(VS_INPUT_POS_ONLY Input, uint InstanceID : SV_InstanceID)
+{
+    PS_INPUT output;
+    
+    float Height = DataCapsule[InstanceID].Height;
+    float Radius = DataCapsule[InstanceID].Radius;
+    
+
+    float3 ScaledPos = float3(
+        Input.position.x * Radius,
+        Input.position.y * Radius,
+        Input.position.z * Height
+    );
+    
+    float4 WorldPosition = mul(float4(ScaledPos, 1.f), DataCapsule[InstanceID].WorldMatrix);
+         
+    WorldPosition = mul(WorldPosition, ViewMatrix);
+    WorldPosition = mul(WorldPosition, ProjectionMatrix);
+    output.position = WorldPosition;
+    output.color = float4(1, 1, 1, 1);
+        
+    return output;
+}
+
+float4 CapsulePS(PS_INPUT input) : SV_Target
+{
+    return float4(0, 1, 0, 1);
 }

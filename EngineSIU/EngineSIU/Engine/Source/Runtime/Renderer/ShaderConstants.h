@@ -6,9 +6,6 @@
 // 이상한 값이 들어온다면 hlsl파일에 패딩을 넣어주세요.
 
 #pragma once
-#include <d3d11.h>
-#include "Math/Vector.h"
-#include "Math/Vector4.h"
 #include "Math/Matrix.h"
 #include "Math/Color.h"
 
@@ -148,17 +145,6 @@ struct alignas(16) FConstantBufferLights
     float _pad0;
 };
 
-/// <summary>
-/// Per-Scene 상수버퍼 : b0
-/// </summary>
-struct alignas(16) FConstantBufferCamera
-{
-    FMatrix ViewMatrix;
-    FMatrix ProjMatrix;
-    alignas(16) FVector CameraPos;
-    alignas(16) FVector CameraLookAt;
-};
-
 /////////////////////////////////////////////////////////////////////////
 // 디버그용
 /////////////////////////////////////////////////////////////////////////
@@ -166,13 +152,12 @@ struct alignas(16) FConstantBufferCamera
 /// <summary>
 /// Debug용 AABB 상수버퍼 : b11
 /// </summary>
-struct FConstantBufferDebugAABB
+struct FConstantBufferDebugBox
 {
-    FVector Position;
-    float Padding1;
+    FMatrix WorldMatrix;
     
     FVector Extent;
-    float Padding2;
+    float Padding2 = 0;
 };
 
 /// <summary>
@@ -189,7 +174,7 @@ struct FConstantBufferDebugSphere
 /// </summary>
 struct FConstantBufferDebugCone
 {
-    FVector ApexPosiiton;
+    FVector ApexPosition;
     float Radius;
 
     FVector Direction;
@@ -225,3 +210,10 @@ struct FConstantBufferDebugArrow
     float   ScaleZ;
 };
 
+
+struct FConstantBufferDebugCapsule
+{
+    FMatrix WorldMatrix;
+    float Height;
+    float Radius;
+};
