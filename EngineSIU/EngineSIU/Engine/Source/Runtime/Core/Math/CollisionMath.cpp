@@ -26,7 +26,7 @@ bool FCollisionMath::IntersectBoxBox(const FBox& A, const FBox& B)
         for (int j = 0; j < 3; ++j)
         {
             FVector Cross = FVector::CrossProduct(AxisA[i], AxisB[j]);
-            if (Cross.LengthSquared() > SMALL_NUMBER)
+            if (Cross.SquaredLength() > SMALL_NUMBER)
             {
                 if (!TestAxis(Cross, A, B, D)) return false;
             }
@@ -50,7 +50,7 @@ bool FCollisionMath::IntersectBoxSphere(const FBox& Box, const FVector& SphereCe
         ClosestPoint += Axes[i] * Distance;
     }
 
-    return (ClosestPoint - SphereCenter).LengthSquared() <= Radius * Radius;
+    return (ClosestPoint - SphereCenter).SquaredLength() <= Radius * Radius;
 }
 
 
@@ -65,7 +65,7 @@ bool FCollisionMath::IntersectBoxCapsule(const FBox& Box, const FCapsule& Capsul
 
     FVector ClosestOnSegment = ClosestPointOnSegment(Top, Bottom, (ClosestA + ClosestB) * 0.5f);
 
-    float DistSq = (ClosestPointOnOBB(Box, ClosestOnSegment) - ClosestOnSegment).LengthSquared();
+    float DistSq = (ClosestPointOnOBB(Box, ClosestOnSegment) - ClosestOnSegment).SquaredLength();
 
     return DistSq <= Capsule.Radius * Capsule.Radius;
 }
@@ -74,7 +74,7 @@ bool FCollisionMath::IntersectBoxCapsule(const FBox& Box, const FCapsule& Capsul
 bool FCollisionMath::IntersectSphereSphere(const FSphere& A, const FSphere& B)
 {
     float RadiusSum = A.Radius + B.Radius;
-    return (A.Center - B.Center).LengthSquared() <= RadiusSum * RadiusSum;
+    return (A.Center - B.Center).SquaredLength() <= RadiusSum * RadiusSum;
 }
 
 bool FCollisionMath::IntersectCapsuleSphere(const FCapsule& Capsule, const FVector& SphereCenter, float Radius)
@@ -86,7 +86,7 @@ bool FCollisionMath::IntersectCapsuleSphere(const FCapsule& Capsule, const FVect
 
     float RadiusSum = Capsule.Radius + Radius;
 
-    return (Closest - SphereCenter).LengthSquared() <= RadiusSum * RadiusSum;
+    return (Closest - SphereCenter).SquaredLength() <= RadiusSum * RadiusSum;
 }
 
 
@@ -101,14 +101,14 @@ bool FCollisionMath::IntersectCapsuleCapsule(const FCapsule& A, const FCapsule& 
     ClosestPointsBetweenSegments(P1, Q1, P2, Q2, ClosestP, ClosestQ);
 
     float RadiusSum = A.Radius + B.Radius;
-    return (ClosestP - ClosestQ).LengthSquared() <= RadiusSum * RadiusSum;
+    return (ClosestP - ClosestQ).SquaredLength() <= RadiusSum * RadiusSum;
 }
 
 
 FVector FCollisionMath::ClosestPointOnSegment(const FVector& A, const FVector& B, const FVector& P)
 {
     FVector AB = B - A;
-    float AB_LengthSq = AB.LengthSquared();
+    float AB_LengthSq = AB.SquaredLength();
     if (AB_LengthSq <= SMALL_NUMBER) return A;
 
     float T = FVector::DotProduct(P - A, AB) / AB_LengthSq;
@@ -122,8 +122,8 @@ void FCollisionMath::ClosestPointsBetweenSegments(const FVector& P1, const FVect
     const FVector D1 = Q1 - P1;
     const FVector D2 = Q2 - P2;
     const FVector R = P1 - P2;
-    const float A = D1.LengthSquared();
-    const float E = D2.LengthSquared();
+    const float A = D1.SquaredLength();
+    const float E = D2.SquaredLength();
     const float F = FVector::DotProduct(D2, R);
 
     float S, T;
