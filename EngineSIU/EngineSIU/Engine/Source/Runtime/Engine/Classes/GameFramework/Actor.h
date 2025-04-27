@@ -131,14 +131,15 @@ public:
     FDelegateHandle OnActorBeginOverlapHandle;
     FDelegateHandle OnActorEndOverlapHandle;
 
+
+    void ProcessOverlaps();
+
     void HandleOverlap(AActor* OtherActor)
     {
         if (IsActorBeingDestroyed())
         {
             return;
         }
-
-        // 자기 자신을 Destroy
         Destroy();
     }
 
@@ -163,6 +164,9 @@ private:
 
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1 = false;
+
+    TArray<AActor*> PendingDestroyActors;
+
 
 
 #if 1 // TODO: WITH_EDITOR 추가

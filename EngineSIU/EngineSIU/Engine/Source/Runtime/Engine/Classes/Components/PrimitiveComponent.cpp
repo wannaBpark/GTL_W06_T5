@@ -113,3 +113,56 @@ void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperti
     const FString* AABBmaxStr = InProperties.Find(TEXT("AABB_max"));
     if (AABBmaxStr) AABB.max.InitFromString(*AABBmaxStr);
 }
+
+// PrimitiveComponent.cpp
+void UPrimitiveComponent::ProcessOverlaps()
+{
+    AActor* OwnerActor = GetOwner();
+    if (!OwnerActor)
+        return;
+
+    TSet<AActor*> PreviousOverlappingActors;
+    TSet<AActor*> CurrentOverlappingActors;
+
+    for (const FOverlapInfo& Info : PreviousOverlapInfos)
+    {
+        if (Info.OtherActor)
+            PreviousOverlappingActors.Add(Info.OtherActor);
+    }
+
+    for (const FOverlapInfo& Info : OverlapInfos)
+    {
+        if (Info.OtherActor)
+            CurrentOverlappingActors.Add(Info.OtherActor);
+    }
+
+    for (AActor* OtherActor : CurrentOverlappingActors)
+    {
+        if (!PreviousOverlappingActors.Contains(OtherActor))
+        {
+            if (OwnerActor && !OwnerActor->IsActorBeingDestroyed())
+            {
+                OwnerActor->OnActorBeginOverlap.Broadcast(OtherActor);
+            }
+        }
+    }
+
+    for (AActor* OtherActor : PreviousOverlappingActors)
+    {
+        if (!CurrentOverlappingActors.Contains(OtherActor))
+        {
+            if (OwnerActor && !OwnerActor->IsActorBeingDestroyed())
+            {
+                OwnerActor->OnActorEndOverlap.Broadcast(OtherActor);
+            }
+        }
+    }
+
+    for (AActor* OtherActor : CurrentOverlappingActors)
+    {
+        if (OwnerActor && !OwnerActor->IsActorBeingDestroyed())
+        {
+            OwnerActor->OnActorOverlap.Broadcast(OtherActor);
+        }
+    }
+}

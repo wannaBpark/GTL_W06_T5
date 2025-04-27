@@ -81,9 +81,9 @@ private:
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TArray<AActor*> PendingBeginPlayActors;
 
-    TArray<APlayerController*> PlayerControllers;
+    TArray<AActor*> PendingDestroyActors;
 
-    void ProcessOverlaps();
+    TArray<APlayerController*> PlayerControllers;
 };
 
 

@@ -448,3 +448,18 @@ void AActor::SetupLuaProperties()
     LuaEnv["ActorRotation"] = GetActorRotation();
     LuaEnv["ActorScale"] = GetActorScale();*/
 }
+
+// Actor.cpp
+void AActor::ProcessOverlaps()
+{
+    const auto CopyComponents = OwnedComponents; // ★ 복사
+
+    for (UActorComponent* Component : CopyComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Component))
+        {
+            PrimComp->ProcessOverlaps();
+        }
+    }
+}
+

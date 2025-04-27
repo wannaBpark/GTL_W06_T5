@@ -40,9 +40,24 @@ UObject* UWorld::Duplicate(UObject* InOuter)
     return NewWorld;
 }
 
+void UWorld::BeginPlay()
+{
+    for (AActor* Actor : ActiveLevel->Actors)
+        {
+            if (Actor->GetWorld() == this)
+            {
+                Actor->BeginPlay();
+                if (PendingBeginPlayActors.Contains(Actor))
+                {
+                    PendingBeginPlayActors.Remove(Actor);
+                }
+            }
+        }
+}
+
 void UWorld::Tick(float DeltaTime)
 {
-    if (WorldType != EWorldType::Editor)
+    if (WorldType == EWorldType::Editor)
     {
         for (AActor* Actor : PendingBeginPlayActors)
         {
@@ -50,29 +65,36 @@ void UWorld::Tick(float DeltaTime)
         }
         PendingBeginPlayActors.Empty();
     }
+    TArray<AActor*> ActorsCopy = GetActiveLevel()->Actors;
 
-    for (AActor* Actor : GetActiveLevel()->Actors)
+    for (AActor* Actor : ActorsCopy)
     {
+        if (!Actor || Actor->IsActorBeingDestroyed())
+            continue;
+
         Actor->UpdateOverlaps();
     }
 
-    ProcessOverlaps();
-}
-
-void UWorld::BeginPlay()
-{
-    for (AActor* Actor : ActiveLevel->Actors)
+    for (AActor* Actor : ActorsCopy)
     {
-        if (Actor->GetWorld() == this)
+        if (!Actor || Actor->IsActorBeingDestroyed())
+            continue;
+
+        Actor->ProcessOverlaps();
+    }
+
+    if (!PendingDestroyActors.IsEmpty())
+    {
+        for (AActor* Actor : PendingDestroyActors)
         {
-            Actor->BeginPlay();
-            if (PendingBeginPlayActors.Contains(Actor))
-            {
-                PendingBeginPlayActors.Remove(Actor);
-            }
+            ActiveLevel->Actors.Remove(Actor);
+            GUObjectArray.MarkRemoveObject(Actor);
         }
+        PendingDestroyActors.Empty();
     }
 }
+
+
 
 void UWorld::Release()
 {
@@ -131,13 +153,13 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     }
 
     ThisActor->Destroyed();
-
     if (ThisActor->GetOwner())
     {
         ThisActor->SetOwner(nullptr);
     }
 
-    ActiveLevel->Actors.Remove(ThisActor);
+    // 실제 Remove는 나중에
+    PendingDestroyActors.Add(ThisActor);
 
     GUObjectArray.MarkRemoveObject(ThisActor);
     return true;
@@ -148,58 +170,4 @@ UWorld* UWorld::GetWorld() const
     return const_cast<UWorld*>(this);
 }
 
-void UWorld::ProcessOverlaps()
-{
-    TArray<AActor*> ActorsCopy = GetActiveLevel()->Actors;
 
-    for (AActor* Actor : ActorsCopy)
-    {
-        TSet<AActor*> PreviousOverlappingActors;
-        TSet<AActor*> CurrentOverlappingActors;
-
-        for (UActorComponent* Comp : Actor->GetComponents())
-        {
-            if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
-            {
-                for (const FOverlapInfo& Info : PrimComp->GetPreviousOverlapInfos())
-                {
-                    if (Info.OtherActor)
-                        PreviousOverlappingActors.Add(Info.OtherActor);
-                }
-
-                for (const FOverlapInfo& Info : PrimComp->GetOverlapInfos())
-                {
-                    if (Info.OtherActor)
-                        CurrentOverlappingActors.Add(Info.OtherActor);
-                }
-            }
-        }
-
-        // BeginOverlap
-        for (AActor* OtherActor : CurrentOverlappingActors)
-        {
-            if (!PreviousOverlappingActors.Contains(OtherActor))
-            {
-                Actor->OnActorBeginOverlap.Broadcast(OtherActor);
-            }
-        }
-
-        // EndOverlap
-        for (AActor* OtherActor : PreviousOverlappingActors)
-        {
-            if (!CurrentOverlappingActors.Contains(OtherActor))
-            {
-                Actor->OnActorEndOverlap.Broadcast(OtherActor);
-            }
-        }
-
-        // Overlap
-        for (AActor* OtherActor : CurrentOverlappingActors)
-        {
-            if (OtherActor && !OtherActor->IsActorBeingDestroyed())
-            {
-                Actor->OnActorOverlap.Broadcast(OtherActor);
-            }
-        }
-    }
-}
