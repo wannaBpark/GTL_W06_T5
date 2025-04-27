@@ -8,7 +8,27 @@ class UCapsuleComponent : public UShapeComponent
 
 public:
     UCapsuleComponent();
+
+    virtual UObject* Duplicate(UObject* InOuter) override;
+
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+
+    float GetHalfHeight() const { return CapsuleHalfHeight; }
+    void SetHalfHeight(float InHeight)
+    {
+        InHeight = FMath::Clamp(InHeight, CapsuleRadius, 10000.f);
+        CapsuleHalfHeight = InHeight;
+    }
+
+    float GetRadius() const { return CapsuleRadius; }
+    void SetRadius(float InRadius)
+    {
+        InRadius = FMath::Clamp(InRadius, 0.f, CapsuleHalfHeight);
+        CapsuleRadius = InRadius;
+    }
     
-    float CapsuleHalfHeight;
-    float CapsuleRadius;
+private:
+    float CapsuleHalfHeight = 1;
+    float CapsuleRadius = 1;
 };

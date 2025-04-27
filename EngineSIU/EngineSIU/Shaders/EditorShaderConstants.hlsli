@@ -1,7 +1,6 @@
-struct AABBData
+struct BoxData
 {
-    float3 Position;
-    float Padding1;
+    row_major matrix WorldMatrix;
     
     float3 Extent;
     float Padding2;
@@ -9,7 +8,7 @@ struct AABBData
 
 cbuffer ConstantBufferDebugAABB : register(b11)
 {
-    AABBData DataAABB[8];
+    BoxData DataBox[8];
 }
 
 struct SphereData
@@ -25,7 +24,7 @@ cbuffer ConstantBufferDebugSphere : register(b11)
 
 struct ConeData
 {
-    float3 ApexPosiiton;
+    float3 ApexPosition;
     float Radius;
 
     float3 Direction;
@@ -59,4 +58,16 @@ struct ArrowData
 cbuffer ConstantBufferDebugArrow : register(b11)
 {
     ArrowData DataArrow[100];
+}
+
+struct CapsuleData
+{
+    row_major matrix WorldMatrix;
+    float Height;
+    float Radius;
+};
+
+cbuffer ConstantBufferDebugCapsule : register(b11)
+{
+    CapsuleData DataCapsule[8];
 }

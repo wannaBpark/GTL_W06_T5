@@ -228,7 +228,7 @@ void FRenderer::PrepareRenderPass() const
     EditorBillboardRenderPass->PrepareRenderArr();
     UpdateLightBufferPass->PrepareRenderArr();
     FogRenderPass->PrepareRenderArr();
-    EditorRenderPass->PrepareRender();
+    EditorRenderPass->PrepareRenderArr();
     TileLightCullingPass->PrepareRenderArr();
     DepthPrePass->PrepareRenderArr();
 }
