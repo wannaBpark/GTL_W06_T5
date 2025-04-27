@@ -630,27 +630,151 @@ float4 ArrowPS(PS_INPUT input) : SV_Target
 /////////////////////////////////////////////
 // Capsule
 
-PS_INPUT CapsuleVS(VS_INPUT_POS_ONLY Input, uint InstanceID : SV_InstanceID)
-{
-    PS_INPUT output;
+//PS_INPUT CapsuleVS(VS_INPUT_POS_ONLY Input, uint InstanceID : SV_InstanceID)
+//{
+//    PS_INPUT output;
     
-    float Height = DataCapsule[InstanceID].Height;
-    float Radius = DataCapsule[InstanceID].Radius;
+//    float Height = DataCapsule[InstanceID].Height;
+//    float Radius = DataCapsule[InstanceID].Radius;
     
 
-    float3 ScaledPos = float3(
-        Input.position.x * Radius,
-        Input.position.y * Radius,
-        Input.position.z * Height
-    );
+//    float3 ScaledPos = float3(
+//        Input.position.x * Radius,
+//        Input.position.y * Radius,
+//        Input.position.z * Height
+//    );
     
-    float4 WorldPosition = mul(float4(ScaledPos, 1.f), DataCapsule[InstanceID].WorldMatrix);
+//    float4 WorldPosition = mul(float4(ScaledPos, 1.f), DataCapsule[InstanceID].WorldMatrix);
          
-    WorldPosition = mul(WorldPosition, ViewMatrix);
-    WorldPosition = mul(WorldPosition, ProjectionMatrix);
-    output.position = WorldPosition;
-    output.color = float4(1, 1, 1, 1);
+//    WorldPosition = mul(WorldPosition, ViewMatrix);
+//    WorldPosition = mul(WorldPosition, ProjectionMatrix);
+//    output.position = WorldPosition;
+//    output.color = float4(1, 1, 1, 1);
         
+//    return output;
+//}
+
+PS_INPUT CapsuleVS(
+    uint vertexID : SV_VertexID,
+    uint instanceID : SV_InstanceID
+)
+{
+    PS_INPUT output;
+    // 1) 인스턴스별 데이터
+    float Height = DataCapsule[instanceID].Height;
+    float Radius = DataCapsule[instanceID].Radius;
+    float4x4 World = DataCapsule[instanceID].WorldMatrix;
+    uint stacks = 8;
+    uint segments = 16;
+    const float PI = 3.1415926535897932f;
+    const float halfHeight = Height * 0.5f;
+
+
+    // 2) 절차적 캡슐 좌표 계산
+    // -- 어떤 서브파트(상단반구/실린더/하단반구)에 속하는지 판별
+    uint linesPerTop = stacks * segments * 2;
+    uint vertsPerTop = linesPerTop * 2;
+    uint linesPerCyl = segments * 3;
+    uint vertsPerCyl = linesPerCyl * 2;
+    uint vertsPerInst = vertsPerTop + vertsPerCyl + vertsPerTop;
+
+    float3 localPos;
+    uint v = vertexID;
+    if (v < vertsPerTop)
+    {
+        // 상단 반구
+        uint lineIdx = v / 2; // 라인 인덱스
+        bool isEnd = (v % 2) == 1; // 같은 라인 끝점인지
+        uint stackId = lineIdx / (segments * 2);
+        uint segId = (lineIdx / 2) % segments;
+        bool isHoriz = (lineIdx % 2) == 0; // 가로/세로 구분
+
+        float vy = stackId / float(stacks);
+        float theta = (PI / 2) * vy;
+        float z0 = cos(theta), r0 = sin(theta);
+        float u0 = segId / float(segments);
+        float phi = u0 * 2 * PI;
+        float3 p0 = float3(r0 * cos(phi), r0 * sin(phi), z0);
+        // 다음 점 p1 계산 (가로는 phi+, 세로는 stack+1)
+        float3 p1;
+        if (isHoriz)
+        {
+            float u1 = float((segId + 1) % segments) / segments;
+            float phi1 = u1 * 2 * PI;
+            p1 = float3(r0 * cos(phi1), r0 * sin(phi1), z0);
+        }
+        else
+        {
+            float vy1 = float((stackId + 1)) / stacks;
+            float theta1 = (PI / 2) * vy1;
+            float z1 = cos(theta1), r1 = sin(theta1);
+            p1 = float3(r1 * cos(phi), r1 * sin(phi), z1);
+        }
+        localPos = isEnd ? p1 : p0;
+        localPos.z += +halfHeight; // 올림
+
+    }
+    else if (v < vertsPerTop + vertsPerCyl)
+    {
+        // 실린더
+        uint idx = (v - vertsPerTop) / 2;
+        bool isEnd = ((v - vertsPerTop) % 2) == 1;
+        uint segId = idx % segments;
+        float angle = (2 * PI * segId) / segments;
+        float3 topP = float3(cos(angle), sin(angle), +halfHeight);
+        float3 bottomP = float3(cos(angle), sin(angle), -halfHeight);
+        localPos = isEnd ? bottomP : topP;
+    }
+    else
+    {
+    // 하단 반구
+        uint vv = v - (vertsPerTop + vertsPerCyl);
+        uint lineIdx = vv / 2; // 라인 인덱스
+        bool isEnd = (vv % 2) == 1; // 라인 끝점 여부
+        uint stackId = lineIdx / (segments * 2);
+        uint segId = (lineIdx / 2) % segments;
+        bool isHoriz = (lineIdx % 2) == 0; // 가로/세로 구분
+
+    // 원점 기준 로컬 좌표
+        float vy = stackId / float(stacks);
+        float theta = (PI / 2) * vy;
+        float z0 = -cos(theta); // 반전
+        float r0 = sin(theta);
+        float u0 = segId / float(segments);
+        float phi = u0 * 2 * PI;
+
+        float3 p0 = float3(r0 * cos(phi), r0 * sin(phi), z0);
+
+    // 다음 점 계산 (가로는 phi +, 세로는 stack+1)
+        float3 p1;
+        if (isHoriz)
+        {
+            float u1 = float((segId + 1) % segments) / segments;
+            float phi1 = u1 * 2 * PI;
+            p1 = float3(r0 * cos(phi1), r0 * sin(phi1), z0);
+        }
+        else
+        {
+            float vy1 = float((stackId + 1)) / stacks;
+            float theta1 = (PI / 2) * vy1;
+            float z1 = -cos(theta1); // 반전
+            float r1 = sin(theta1);
+            p1 = float3(r1 * cos(phi), r1 * sin(phi), z1);
+        }
+
+    // 최종 로컬 포지션 & 캡슐 절반 높이 적용
+        localPos = isEnd ? p1 : p0;
+        localPos.z += -halfHeight;
+    }
+
+
+    // 3) 스케일 & 월드 변환
+    float3 scaled = float3(localPos.x * Radius, localPos.y * Radius, localPos.z * Height);
+    float4 worldP = mul(float4(scaled, 1), World);
+    worldP = mul(worldP, ViewMatrix);
+    worldP = mul(worldP, ProjectionMatrix);
+    output.position = worldP;
+    output.color = float4(0, 1, 0, 1);
     return output;
 }
 
