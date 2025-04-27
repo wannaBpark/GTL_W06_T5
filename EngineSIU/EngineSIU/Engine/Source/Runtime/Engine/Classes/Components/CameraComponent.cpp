@@ -24,3 +24,8 @@ void UCameraComponent::TickComponent(float DeltaTime)
 {
     USceneComponent::TickComponent(DeltaTime);
 }
+
+void UCameraComponent::LerpMovement(FVector& FromLocation, FVector& ToLocation, float Time)
+{
+    
+}

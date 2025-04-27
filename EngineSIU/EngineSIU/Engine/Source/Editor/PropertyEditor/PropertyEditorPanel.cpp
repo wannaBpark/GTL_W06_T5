@@ -236,11 +236,19 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderForCameraComponent(UCameraComponent* CameraComponent)
+void PropertyEditorPanel::RenderForCameraComponent(UCameraComponent* InCameraComponent)
 {
     if (ImGui::Button("SetMainCamera"))
     {
-        GEngine->ActiveWorld->MainCamera = CameraComponent;
+        GEngine->ActiveWorld->SetMainCamera(InCameraComponent);
+    }
+}
+
+void PropertyEditorPanel::RenderForPlayerActor(APlayer* InPlayerActor)
+{
+    if (ImGui::Button("SetMainPlayer"))
+    {
+        GEngine->ActiveWorld->SetMainPlayer(InPlayerActor);
     }
 }
 

@@ -400,3 +400,15 @@ void AEditorPlayer::ControlScale(USceneComponent* Component, UGizmoBaseComponent
         Component->AddScale(FVector(0.0f, 0.0f, moveDir.Z));
     }
 }
+
+UObject* APlayer::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    return NewActor;
+}
+
+void APlayer::Tick(float DeltaTime)
+{
+    AActor::Tick(DeltaTime);
+}

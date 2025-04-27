@@ -442,7 +442,7 @@ void FEditorViewportClient::UpdateViewMatrix()
 {
     if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
-        UCameraComponent* MainCamera = GEngine->ActiveWorld->MainCamera;
+        UCameraComponent* MainCamera = GEngine->ActiveWorld->GetMainCamera();
 
         if (MainCamera == nullptr)
         {
@@ -489,7 +489,7 @@ void FEditorViewportClient::UpdateProjectionMatrix()
 
     if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
-        UCameraComponent* MainCamera = GEngine->ActiveWorld->MainCamera;
+        UCameraComponent* MainCamera = GEngine->ActiveWorld->GetMainCamera();
 
         if (MainCamera == nullptr)
         {
