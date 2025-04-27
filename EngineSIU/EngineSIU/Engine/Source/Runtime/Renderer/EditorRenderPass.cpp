@@ -455,7 +455,7 @@ void FEditorRenderPass::ClearRenderArr()
 void FEditorRenderPass::LazyLoad()
 {
     // Resourcemanager에서 로드된 texture의 포인터를 가져옴
-    // FResourceMgr::Initialize에 추가되어야함
+    // FResourceMgr::Initialize에 이미 추가되어 있어야 함
     Resources.IconTextures[IconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
     Resources.IconTextures[IconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
     Resources.IconTextures[IconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
@@ -893,7 +893,7 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
                 if (Actor && Actor->GetComponents().Contains(CapsuleComponent))
                 {
                     FConstantBufferDebugCapsule b;
-                    b.WorldMatrix = CapsuleComponent->GetRotationMatrix()* CapsuleComponent->GetTranslationMatrix();
+                    b.WorldMatrix = CapsuleComponent->GetWorldMatrix();
                     b.Height = CapsuleComponent->GetHalfHeight();
                     b.Radius = CapsuleComponent->GetRadius();
                     BufferAll.Add(b);
@@ -902,7 +902,7 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
             else
             {
                 FConstantBufferDebugCapsule b;
-                b.WorldMatrix = CapsuleComponent->GetRotationMatrix() * CapsuleComponent->GetTranslationMatrix();
+                b.WorldMatrix = CapsuleComponent->GetWorldMatrix();
                 b.Height = CapsuleComponent->GetHalfHeight();
                 b.Radius = CapsuleComponent->GetRadius();
                 BufferAll.Add(b);

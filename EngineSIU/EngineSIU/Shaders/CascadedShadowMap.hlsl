@@ -39,7 +39,7 @@ GS_INPUT mainVS(VS_INPUT_StaticMesh Input)
 [maxvertexcount(3 * NUM_CASCADES)]
 void mainGS( 
     triangle GS_INPUT input[3], 
-	inout TriangleStream<GS_OUTPUT> TriStream
+    inout TriangleStream<GS_OUTPUT> TriStream
 )
 {
     for (uint csmIdx = 0; csmIdx < NUM_CASCADES; ++csmIdx)

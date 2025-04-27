@@ -27,8 +27,10 @@ public:
         InRadius = FMath::Clamp(InRadius, 0.f, CapsuleHalfHeight);
         CapsuleRadius = InRadius;
     }
+
+    void GetEndPoints(FVector& OutStart, FVector& OutEnd) const;
     
 private:
-    float CapsuleHalfHeight = 1;
-    float CapsuleRadius = 1;
+    float CapsuleHalfHeight = 0.88f;
+    float CapsuleRadius = 0.34f;
 };

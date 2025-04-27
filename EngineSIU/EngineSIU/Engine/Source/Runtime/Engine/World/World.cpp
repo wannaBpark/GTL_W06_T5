@@ -1,5 +1,6 @@
 #include "World.h"
 
+#include "CollisionManager.h"
 #include "Actors/Cube.h"
 #include "Actors/Player.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -30,6 +31,8 @@ void UWorld::InitializeNewWorld()
     ActiveLevel = FObjectFactory::ConstructObject<ULevel>(this);
     ActiveLevel->InitLevel(this);
 	//InitializeLightScene(); // 테스트용 LightScene 비활성화
+
+    CollisionManager = new FCollisionManager();
 }
 
 void UWorld::InitializeLightScene()
@@ -99,6 +102,8 @@ UObject* UWorld::Duplicate(UObject* InOuter)
     NewWorld->ActiveLevel = Cast<ULevel>(ActiveLevel->Duplicate(NewWorld));
     NewWorld->ActiveLevel->InitLevel(NewWorld);
     
+    NewWorld->CollisionManager = new FCollisionManager();
+    
     return NewWorld;
 }
 
@@ -130,6 +135,12 @@ void UWorld::Release()
         ActiveLevel->Release();
         GUObjectArray.MarkRemoveObject(ActiveLevel);
         ActiveLevel = nullptr;
+    }
+
+    if (CollisionManager)
+    {
+        delete CollisionManager;
+        CollisionManager = nullptr;
     }
     
     GUObjectArray.ProcessPendingDestroyObjects();
@@ -203,5 +214,13 @@ bool UWorld::DestroyActor(AActor* ThisActor)
 UWorld* UWorld::GetWorld() const
 {
     return const_cast<UWorld*>(this);
+}
+
+void UWorld::CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const
+{
+    if (CollisionManager)
+    {
+        CollisionManager->CheckOverlap(this, Component, OutOverlaps);
+    }
 }
 

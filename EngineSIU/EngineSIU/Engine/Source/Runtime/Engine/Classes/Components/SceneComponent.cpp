@@ -130,21 +130,21 @@ void USceneComponent::DestroyComponent(bool bPromoteChildren)
     Super::DestroyComponent(bPromoteChildren);
 }
 
-FVector USceneComponent::GetForwardVector()
+FVector USceneComponent::GetForwardVector() const
 {
 	FVector Forward = FVector::ForwardVector;
 	Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
 	return Forward;
 }
 
-FVector USceneComponent::GetRightVector()
+FVector USceneComponent::GetRightVector() const
 {
 	FVector Right = FVector::RightVector;
 	Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
 	return Right;
 }
 
-FVector USceneComponent::GetUpVector()
+FVector USceneComponent::GetUpVector() const
 {
 	FVector Up = FVector::UpVector;
 	Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
@@ -341,9 +341,9 @@ void USceneComponent::SetRelativeRotation(const FQuat& InQuat)
     RelativeRotation.Normalize();
 }
 
-void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps)
+void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps, bool bDoNotifies, const TArray<const FOverlapInfo>* OverlapsAtEndLocation)
 {
-    UpdateOverlapsImpl(PendingOverlaps);
+    UpdateOverlapsImpl(PendingOverlaps, bDoNotifies, OverlapsAtEndLocation);
 }
 
 bool USceneComponent::MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit)
@@ -356,7 +356,7 @@ bool USceneComponent::MoveComponent(const FVector& Delta, const FRotator& NewRot
     return MoveComponentImpl(Delta, NewRotation.ToQuaternion(), bSweep, OutHit);
 }
 
-void USceneComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps)
+void USceneComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps, bool bDoNotifies, const TArray<const FOverlapInfo>* OverlapsAtEndLocation)
 {
     TArray<USceneComponent*> AttachedChildren(AttachChildren);
     for (USceneComponent* ChildComponent : AttachedChildren)
@@ -384,11 +384,13 @@ bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRo
         *OutHit = FHitResult(1.f);
     }
 
-    if (Delta.IsZero() && NewRotation.Equals(GetWorldRotation().ToQuaternion()))
+    if (!Delta.IsNearlyZero() || !NewRotation.Equals(GetWorldRotation().ToQuaternion()))
     {
-        return true;
+        SetWorldLocation(GetWorldLocation() + Delta);
+        SetWorldRotation(NewRotation);
+
+        UpdateOverlaps();
     }
 
-    // TODO: 구현
     return true;
 }

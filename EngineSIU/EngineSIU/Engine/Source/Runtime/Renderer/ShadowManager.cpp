@@ -547,16 +547,16 @@ void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FEditorViewport
 
     CascadesViewProjMatrices.Empty();
     CascadesInvProjMatrices.Empty();
-	const FMatrix CamView = Viewport->GetViewMatrix();
+    const FMatrix CamView = Viewport->GetViewMatrix();
     float NearClip = Viewport->GetCameraNearClip();
     float FarClip = Viewport->GetCameraFarClip();
-	const float FOV = Viewport->GetCameraFOV();          // Degrees
-	const float AspectRatio = Viewport->AspectRatio;
+    const float FOV = Viewport->GetCameraFOV();          // Degrees
+    const float AspectRatio = Viewport->AspectRatio;
 
-	float halfHFOV = FMath::DegreesToRadians(FOV) * 0.5f;
-	float tanHFOV = FMath::Tan(halfHFOV);
-	float tanVFOV = tanHFOV / AspectRatio;
-	FMatrix InvView = FMatrix::Inverse(CamView);
+    float halfHFOV = FMath::DegreesToRadians(FOV) * 0.5f;
+    float tanHFOV = FMath::Tan(halfHFOV);
+    float tanVFOV = tanHFOV / AspectRatio;
+    FMatrix InvView = FMatrix::Inverse(CamView);
 
     //CascadeSplits.Empty();
     CascadeSplits.SetNum(NumCascades + 1);
@@ -570,13 +570,13 @@ void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FEditorViewport
         CascadeSplits[i] = 0.7f * logSplit + 0.3f * uniSplit;         // 혼합 (0.5:0.5)
     }
 
-	// 4) LightDir, Up
-	const FVector LightDir = DirectionalLight->GetDirection().GetSafeNormal();
-	FVector Up = FVector::UpVector;
-	if (FMath::Abs(FVector::DotProduct(LightDir, FVector::UpVector)) > 0.99f)
-		Up = FVector::ForwardVector;
+    // 4) LightDir, Up
+    const FVector LightDir = DirectionalLight->GetDirection().GetSafeNormal();
+    FVector Up = FVector::UpVector;
+    if (FMath::Abs(FVector::DotProduct(LightDir, FVector::UpVector)) > 0.99f)
+        Up = FVector::ForwardVector;
 
-	CascadesViewProjMatrices.Empty();
+    CascadesViewProjMatrices.Empty();
 
     for (uint32 c = 0; c< NumCascades; ++c)
     {

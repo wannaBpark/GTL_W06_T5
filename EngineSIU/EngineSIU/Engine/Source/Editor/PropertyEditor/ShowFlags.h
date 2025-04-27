@@ -25,23 +25,23 @@ class UWorld;
 class ShowFlags : public IWindowToggleable
 {
 private:
-	ShowFlags() = default;
+    ShowFlags() = default;
 
 public:
-	static ShowFlags& GetInstance();
+    static ShowFlags& GetInstance();
 
     static void Draw(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     static uint64 ConvertSelectionToFlags(const bool Selected[]);
-	void OnResize(HWND hWnd);
+    void OnResize(HWND hWnd);
 
     virtual void Toggle() override {
-		if (bWasOpen) {
-			bWasOpen = false;
-		}
-	}
-	uint64 CurrentFlags = 63;
+        if (bWasOpen) {
+            bWasOpen = false;
+        }
+    }
+    uint64 CurrentFlags = 63;
 private:
-	bool bWasOpen = true;
-	UINT Width;
-	UINT Height;
+    bool bWasOpen = true;
+    UINT Width;
+    UINT Height;
 };

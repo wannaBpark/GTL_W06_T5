@@ -28,9 +28,9 @@ ATransformGizmo::ATransformGizmo()
 
     UGizmoArrowComponent* locationX = AddComponent<UGizmoArrowComponent>();
     locationX->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationX.obj"));
-	locationX->SetupAttachment(RootComponent);
+    locationX->SetupAttachment(RootComponent);
     locationX->SetGizmoType(UGizmoBaseComponent::ArrowX);
-	ArrowArr.Add(locationX);
+    ArrowArr.Add(locationX);
 
     UGizmoArrowComponent* locationY = AddComponent<UGizmoArrowComponent>();
     locationY->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationY.obj"));
@@ -83,7 +83,7 @@ ATransformGizmo::ATransformGizmo()
 
 void ATransformGizmo::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
     // Editor 모드에서만 Tick.
     if (GEngine->ActiveWorld->WorldType != EWorldType::Editor)

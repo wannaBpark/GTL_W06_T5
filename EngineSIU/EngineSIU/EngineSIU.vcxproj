@@ -132,7 +132,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\include\Lua;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\Runtime\Physics;$(ProjectDir)\Engine\Source\ThirdParty\include\Lua;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -153,7 +153,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\Runtime\Physics;$(ProjectDir)\Engine\Source\ThirdParty\include\Lua;$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -172,8 +172,6 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SamplePlayerController.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Core\Math\Plane.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.cpp" />
@@ -202,6 +200,7 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Define.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\JungleMath.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Matrix.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Plane.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Quat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Rotator.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Vector.cpp" />
@@ -213,14 +212,19 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\ProfilerStatsManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Stats\Stats.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ActorEditor.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Cube.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\AmbientLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\CapsuleActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Cube.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\CubeActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireballActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\HeightFogActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\LightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PlayerController.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SamplePlayerController.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SphereActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SpotLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\BillboardComponent.cpp" />
@@ -229,6 +233,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CapsuleComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CubeComp.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\AmbientLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\DirectionalLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponent.cpp" />
@@ -269,6 +274,7 @@
     <ClCompile Include="Engine\Source\Runtime\Launch\EngineLoop.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\ImGuiManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\Launch.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Physics\CollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\CompositingPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\DepthPrePass.cpp" />
@@ -281,6 +287,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Renderer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\SlateRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPassBase.cpp" />
@@ -304,10 +311,7 @@
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_tables.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowRenderPass.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
     <ClCompile Include="LuaScripts\LuaScriptComponent.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PlayerController.cpp" />
     <None Include="Shaders\CompositingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -398,8 +402,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SamplePlayerController.h" />
-    <ClInclude Include="Engine\Source\Runtime\Core\Math\Plane.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.h" />
@@ -444,6 +446,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Math\MathSSE.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\MathUtility.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Matrix.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Plane.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Quat.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Rotator.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Vector.h" />
@@ -457,13 +460,18 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\StatDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Stats\Stats.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\AmbientLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\CapsuleActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Cube.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\CubeActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireballActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\HeightFogActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\LightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PlayerController.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SamplePlayerController.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SphereActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SpotLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\BillboardComponent.h" />
@@ -472,6 +480,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CapsuleComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CubeComp.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\AmbientLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponent.h" />
@@ -501,6 +510,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FObjLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\HitResult.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapResult.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceMgr.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Texture.h" />
@@ -523,6 +533,7 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\EngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ImGuiManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LightDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Physics\CollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\CompositingPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\DepthPrePass.h" />
@@ -530,8 +541,8 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\FogRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\GizmoRenderPass.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\LightHeatMapRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\IRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\LightHeatMapRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\LineRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Renderer.h" />
@@ -539,6 +550,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResources.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\SlateRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPassBase.h" />
@@ -587,12 +599,9 @@
     <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imstb_truetype.h" />
     <ClInclude Include="Engine\Source\ThirdParty\JSON\json.hpp" />
     <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowRenderPass.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
     <ClInclude Include="LuaScripts\LuaBindingHelpers.h" />
     <ClInclude Include="LuaScripts\LuaScriptComponent.h" />
     <ClInclude Include="LuaScripts\LuaScriptFileUtils.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PlayerController.h" />
     <None Include="Shaders\EditorShaderConstants.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

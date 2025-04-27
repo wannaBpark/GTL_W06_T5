@@ -4,16 +4,16 @@
 
 UCapsuleComponent::UCapsuleComponent()
 {
+    ShapeType = EShapeType::Capsule;
 }
 
 UObject* UCapsuleComponent::Duplicate(UObject* InOuter)
 {
-    UCapsuleComponent* NewComponent = Cast<UCapsuleComponent>(Super::Duplicate(InOuter));
-    if (NewComponent)
-    {
-        NewComponent->CapsuleHalfHeight = CapsuleHalfHeight;
-        NewComponent->CapsuleRadius = CapsuleRadius;
-    }
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewComponent->CapsuleHalfHeight = CapsuleHalfHeight;
+    NewComponent->CapsuleRadius = CapsuleRadius;
+    
     return NewComponent;
 }
 
@@ -38,4 +38,11 @@ void UCapsuleComponent::GetProperties(TMap<FString, FString>& OutProperties) con
     Super::GetProperties(OutProperties);
     OutProperties.Add(TEXT("CapsuleHalfHeight"), FString::SanitizeFloat(CapsuleHalfHeight));
     OutProperties.Add(TEXT("CapsuleRadius"), FString::SanitizeFloat(CapsuleRadius));
+}
+
+void UCapsuleComponent::GetEndPoints(FVector& OutStart, FVector& OutEnd) const
+{
+    const float LineHalfLength = CapsuleHalfHeight - CapsuleRadius;
+    OutStart = GetWorldLocation() + GetUpVector() * LineHalfLength;
+    OutEnd = GetWorldLocation() - GetUpVector() * LineHalfLength;
 }

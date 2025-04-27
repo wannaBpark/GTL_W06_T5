@@ -9,11 +9,14 @@
 #include "Components/CameraComponent.h"
 #include "Engine/EventManager.h"
 
+class UPrimitiveComponent;
+struct FOverlapResult;
 class UCameraComponent;
 class FObjectFactory;
 class AActor;
 class UObject;
 class USceneComponent;
+class FCollisionManager;
 
 class UWorld : public UObject
 {
@@ -68,6 +71,8 @@ public:
     void SetMainPlayer(APlayer* InPlayer){ MainPlayer = InPlayer; }
     APlayer* GetMainPlayer(){ return MainPlayer; }
     
+    void CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
+
 private:
     FString WorldName = "DefaultWorld";
 
@@ -79,6 +84,8 @@ private:
     UCameraComponent* MainCamera = nullptr;
 
     APlayer* MainPlayer = nullptr;
+
+    FCollisionManager* CollisionManager = nullptr;
 };
 
 

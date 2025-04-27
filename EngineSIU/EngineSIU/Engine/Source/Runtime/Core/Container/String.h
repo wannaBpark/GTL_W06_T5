@@ -57,7 +57,7 @@ private:
 
     BaseStringType PrivateString;
 
-	friend struct std::hash<FString>;
+    friend struct std::hash<FString>;
     friend ElementType* GetData(FString&);
     friend const ElementType* GetData(const FString&);
 
@@ -116,7 +116,7 @@ public:
 #endif
 
 #if USE_WIDECHAR
-	FORCEINLINE std::string ToAnsiString() const
+    FORCEINLINE std::string ToAnsiString() const
 	{
 		// Wide 문자열을 UTF-8 기반의 narrow 문자열로 변환
 		if (PrivateString.empty())

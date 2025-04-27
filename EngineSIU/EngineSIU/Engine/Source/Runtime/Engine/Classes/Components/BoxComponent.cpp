@@ -4,15 +4,15 @@
 
 UBoxComponent::UBoxComponent()
 {
+    ShapeType = EShapeType::Box;
 }
 
 UObject* UBoxComponent::Duplicate(UObject* InOuter)
 {
-    UBoxComponent* NewComponent = Cast<UBoxComponent>(Super::Duplicate(InOuter));
-    if (NewComponent)
-    {
-        NewComponent->BoxExtent = BoxExtent;
-    }
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+    
+    NewComponent->BoxExtent = BoxExtent;
+    
     return NewComponent;
 }
 

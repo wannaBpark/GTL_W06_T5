@@ -387,3 +387,19 @@ void FMatrix::RemoveScaling(float Tolerance)
     M[2][1] *= Scale2;
     M[2][2] *= Scale2;
 }
+
+bool FMatrix::Equals(const FMatrix& Other, float Tolerance) const
+{
+    for (int32 X = 0; X < 4; X++)
+    {
+        for (int32 Y = 0; Y < 4; Y++)
+        {
+            if (FMath::Abs(M[X][Y] - Other.M[X][Y]) > Tolerance)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
