@@ -17,14 +17,14 @@ ACube::ACube()
     // End Test
 
     // TODO 임시 코드임. (Class Table에 생성되지 않으면 안넣어짐.)
-    auto BoxComponent = AddComponent<UBoxComponent>();
+   /* auto BoxComponent = AddComponent<UBoxComponent>();
     BoxComponent->DestroyComponent();
 
     auto SphereComponent = AddComponent<USphereComponent>();
     SphereComponent->DestroyComponent();
 
     auto CapsuleComponent = AddComponent<UCapsuleComponent>();
-    CapsuleComponent->DestroyComponent();
+    CapsuleComponent->DestroyComponent();*/
 }
 
 void ACube::Tick(float DeltaTime)

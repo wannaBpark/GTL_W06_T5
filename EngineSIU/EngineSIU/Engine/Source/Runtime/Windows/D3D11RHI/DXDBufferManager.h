@@ -32,7 +32,7 @@ public:
     FDXDBufferManager() = default;
     void Initialize(ID3D11Device* DXDevice, ID3D11DeviceContext* DXDeviceContext);
 
-    // 템플릿을 활용한 버텍스 버퍼 생성 (정적/동적)
+    // 템플릿을 활용한 버텍스 버퍼 생성 (정적/동적) - FString / FWString
     template<typename T>
     HRESULT CreateVertexBuffer(const FString& KeyName, const TArray<T>& vertices, FVertexInfo& OutVertexInfo, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0);
     template<typename T>

@@ -1,3 +1,7 @@
+#define MAX_NUM_CAPSULE  100
+#define MAX_NUM_BOX      100
+#define MAX_NUM_SPHERE   100
+
 struct BoxData
 {
     row_major matrix WorldMatrix;
@@ -8,7 +12,7 @@ struct BoxData
 
 cbuffer ConstantBufferDebugAABB : register(b11)
 {
-    BoxData DataBox[8];
+    BoxData DataBox[MAX_NUM_BOX];
 }
 
 struct SphereData
@@ -19,7 +23,7 @@ struct SphereData
 
 cbuffer ConstantBufferDebugSphere : register(b11)
 {
-    SphereData DataSphere[8];
+    SphereData DataSphere[MAX_NUM_SPHERE];
 }
 
 struct ConeData
@@ -69,5 +73,5 @@ struct CapsuleData
 
 cbuffer ConstantBufferDebugCapsule : register(b11)
 {
-    CapsuleData DataCapsule[8];
+    CapsuleData DataCapsule[MAX_NUM_CAPSULE];
 }

@@ -8,11 +8,10 @@ USphereComponent::USphereComponent()
 
 UObject* USphereComponent::Duplicate(UObject* InOuter)
 {
-    USphereComponent* NewComponent = Cast<USphereComponent>(Super::Duplicate(InOuter));
-    if (NewComponent)
-    {
-        NewComponent->SphereRadius = SphereRadius;
-    }
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewComponent->SphereRadius = SphereRadius;
+
     return NewComponent;
 }
 
