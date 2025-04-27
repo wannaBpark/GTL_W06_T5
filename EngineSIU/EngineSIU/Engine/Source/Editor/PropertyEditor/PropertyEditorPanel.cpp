@@ -125,6 +125,11 @@ void PropertyEditorPanel::Render()
         RenderForExponentialHeightFogComponent(FogComponent);
     }
 
+    if (UCameraComponent* CameraComponent = GetTargetComponent<UCameraComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForCameraComponent(CameraComponent);
+    }
+  
     if (UShapeComponent* ShapeComponent = GetTargetComponent<UShapeComponent>(SelectedActor, SelectedComponent))
     {
         RenderForShapeComponent(ShapeComponent);
@@ -231,6 +236,22 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
     }
 
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForCameraComponent(UCameraComponent* InCameraComponent)
+{
+    if (ImGui::Button("SetMainCamera"))
+    {
+        GEngine->ActiveWorld->SetMainCamera(InCameraComponent);
+    }
+}
+
+void PropertyEditorPanel::RenderForPlayerActor(APlayer* InPlayerActor)
+{
+    if (ImGui::Button("SetMainPlayer"))
+    {
+        GEngine->ActiveWorld->SetMainPlayer(InPlayerActor);
+    }
 }
 
 void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent* TargetComponent) const

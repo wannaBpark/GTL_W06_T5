@@ -4,7 +4,6 @@
 #include "Actors/Cube.h"
 #include "Actors/Player.h"
 #include "BaseGizmos/TransformGizmo.h"
-#include "Camera/CameraComponent.h"
 #include "Classes/Components/StaticMeshComponent.h"
 #include "Components/SkySphereComponent.h"
 #include "Engine/FObjLoader.h"
@@ -23,7 +22,7 @@ UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, cons
     NewWorld->WorldName = InWorldName;
     NewWorld->WorldType = InWorldType;
     NewWorld->InitializeNewWorld();
-
+    
     return NewWorld;
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Actors/Player.h"
 #include "Components/ActorComponent.h"
+#include "Components/CameraComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "UnrealEd/EditorPanel.h"
@@ -50,6 +52,8 @@ private:
     static void HSVToRGB(float H, float S, float V, float& R, float& G, float& B);
 
     void RenderForSceneComponent(USceneComponent* SceneComponent, AEditorPlayer* Player) const;
+    void RenderForCameraComponent(UCameraComponent* InCameraComponent);
+    void RenderForPlayerActor(APlayer* InPlayerActor);
     void RenderForActor(AActor* SelectedActor, USceneComponent* TargetComponent) const;
     
     /* Static Mesh Settings */

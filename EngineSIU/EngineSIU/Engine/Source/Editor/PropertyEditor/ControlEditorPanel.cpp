@@ -12,6 +12,7 @@
 #include "Components/SphereComp.h"
 #include "Components/ParticleSubUVComponent.h"
 #include "Components/TextComponent.h"
+#include "Components/CameraComponent.h"
 #include "Components/ProjectileMovementComponent.h"
 
 #include "Engine/FObjLoader.h"
@@ -411,7 +412,6 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }
-                case OBJ_TRIANGLE:
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
                 case OBJ_END:

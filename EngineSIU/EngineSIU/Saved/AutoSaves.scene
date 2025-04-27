@@ -58,6 +58,26 @@
             "Components": [
                 {
                     "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "UStaticMeshComponent_113",
+                    "Properties": {
+                        "AABB_max": "X=0.500 Y=0.500 Z=0.500",
+                        "AABB_min": "X=-0.500 Y=-0.500 Z=-0.500",
+                        "AttachParentID": "UDirectionalLightComponent_115",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "UStaticMeshComponent_113",
+                        "ComponentOwner": "ACube_113",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=3.957 Y=0.558 Z=-2.701",
+                        "RelativeRotation": "Pitch=-40.573 Yaw=116.296 Roll=-6.827",
+                        "RelativeScale3D": "X=0.689 Y=1.000 Z=2.782",
+                        "StaticMeshPath": "Contents/CubePrimitive.obj",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
+                    }
+                },
+                {
+                    "ComponentClass": "UStaticMeshComponent",
                     "ComponentID": "StaticMeshComponent_0",
                     "Properties": {
                         "AABB_max": "X=1.287 Y=1.199 Z=2.555",
@@ -71,6 +91,26 @@
                         "RelativeRotation": "Pitch=-10.265 Yaw=32.605 Roll=-7.260",
                         "RelativeScale3D": "X=1.433 Y=1.074 Z=0.670",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
+                    }
+                },
+                {
+                    "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "UStaticMeshComponent_117",
+                    "Properties": {
+                        "AABB_max": "X=1.000 Y=-0.000 Z=1.000",
+                        "AABB_min": "X=0.000 Y=-1.000 Z=0.000",
+                        "AttachParentID": "UStaticMeshComponent_113",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "UStaticMeshComponent_117",
+                        "ComponentOwner": "ACube_113",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=-5.650 Y=-1.368 Z=0.962",
+                        "RelativeRotation": "Pitch=33.801 Yaw=-132.805 Roll=-136.072",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "StaticMeshPath": "Contents/Cube/cube-tex.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
@@ -98,26 +138,6 @@
                     }
                 },
                 {
-                    "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "UStaticMeshComponent_113",
-                    "Properties": {
-                        "AABB_max": "X=0.500 Y=0.500 Z=0.500",
-                        "AABB_min": "X=-0.500 Y=-0.500 Z=-0.500",
-                        "AttachParentID": "UDirectionalLightComponent_115",
-                        "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "UStaticMeshComponent_113",
-                        "ComponentOwner": "ACube_113",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=3.957 Y=0.558 Z=-2.701",
-                        "RelativeRotation": "Pitch=-40.573 Yaw=116.296 Roll=-6.827",
-                        "RelativeScale3D": "X=0.689 Y=1.000 Z=2.782",
-                        "StaticMeshPath": "Contents/CubePrimitive.obj",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": ""
-                    }
-                },
-                {
                     "ComponentClass": "UDirectionalLightComponent",
                     "ComponentID": "UDirectionalLightComponent_115",
                     "Properties": {
@@ -136,26 +156,6 @@
                         "RelativeScale3D": "X=1.499 Y=1.173 Z=0.810",
                         "bAutoActive": "true",
                         "bIsActive": "true"
-                    }
-                },
-                {
-                    "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "UStaticMeshComponent_117",
-                    "Properties": {
-                        "AABB_max": "X=1.000 Y=-0.000 Z=1.000",
-                        "AABB_min": "X=0.000 Y=-1.000 Z=0.000",
-                        "AttachParentID": "UStaticMeshComponent_113",
-                        "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "UStaticMeshComponent_117",
-                        "ComponentOwner": "ACube_113",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=-5.650 Y=-1.368 Z=0.962",
-                        "RelativeRotation": "Pitch=33.801 Yaw=-132.805 Roll=-136.072",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/Cube/cube-tex.obj",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": ""
                     }
                 }
             ],

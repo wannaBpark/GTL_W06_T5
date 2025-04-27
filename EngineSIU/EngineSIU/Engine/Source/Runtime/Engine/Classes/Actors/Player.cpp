@@ -5,7 +5,6 @@
 #include "BaseGizmos/GizmoArrowComponent.h"
 #include "BaseGizmos/GizmoCircleComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
-#include "Camera/CameraComponent.h"
 #include "Components/Light/LightComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
@@ -400,4 +399,16 @@ void AEditorPlayer::ControlScale(USceneComponent* Component, UGizmoBaseComponent
         FVector moveDir = CameraUp * -DeltaY * 0.05f;
         Component->AddScale(FVector(0.0f, 0.0f, moveDir.Z));
     }
+}
+
+UObject* APlayer::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    return NewActor;
+}
+
+void APlayer::Tick(float DeltaTime)
+{
+    AActor::Tick(DeltaTime);
 }
