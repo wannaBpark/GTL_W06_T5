@@ -6,10 +6,13 @@
 #include "WorldType.h"
 #include "Level.h"
 
+class UPrimitiveComponent;
+struct FOverlapResult;
 class FObjectFactory;
 class AActor;
 class UObject;
 class USceneComponent;
+class FCollisionManager;
 
 class UWorld : public UObject
 {
@@ -57,6 +60,7 @@ public:
 
     EWorldType WorldType = EWorldType::None;
 
+    void CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
     
 private:
     FString WorldName = "DefaultWorld";
@@ -66,6 +70,7 @@ private:
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TArray<AActor*> PendingBeginPlayActors;
 
+    FCollisionManager* CollisionManager = nullptr;
 };
 
 

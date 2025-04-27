@@ -64,11 +64,11 @@ public:
 
     FMatrix GetWorldMatrix() const;
 
-    void UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps = nullptr);
+    void UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps = nullptr, bool bDoNotifies = true, const TArray<const FOverlapInfo>* OverlapsAtEndLocation = nullptr);
 
     bool MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
     bool MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
-
+    
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
     UPROPERTY
@@ -89,7 +89,7 @@ protected:
     UPROPERTY
     (TArray<USceneComponent*>, AttachChildren);
 
-    virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps);
+    virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps = nullptr, bool bDoNotifies = true, const TArray<const FOverlapInfo>* OverlapsAtEndLocation = nullptr);
 
     virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
 };
