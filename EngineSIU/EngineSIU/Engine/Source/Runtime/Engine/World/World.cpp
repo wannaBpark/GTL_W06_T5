@@ -13,9 +13,8 @@
 #include "UnrealEd/SceneManager.h"
 #include "Actors/PointLightActor.h"
 #include "Actors/SpotLightActor.h"
-
-
-class UEditorEngine;
+#include "Components/PrimitiveComponent.h"
+#include "GameFramework/Actor.h"
 
 UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, const FString& InWorldName)
 {
@@ -31,11 +30,6 @@ void UWorld::InitializeNewWorld()
 {
     ActiveLevel = FObjectFactory::ConstructObject<ULevel>(this);
     ActiveLevel->InitLevel(this);
-}
-
-void UWorld::InitializeLightScene()
-{
-    // (생략 가능: 여기는 LightScene 생성하는 테스트 코드)
 }
 
 UObject* UWorld::Duplicate(UObject* InOuter)
@@ -66,26 +60,57 @@ void UWorld::Tick(float DeltaTime)
 
     for (AActor* Actor : ActorsCopy)
     {
-        for (AActor* Other : ActorsCopy)
-        {
-            if (!Other || Other->IsActorBeingDestroyed())
-            {
-                continue;
-            }
+        TSet<AActor*> PreviousOverlappingActors;
+        TSet<AActor*> CurrentOverlappingActors;
 
-            if (Actor != Other)
+        for (UActorComponent* Comp : Actor->GetComponents())
+        {
+            if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
             {
-                if (Actor->IsOverlappingActor(Other))
+                for (const FOverlapInfo& Info : PrimComp->GetPreviousOverlapInfos())
                 {
-                    Actor->OnActorOverlap.Broadcast(Other);
-                    Other->OnActorOverlap.Broadcast(Actor);
+                    if (Info.OtherActor)
+                        PreviousOverlappingActors.Add(Info.OtherActor);
                 }
+
+                for (const FOverlapInfo& Info : PrimComp->GetOverlapInfos())
+                {
+                    if (Info.OtherActor)
+                        CurrentOverlappingActors.Add(Info.OtherActor);
+                }
+            }
+        }
+
+        // BeginOverlap
+        for (AActor* OtherActor : CurrentOverlappingActors)
+        {
+            if (!PreviousOverlappingActors.Contains(OtherActor))
+            {
+                Actor->OnActorBeginOverlap.Broadcast(OtherActor);
+            }
+        }
+
+        // EndOverlap
+        for (AActor* OtherActor : PreviousOverlappingActors)
+        {
+            if (!CurrentOverlappingActors.Contains(OtherActor))
+            {
+                Actor->OnActorEndOverlap.Broadcast(OtherActor);
+            }
+        }
+
+        //  Overlap
+        for (AActor* OtherActor : CurrentOverlappingActors)
+        {
+            if (OtherActor && !OtherActor->IsActorBeingDestroyed())
+            {
+                Actor->OnActorOverlap.Broadcast(OtherActor);
             }
         }
     }
 }
 
-void UWorld::BeginPlay()  
+void UWorld::BeginPlay()
 {
     for (AActor* Actor : ActiveLevel->Actors)
     {
@@ -98,7 +123,6 @@ void UWorld::BeginPlay()
             }
         }
     }
-
 }
 
 void UWorld::Release()
@@ -145,27 +169,19 @@ bool UWorld::DestroyActor(AActor* ThisActor)
         return true;
     }
 
-
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
     if (EditorEngine->GetSelectedActor() == ThisActor)
     {
         EditorEngine->DeselectActor(ThisActor);
     }
-    if (EditorEngine->GetSelectedComponent() && 
-        
-        
-        
-        
-        
-        ThisActor->GetComponentByFName<UActorComponent>(EditorEngine->GetSelectedComponent()->GetFName()))
+
+    if (EditorEngine->GetSelectedComponent() && ThisActor->GetComponentByFName<UActorComponent>(EditorEngine->GetSelectedComponent()->GetFName()))
     {
         EditorEngine->DeselectComponent(EditorEngine->GetSelectedComponent());
     }
 
     ThisActor->Destroyed();
-
-  
 
     if (ThisActor->GetOwner())
     {
