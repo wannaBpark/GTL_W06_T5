@@ -22,11 +22,6 @@ UObject* UCameraComponent::Duplicate(UObject* InOuter)
 void UCameraComponent::InitializeComponent()
 {
     USceneComponent::InitializeComponent();
-
-    FVector FromL = GetRelativeLocation();
-    FVector ToL = FromL + FVector(0, 0, 100);
-    
-    LerpMovement(FromL, ToL, 10);
 }
 
 void UCameraComponent::TickComponent(float DeltaTime)
@@ -47,9 +42,9 @@ void UCameraComponent::ProceedLerp(float DeltaTime)
 
         FVector DeltaLocation = LerpMoveVector / LerpTime * LerpDeltaTime;
 
-        FVector CameraLocation = GetRelativeLocation();
+        FVector CameraLocation = GetWorldLocation();
         CameraLocation += DeltaLocation;
-        SetRelativeLocation(CameraLocation);
+        SetWorldLocation(CameraLocation);
 
         LerpMoveVector -= DeltaLocation;
         LerpTime -= LerpDeltaTime;
