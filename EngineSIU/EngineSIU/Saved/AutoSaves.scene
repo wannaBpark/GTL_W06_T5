@@ -77,6 +77,27 @@
                     }
                 },
                 {
+                    "ComponentClass": "UCapsuleComponent",
+                    "ComponentID": "UCapsuleComponent_116",
+                    "Properties": {
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "AttachParentID": "UStaticMeshComponent_113",
+                        "CapsuleHalfHeight": "2.000000",
+                        "CapsuleRadius": "0.800000",
+                        "ComponentClass": "UCapsuleComponent",
+                        "ComponentName": "UCapsuleComponent_116",
+                        "ComponentOwner": "ACube_113",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=-8.944 Y=-1.139 Z=-2.206",
+                        "RelativeRotation": "Pitch=13.304 Yaw=116.763 Roll=67.223",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
+                    }
+                },
+                {
                     "ComponentClass": "UStaticMeshComponent",
                     "ComponentID": "UStaticMeshComponent_113",
                     "Properties": {
@@ -132,27 +153,6 @@
                         "RelativeRotation": "Pitch=33.801 Yaw=-132.805 Roll=-136.072",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Cube/cube-tex.obj",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": ""
-                    }
-                },
-                {
-                    "ComponentClass": "UCapsuleComponent",
-                    "ComponentID": "UCapsuleComponent_116",
-                    "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "AttachParentID": "UStaticMeshComponent_113",
-                        "CapsuleHalfHeight": "2.000000",
-                        "CapsuleRadius": "0.800000",
-                        "ComponentClass": "UCapsuleComponent",
-                        "ComponentName": "UCapsuleComponent_116",
-                        "ComponentOwner": "ACube_113",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=-8.944 Y=-1.139 Z=-2.206",
-                        "RelativeRotation": "Pitch=13.304 Yaw=116.763 Roll=67.223",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""

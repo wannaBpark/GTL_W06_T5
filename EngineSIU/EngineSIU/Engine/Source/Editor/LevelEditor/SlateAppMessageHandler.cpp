@@ -1,4 +1,4 @@
-﻿// ReSharper disable CppMemberFunctionMayBeConst
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "SlateAppMessageHandler.h"
 
 #define _TCHAR_DEFINED
@@ -691,6 +691,16 @@ void FSlateAppMessageHandler::OnRawKeyboardInput(const RAWKEYBOARD& RawKeyboardI
         0, // RawInput에서 Char를 얻기 어렵기 때문에
         RawKeyboardInput.VKey
     });
+}
+
+void FSlateAppMessageHandler::OnPIEModeStart()
+{
+    OnPIEModeStartDelegate.Broadcast();
+}
+
+void FSlateAppMessageHandler::OnPIEModeEnd()
+{
+    OnPIEModeEndDelegate.Broadcast();
 }
 
 void FSlateAppMessageHandler::UpdateCursorPosition(const FVector2D& NewPos)

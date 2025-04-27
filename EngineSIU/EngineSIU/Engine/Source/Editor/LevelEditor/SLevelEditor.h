@@ -7,7 +7,7 @@ class SSplitterH;
 class SSplitterV;
 class UWorld;
 class FEditorViewportClient;
-
+class FDelegateHandle;
 
 class SLevelEditor
 {
@@ -24,6 +24,9 @@ public:
     void ResizeViewports();
     void SetEnableMultiViewport(bool bIsEnable);
     bool IsMultiViewport() const;
+
+    void RegisterEditorInputDelegates();
+    void RegisterPIEInputDelegates();
 
 private:
     SSplitterH* HSplitter;
@@ -43,6 +46,7 @@ private:
     uint32 EditorWidth;
     uint32 EditorHeight;
 
+    TArray<FDelegateHandle> InputDelegatesHandles;
 public:
     std::shared_ptr<FEditorViewportClient>* GetViewports() { return ViewportClients; }
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() const

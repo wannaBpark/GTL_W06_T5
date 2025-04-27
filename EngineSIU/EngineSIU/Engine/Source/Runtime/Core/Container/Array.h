@@ -104,7 +104,7 @@ public:
     template <typename Predicate>
     SizeType IndexOfByPredicate(Predicate Pred) const
     {
-/*
+        /* 기존 언리얼 코드
         const ElementType* Start = GetData();
         for (const ElementType* Data = Start, DataEnd = (Start + Num()); Data != DataEnd; ++Data)
         {
@@ -113,7 +113,7 @@ public:
                 return static_cast<SizeType>(Data - Start);
             }
         }
-*/
+        */
         for (int32 i = 0; i < Num(); ++i)
         {
             const ElementType* Data = &ContainerPrivate[i];
