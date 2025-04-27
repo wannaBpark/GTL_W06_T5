@@ -29,6 +29,6 @@ public:
     }
     
 private:
-    float CapsuleHalfHeight = 1;
-    float CapsuleRadius = 1;
+    float CapsuleHalfHeight = 2.f;
+    float CapsuleRadius = 0.8f;
 };

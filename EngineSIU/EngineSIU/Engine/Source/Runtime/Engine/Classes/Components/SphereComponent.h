@@ -17,5 +17,5 @@ public:
     float GetRadius() const { return SphereRadius; }
     
 private:
-    float SphereRadius = 1;
+    float SphereRadius = 1.f;
 };
