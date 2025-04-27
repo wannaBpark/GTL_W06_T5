@@ -216,7 +216,7 @@ void AEditorPlayer::ScreenToViewSpace(int32 ScreenX, int32 ScreenY, std::shared_
 int AEditorPlayer::RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount)
 {
     FMatrix WorldMatrix = Component->GetWorldMatrix();
-	FMatrix ViewMatrix = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
+    FMatrix ViewMatrix = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
     
     bool bIsOrtho = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->IsOrthographic();
     

@@ -300,7 +300,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
      *   3. RTV -> SRV 전환 타이밍이 정확히 지켜짐
      */
 
-	if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
+    if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
     {
         QUICK_SCOPE_CYCLE_COUNTER(DepthPrePass_CPU)
         QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthPrePass_GPU, *GPUTimingManager)

@@ -161,7 +161,7 @@ UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 
 void UPrimitiveComponent::InitializeComponent()
 {
-	Super::InitializeComponent();
+    Super::InitializeComponent();
 
     OnComponentBeginOverlap.AddLambda(
         [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
@@ -180,7 +180,7 @@ void UPrimitiveComponent::InitializeComponent()
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime);
+    Super::TickComponent(DeltaTime);
 }
 
 bool UPrimitiveComponent::IntersectRayTriangle(const FVector& RayOrigin, const FVector& RayDirection, const FVector& v0, const FVector& v1, const FVector& v2, float& OutHitDistance) const
@@ -258,56 +258,56 @@ void UPrimitiveComponent::BeginComponentOverlap(const FOverlapInfo& OtherOverlap
     // If pending kill, we should not generate any new overlaps
     if (!this)
     {
-	    return;
+        return;
     }
 
     const bool bComponentsAlreadyTouching = (IndexOfOverlapFast(OverlappingComponents, OtherOverlap) != INDEX_NONE);
     if (!bComponentsAlreadyTouching)
     {
-	    UPrimitiveComponent* OtherComp = OtherOverlap.OverlapInfo.Component;
-	    if (CanComponentsGenerateOverlap(this, OtherComp))
-	    {
-		    AActor* const OtherActor = OtherComp->GetOwner();
-		    AActor* const MyActor = GetOwner();
+        UPrimitiveComponent* OtherComp = OtherOverlap.OverlapInfo.Component;
+        if (CanComponentsGenerateOverlap(this, OtherComp))
+        {
+            AActor* const OtherActor = OtherComp->GetOwner();
+            AActor* const MyActor = GetOwner();
 
-		    const bool bSameActor = (MyActor == OtherActor);
-		    const bool bNotifyActorTouch = bDoNotifies && !bSameActor && !AreActorsOverlapping(*MyActor, *OtherActor);
+            const bool bSameActor = (MyActor == OtherActor);
+            const bool bNotifyActorTouch = bDoNotifies && !bSameActor && !AreActorsOverlapping(*MyActor, *OtherActor);
 
-		    // Perform reflexive touch.
-		    OverlappingComponents.Add(OtherOverlap);												// already verified uniqueness above
-		    OtherComp->OverlappingComponents.AddUnique(FOverlapInfo(this, INDEX_NONE));	// uniqueness unverified, so addunique
-		    
-		    const UWorld* World = GetWorld();
-		    if (bDoNotifies && (World /* && World->HasBegunPlay() */))
-		    {
-			    // first execute component delegates
-			    if (this)
-			    {
-				    OnComponentBeginOverlap.Broadcast(this, OtherActor, OtherComp, OtherOverlap.GetBodyIndex(), OtherOverlap.bFromSweep, OtherOverlap.OverlapInfo);
-			    }
+            // Perform reflexive touch.
+            OverlappingComponents.Add(OtherOverlap);                                                // already verified uniqueness above
+            OtherComp->OverlappingComponents.AddUnique(FOverlapInfo(this, INDEX_NONE));    // uniqueness unverified, so addunique
+            
+            const UWorld* World = GetWorld();
+            if (bDoNotifies && (World /* && World->HasBegunPlay() */))
+            {
+                // first execute component delegates
+                if (this)
+                {
+                    OnComponentBeginOverlap.Broadcast(this, OtherActor, OtherComp, OtherOverlap.GetBodyIndex(), OtherOverlap.bFromSweep, OtherOverlap.OverlapInfo);
+                }
 
-			    if (OtherComp)
-			    {
-				    // Reverse normals for other component. When it's a sweep, we are the one that moved.
-				    OtherComp->OnComponentBeginOverlap.Broadcast(OtherComp, MyActor, this, INDEX_NONE, OtherOverlap.bFromSweep, OtherOverlap.bFromSweep ? FHitResult::GetReversedHit(OtherOverlap.OverlapInfo) : OtherOverlap.OverlapInfo);
-			    }
+                if (OtherComp)
+                {
+                    // Reverse normals for other component. When it's a sweep, we are the one that moved.
+                    OtherComp->OnComponentBeginOverlap.Broadcast(OtherComp, MyActor, this, INDEX_NONE, OtherOverlap.bFromSweep, OtherOverlap.bFromSweep ? FHitResult::GetReversedHit(OtherOverlap.OverlapInfo) : OtherOverlap.OverlapInfo);
+                }
 
-			    // then execute actor notification if this is a new actor touch
-			    if (bNotifyActorTouch)
-			    {
-				    // Then level-script delegates
-				    if (MyActor)
-				    {
-					    MyActor->OnActorBeginOverlap.Broadcast(MyActor, OtherActor);
-				    }
+                // then execute actor notification if this is a new actor touch
+                if (bNotifyActorTouch)
+                {
+                    // Then level-script delegates
+                    if (MyActor)
+                    {
+                        MyActor->OnActorBeginOverlap.Broadcast(MyActor, OtherActor);
+                    }
 
-				    if (OtherActor)
-				    {
-					    OtherActor->OnActorBeginOverlap.Broadcast(OtherActor, MyActor);
-				    }
-			    }
-		    }
-	    }
+                    if (OtherActor)
+                    {
+                        OtherActor->OnActorBeginOverlap.Broadcast(OtherActor, MyActor);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -316,53 +316,53 @@ void UPrimitiveComponent::EndComponentOverlap(const FOverlapInfo& OtherOverlap, 
     UPrimitiveComponent* OtherComp = OtherOverlap.OverlapInfo.Component;
     if (OtherComp == nullptr)
     {
-	    return;
+        return;
     }
 
     const int32 OtherOverlapIdx = IndexOfOverlapFast(OtherComp->OverlappingComponents, FOverlapInfo(this, INDEX_NONE));
     if (OtherOverlapIdx != INDEX_NONE)
     {
-	    OtherComp->OverlappingComponents.RemoveAt(OtherOverlapIdx);
+        OtherComp->OverlappingComponents.RemoveAt(OtherOverlapIdx);
     }
 
     const int32 OverlapIdx = IndexOfOverlapFast(OverlappingComponents, OtherOverlap);
     if (OverlapIdx != INDEX_NONE)
     {
-	    OverlappingComponents.RemoveAt(OverlapIdx);
+        OverlappingComponents.RemoveAt(OverlapIdx);
 
-	    AActor* const MyActor = GetOwner();
-	    const UWorld* World = GetWorld();
-	    if (bDoNotifies && (World /* && World->HasBegunPlay() */))
-	    {
-		    AActor* const OtherActor = OtherComp->GetOwner();
-		    if (OtherActor)
-		    {
-			    if (!bSkipNotifySelf && this)
-			    {
-				    OnComponentEndOverlap.Broadcast(this, OtherActor, OtherComp, OtherOverlap.GetBodyIndex());
-			    }
+        AActor* const MyActor = GetOwner();
+        const UWorld* World = GetWorld();
+        if (bDoNotifies && (World /* && World->HasBegunPlay() */))
+        {
+            AActor* const OtherActor = OtherComp->GetOwner();
+            if (OtherActor)
+            {
+                if (!bSkipNotifySelf && this)
+                {
+                    OnComponentEndOverlap.Broadcast(this, OtherActor, OtherComp, OtherOverlap.GetBodyIndex());
+                }
 
-			    if (OtherComp)
-			    {
-				    OtherComp->OnComponentEndOverlap.Broadcast(OtherComp, MyActor, this, INDEX_NONE);
-			    }
+                if (OtherComp)
+                {
+                    OtherComp->OnComponentEndOverlap.Broadcast(OtherComp, MyActor, this, INDEX_NONE);
+                }
 
-			    // if this was the last touch on the other actor by this actor, notify that we've untouched the actor as well
-			    const bool bSameActor = (MyActor == OtherActor);
-			    if (MyActor && !bSameActor && !AreActorsOverlapping(*MyActor, *OtherActor))
-			    {			
-				    if (MyActor)
-				    {
-					    MyActor->OnActorEndOverlap.Broadcast(MyActor, OtherActor);
-				    }
+                // if this was the last touch on the other actor by this actor, notify that we've untouched the actor as well
+                const bool bSameActor = (MyActor == OtherActor);
+                if (MyActor && !bSameActor && !AreActorsOverlapping(*MyActor, *OtherActor))
+                {            
+                    if (MyActor)
+                    {
+                        MyActor->OnActorEndOverlap.Broadcast(MyActor, OtherActor);
+                    }
 
-				    if (OtherActor)
-				    {
-					    OtherActor->OnActorEndOverlap.Broadcast(OtherActor, MyActor);
-				    }
-			    }
-		    }
-	    }
+                    if (OtherActor)
+                    {
+                        OtherActor->OnActorEndOverlap.Broadcast(OtherActor, MyActor);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -422,7 +422,7 @@ void UPrimitiveComponent::GetOverlappingComponents(TArray<UPrimitiveComponent*>&
         // Fill set (unique)
         TSet<UPrimitiveComponent*> OverlapSet;
         GetOverlappingComponents(OverlapSet);
-	
+    
         // Copy to array
         OutOverlappingComponents.Empty();
         OutOverlappingComponents.Reserve(OverlappingComponents.Num());
@@ -500,7 +500,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                     /*
                     // note this will optionally include overlaps with components in the same actor (depending on bIgnoreChildren). 
                     FComponentQueryParams Params(SCENE_QUERY_STAT(UpdateOverlaps), bIgnoreChildren ? MyActor : nullptr);
-                    Params.bIgnoreBlocks = true;	//We don't care about blockers since we only route overlap events to real overlaps
+                    Params.bIgnoreBlocks = true;    //We don't care about blockers since we only route overlap events to real overlaps
                     FCollisionResponseParams ResponseParam;
                     InitSweepCollisionParams(Params, ResponseParam);
                     ComponentOverlapMulti(Overlaps, MyWorld, GetComponentLocation(), GetComponentQuat(), GetCollisionObjectType(), Params);
@@ -518,7 +518,7 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                             const bool bCheckOverlapFlags = false; // Already checked above
                             if (!ShouldIgnoreOverlapResult(MyWorld, MyActor, *this, Result.Actor, *HitComp, bCheckOverlapFlags))
                             {
-                                OverlapMultiResult.Emplace(HitComp, Result.ItemIndex);		// don't need to add unique unless the overlap check can return dupes
+                                OverlapMultiResult.Emplace(HitComp, Result.ItemIndex);        // don't need to add unique unless the overlap check can return dupes
                             }
                         }
                     }
@@ -533,11 +533,11 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 TArray<const FOverlapInfo*> OldOverlappingComponentPtrs;
                 if (bIgnoreChildren)
                 {
-				    GetPointersToArrayDataByPredicate(OldOverlappingComponentPtrs, OverlappingComponents, FPredicateOverlapHasDifferentActor(*MyActor));
+                    GetPointersToArrayDataByPredicate(OldOverlappingComponentPtrs, OverlappingComponents, FPredicateOverlapHasDifferentActor(*MyActor));
                 }
                 else
                 {
-				    GetPointersToArrayData(OldOverlappingComponentPtrs, OverlappingComponents);
+                    GetPointersToArrayData(OldOverlappingComponentPtrs, OverlappingComponents);
                 }
 
                 // Now we want to compare the old and new overlap lists to determine 
@@ -547,43 +547,43 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 // What is left over will be what has changed.
                 for (int32 CompIdx = 0; CompIdx < OldOverlappingComponentPtrs.Num() && NewOverlappingComponentPtrs.Num() > 0; ++CompIdx)
                 {
-				    const FOverlapInfo* SearchItem = OldOverlappingComponentPtrs[CompIdx];
-				    const int32 NewElementIdx = IndexOfOverlapFast(NewOverlappingComponentPtrs, SearchItem);
-				    if (NewElementIdx != INDEX_NONE)
-				    {
-					    NewOverlappingComponentPtrs.RemoveAt(NewElementIdx);
-					    OldOverlappingComponentPtrs.RemoveAt(CompIdx);
-					    --CompIdx;
-				    }
+                    const FOverlapInfo* SearchItem = OldOverlappingComponentPtrs[CompIdx];
+                    const int32 NewElementIdx = IndexOfOverlapFast(NewOverlappingComponentPtrs, SearchItem);
+                    if (NewElementIdx != INDEX_NONE)
+                    {
+                        NewOverlappingComponentPtrs.RemoveAt(NewElementIdx);
+                        OldOverlappingComponentPtrs.RemoveAt(CompIdx);
+                        --CompIdx;
+                    }
                 }
 
                 const int32 NumOldOverlaps = OldOverlappingComponentPtrs.Num();
                 if (NumOldOverlaps > 0)
                 {
-				    // Now we have to make a copy of the overlaps because we can't keep pointers to them, that list is about to be manipulated in EndComponentOverlap().
-				    TArray<FOverlapInfo> OldOverlappingComponents;
-				    OldOverlappingComponents.SetNum(NumOldOverlaps);
-				    for (int32 i=0; i < NumOldOverlaps; i++)
-				    {
-					    OldOverlappingComponents[i] = *(OldOverlappingComponentPtrs[i]);
-				    }
+                    // Now we have to make a copy of the overlaps because we can't keep pointers to them, that list is about to be manipulated in EndComponentOverlap().
+                    TArray<FOverlapInfo> OldOverlappingComponents;
+                    OldOverlappingComponents.SetNum(NumOldOverlaps);
+                    for (int32 i=0; i < NumOldOverlaps; i++)
+                    {
+                        OldOverlappingComponents[i] = *(OldOverlappingComponentPtrs[i]);
+                    }
 
-				    // OldOverlappingComponents now contains only previous overlaps that are confirmed to no longer be valid.
-				    for (const FOverlapInfo& OtherOverlap : OldOverlappingComponents)
-				    {
-					    if (OtherOverlap.OverlapInfo.Component)
-					    {
-						    EndComponentOverlap(OtherOverlap, bDoNotifies, false);
-					    }
-					    else
-					    {
-						    const int32 StaleElementIndex = IndexOfOverlapFast(OverlappingComponents, OtherOverlap);
-						    if (StaleElementIndex != INDEX_NONE)
-						    {
-							    OverlappingComponents.RemoveAt(StaleElementIndex);
-						    }
-					    }
-				    }
+                    // OldOverlappingComponents now contains only previous overlaps that are confirmed to no longer be valid.
+                    for (const FOverlapInfo& OtherOverlap : OldOverlappingComponents)
+                    {
+                        if (OtherOverlap.OverlapInfo.Component)
+                        {
+                            EndComponentOverlap(OtherOverlap, bDoNotifies, false);
+                        }
+                        else
+                        {
+                            const int32 StaleElementIndex = IndexOfOverlapFast(OverlappingComponents, OtherOverlap);
+                            if (StaleElementIndex != INDEX_NONE)
+                            {
+                                OverlappingComponents.RemoveAt(StaleElementIndex);
+                            }
+                        }
+                    }
                 }
             }
 

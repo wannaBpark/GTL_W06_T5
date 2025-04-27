@@ -13,7 +13,7 @@
         <StringView Condition="Len() &gt;= Num()">PrivateString._Mypair._Myval2._Bx._Alias</StringView>
     </Type>-->
 
-	<!-- FName Visualizer -->
+    <!-- FName Visualizer -->
 	<Type Name="FName">
         <Intrinsic Name="GetDisplayName" Expression="GDebugNamePool.DisplayPool.ContainerPrivate">
             <Parameter Name="Hash" Type="int" />
