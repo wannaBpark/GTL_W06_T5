@@ -299,11 +299,6 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
 
 void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const
 {
-    if (StaticMeshComp->GetStaticMesh() == nullptr)
-    {
-        // return;
-    }
-
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Static Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
