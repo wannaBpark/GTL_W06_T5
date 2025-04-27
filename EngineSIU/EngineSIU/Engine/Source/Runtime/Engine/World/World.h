@@ -83,6 +83,7 @@ private:
 
     TArray<APlayerController*> PlayerControllers;
 
+    void ProcessOverlaps();
 };
 
 

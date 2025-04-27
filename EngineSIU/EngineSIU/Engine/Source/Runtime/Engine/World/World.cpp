@@ -56,58 +56,7 @@ void UWorld::Tick(float DeltaTime)
         Actor->UpdateOverlaps();
     }
 
-    TArray<AActor*> ActorsCopy = GetActiveLevel()->Actors;
-
-    for (AActor* Actor : ActorsCopy)
-    {
-        TSet<AActor*> PreviousOverlappingActors;
-        TSet<AActor*> CurrentOverlappingActors;
-
-        for (UActorComponent* Comp : Actor->GetComponents())
-        {
-            if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
-            {
-                for (const FOverlapInfo& Info : PrimComp->GetPreviousOverlapInfos())
-                {
-                    if (Info.OtherActor)
-                        PreviousOverlappingActors.Add(Info.OtherActor);
-                }
-
-                for (const FOverlapInfo& Info : PrimComp->GetOverlapInfos())
-                {
-                    if (Info.OtherActor)
-                        CurrentOverlappingActors.Add(Info.OtherActor);
-                }
-            }
-        }
-
-        // BeginOverlap
-        for (AActor* OtherActor : CurrentOverlappingActors)
-        {
-            if (!PreviousOverlappingActors.Contains(OtherActor))
-            {
-                Actor->OnActorBeginOverlap.Broadcast(OtherActor);
-            }
-        }
-
-        // EndOverlap
-        for (AActor* OtherActor : PreviousOverlappingActors)
-        {
-            if (!CurrentOverlappingActors.Contains(OtherActor))
-            {
-                Actor->OnActorEndOverlap.Broadcast(OtherActor);
-            }
-        }
-
-        //  Overlap
-        for (AActor* OtherActor : CurrentOverlappingActors)
-        {
-            if (OtherActor && !OtherActor->IsActorBeingDestroyed())
-            {
-                Actor->OnActorOverlap.Broadcast(OtherActor);
-            }
-        }
-    }
+    ProcessOverlaps();
 }
 
 void UWorld::BeginPlay()
@@ -197,4 +146,60 @@ bool UWorld::DestroyActor(AActor* ThisActor)
 UWorld* UWorld::GetWorld() const
 {
     return const_cast<UWorld*>(this);
+}
+
+void UWorld::ProcessOverlaps()
+{
+    TArray<AActor*> ActorsCopy = GetActiveLevel()->Actors;
+
+    for (AActor* Actor : ActorsCopy)
+    {
+        TSet<AActor*> PreviousOverlappingActors;
+        TSet<AActor*> CurrentOverlappingActors;
+
+        for (UActorComponent* Comp : Actor->GetComponents())
+        {
+            if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
+            {
+                for (const FOverlapInfo& Info : PrimComp->GetPreviousOverlapInfos())
+                {
+                    if (Info.OtherActor)
+                        PreviousOverlappingActors.Add(Info.OtherActor);
+                }
+
+                for (const FOverlapInfo& Info : PrimComp->GetOverlapInfos())
+                {
+                    if (Info.OtherActor)
+                        CurrentOverlappingActors.Add(Info.OtherActor);
+                }
+            }
+        }
+
+        // BeginOverlap
+        for (AActor* OtherActor : CurrentOverlappingActors)
+        {
+            if (!PreviousOverlappingActors.Contains(OtherActor))
+            {
+                Actor->OnActorBeginOverlap.Broadcast(OtherActor);
+            }
+        }
+
+        // EndOverlap
+        for (AActor* OtherActor : PreviousOverlappingActors)
+        {
+            if (!CurrentOverlappingActors.Contains(OtherActor))
+            {
+                Actor->OnActorEndOverlap.Broadcast(OtherActor);
+            }
+        }
+
+        // Overlap
+        for (AActor* OtherActor : CurrentOverlappingActors)
+        {
+            if (OtherActor && !OtherActor->IsActorBeingDestroyed())
+            {
+                Actor->OnActorOverlap.Broadcast(OtherActor);
+            }
+        }
+    }
 }
