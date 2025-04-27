@@ -291,14 +291,14 @@ template <typename T, typename Allocator>
 typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Find(const T& Item)
 {
     const auto it = std::find(ContainerPrivate.begin(), ContainerPrivate.end(), Item);
-    return it != ContainerPrivate.end() ? std::distance(ContainerPrivate.begin(), it) : -1;
+    return it != ContainerPrivate.end() ? std::distance(ContainerPrivate.begin(), it) : INDEX_NONE;
 }
 
 template <typename T, typename Allocator>
 bool TArray<T, Allocator>::Find(const T& Item, SizeType& Index)
 {
     Index = Find(Item);
-    return (Index != -1);
+    return (Index != INDEX_NONE);
 }
 
 template <typename T, typename Allocator>
