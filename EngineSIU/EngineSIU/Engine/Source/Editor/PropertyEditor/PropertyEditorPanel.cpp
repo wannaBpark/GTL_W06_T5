@@ -79,16 +79,10 @@ void PropertyEditorPanel::Render()
 
     if (TargetComponent != nullptr)
     {
-        if (ImGui::Button("Duplicate"))
-        {
-            AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
-            Engine->SelectActor(NewActor);
-        }
-        
         AEditorPlayer* Player = Engine->GetEditorPlayer();
         RenderForSceneComponent(TargetComponent, Player);
-
     }
+
     if (SelectedActor)
     {
         RenderForActor(SelectedActor, TargetComponent);
