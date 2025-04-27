@@ -207,17 +207,6 @@ void UPrimitiveComponent::BeginComponentOverlap(const FOverlapInfo& OtherOverlap
 			    // then execute actor notification if this is a new actor touch
 			    if (bNotifyActorTouch)
 			    {
-				    // First actor virtuals
-				    if (MyActor)
-				    {
-					    MyActor->NotifyActorBeginOverlap(OtherActor);
-				    }
-
-				    if (OtherActor)
-				    {
-					    OtherActor->NotifyActorBeginOverlap(MyActor);
-				    }
-
 				    // Then level-script delegates
 				    if (MyActor)
 				    {
@@ -276,13 +265,11 @@ void UPrimitiveComponent::EndComponentOverlap(const FOverlapInfo& OtherOverlap, 
 			    {			
 				    if (MyActor)
 				    {
-					    MyActor->NotifyActorEndOverlap(OtherActor);
 					    MyActor->OnActorEndOverlap.Broadcast(MyActor, OtherActor);
 				    }
 
 				    if (OtherActor)
 				    {
-					    OtherActor->NotifyActorEndOverlap(MyActor);
 					    OtherActor->OnActorEndOverlap.Broadcast(OtherActor, MyActor);
 				    }
 			    }
@@ -419,7 +406,6 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                 }
                 else
                 {
-                    /* TODO: 작업 해야 함.
                     UWorld* const MyWorld = GetWorld();
                     TArray<FOverlapResult> Overlaps;
                     // note this will optionally include overlaps with components in the same actor (depending on bIgnoreChildren). 
@@ -443,7 +429,6 @@ void UPrimitiveComponent::UpdateOverlapsImpl(const TArray<FOverlapInfo>* NewPend
                             }
                         }
                     }
-                    */
 
                     // Fill pointers to overlap results. We ensure below that OverlapMultiResult stays in scope so these pointers remain valid.
                     GetPointersToArrayData(NewOverlappingComponentPtrs, OverlapMultiResult);
