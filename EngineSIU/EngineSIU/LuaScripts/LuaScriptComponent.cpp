@@ -19,16 +19,17 @@ void ULuaScriptComponent::BeginPlay()
 
     DelegateHandles.Empty();
 
-    FEventManager& EM = GetWorld()->EventManager;
-    
+    // 중앙관리 Delegate 사용법
+    // FEventManager& EM = GetWorld()->EventManager;
+    //
     // if (GetWorld()->WorldType == EWorldType::PIE)
-    {
-        FDelegateHandle PressSpaceDelegateHandler = EM.Delegates["Lua"].AddLambda([this]()
-        {
-            OnPressSpacebar();
-        });
-        DelegateHandles.Add(PressSpaceDelegateHandler);
-    }
+    // {
+    //     FDelegateHandle PressSpaceDelegateHandler = EM.Delegates["Lua"].AddLambda([this]()
+    //     {
+    //         OnPressSpacebar();
+    //     });
+    //     DelegateHandles.Add(PressSpaceDelegateHandler);
+    // }
     
     CallLuaFunction("BeginPlay");
 }
@@ -38,14 +39,14 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 
     // if (GetWorld()->WorldType == EWorldType::PIE)
-    {
-        FEventManager& EM = GetWorld()->EventManager;
-        
-        for (FDelegateHandle DelegateHandle : DelegateHandles)
-        {
-            EM.Delegates["Lua"].Remove(DelegateHandle);
-        }        
-    }
+    // {
+    //     FEventManager& EM = GetWorld()->EventManager;
+    //     
+    //     for (FDelegateHandle DelegateHandle : DelegateHandles)
+    //     {
+    //         EM.Delegates["Lua"].Remove(DelegateHandle);
+    //     }        
+    // }
     
     CallLuaFunction("EndPlay");
 }
