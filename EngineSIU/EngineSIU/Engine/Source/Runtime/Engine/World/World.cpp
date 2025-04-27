@@ -14,6 +14,7 @@
 #include "Actors/PointLightActor.h"
 #include "Actors/SpotLightActor.h"
 
+
 class UEditorEngine;
 
 UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, const FString& InWorldName)
@@ -49,6 +50,10 @@ void UWorld::Tick(float DeltaTime)
 {
     for (AActor* Actor : PendingBeginPlayActors)
     {
+        if (Actor->bUseScript)
+        {
+            Actor->InitLuaScriptComponent();
+        }
         Actor->BeginPlay();
     }
 
@@ -83,12 +88,16 @@ void UWorld::Tick(float DeltaTime)
     PendingBeginPlayActors.Empty();
 }
 
-void UWorld::BeginPlay()
+void UWorld::BeginPlay()  
 {
     for (AActor* Actor : ActiveLevel->Actors)
     {
         if (Actor->GetWorld() == this)
         {
+            if (Actor->bUseScript)
+            {
+                Actor->SetupLuaProperties();
+            }
             Actor->BeginPlay();
         }
     }

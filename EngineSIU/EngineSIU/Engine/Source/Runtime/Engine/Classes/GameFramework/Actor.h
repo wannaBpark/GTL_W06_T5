@@ -8,7 +8,15 @@
 #include "UObject/ObjectMacros.h"
 #include "Delegates/DelegateCombination.h"
 
+class UActorComponent;
+class UInputComponent;
+class APlayerController;
+class ULuaScriptComponent;
 
+namespace sol
+{
+	class state;
+}
 // Actor가 다른 Actor와 충돌했을 때 호출될 Delegate
 DECLARE_MULTICAST_DELEGATE_OneParam(FActorHitSignature, AActor*);
 
@@ -119,9 +127,15 @@ public:
         Destroy();
     }
 
+    virtual void EnableInput(APlayerController* PlayerController);
+    virtual void DisableInput(APlayerController* PlayerController);
+
 protected:
     UPROPERTY
     (USceneComponent*, RootComponent, = nullptr)
+
+    UPROPERTY
+    (UInputComponent*, InputComponent, = nullptr)
 
 private:
     /** 이 Actor를 소유하고 있는 다른 Actor의 정보 */
@@ -134,6 +148,7 @@ private:
 
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1 = false;
+
 
 #if 1 // TODO: WITH_EDITOR 추가
 public:
@@ -158,6 +173,18 @@ public:
 
 private:
     bool bTickInEditor = false;
+
+
+public: // Lua Script.
+	// 자기 자신이 가진 정보들 Lua에 등록.
+	void InitLuaScriptComponent();
+	FString GetLuaScriptPathName();
+	virtual void ApplyTypesOnLua(sol::state& Lua); // Lua에 클래스 등록해주는 함수.
+    virtual void SetupLuaProperties(); // LuaEnv에서 사용할 멤버 변수 등록 함수.
+
+	bool bUseScript = true;
+private:
+	ULuaScriptComponent* LuaScriptComponent = nullptr;
 
 };
 

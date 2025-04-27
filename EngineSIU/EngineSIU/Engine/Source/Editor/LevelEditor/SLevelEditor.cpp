@@ -6,10 +6,10 @@
 #include "UnrealClient.h"
 #include "WindowsCursor.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Engine/EditorEngine.h"
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "SlateCore/Widgets/SWindow.h"
 #include "UnrealEd/EditorViewportClient.h"
+
 
 extern FEngineLoop GEngineLoop;
 
@@ -352,7 +352,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
     });
 
     Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
-    {
+    {   
         ActiveViewportClient->InputKey(InKeyEvent);
     });
 

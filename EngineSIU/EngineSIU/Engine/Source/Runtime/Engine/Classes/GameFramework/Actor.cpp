@@ -2,7 +2,11 @@
 #include "Components/PrimitiveComponent.h"
 #include "Delegates/DelegateCombination.h"
 #include "World/World.h"
-
+#include "PlayerController.h"
+#include "Components/InputComponent.h"
+#include "sol/sol.hpp"
+#include "Components/LuaScriptComponent.h"
+#include "Engine/Lua/LuaScriptManager.h"
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
@@ -76,15 +80,23 @@ UObject* AActor::Duplicate(UObject* InOuter)
         }
     }
 
+    NewActor->LuaScriptComponent = NewActor->GetComponentByClass<ULuaScriptComponent>();
+
     return NewActor;
 }
 
 void AActor::BeginPlay()
 {
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
+
+    if (bUseScript)
+    {
+        InitLuaScriptComponent();
+    }
+
     const auto CopyComponents = OwnedComponents;
     for (UActorComponent* Comp : CopyComponents)
-    {
+    {  
         Comp->BeginPlay();
     }
     OnActorOverlapHandle = OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
@@ -297,6 +309,33 @@ bool AActor::SetActorScale(const FVector& NewScale)
     return false;
 }
 
+void AActor::EnableInput(APlayerController* PlayerController)
+{
+    if (!PlayerController)
+    {
+        return;
+    }
+
+    if (!InputComponent)
+    {
+        InputComponent = FObjectFactory::ConstructObject<UInputComponent>(this);
+    }
+
+    PlayerController->PushInputComponent(InputComponent);
+
+}
+
+void AActor::DisableInput(APlayerController* PlayerController)
+{
+    if (!PlayerController || !InputComponent)
+    {
+        return;
+    }
+
+    // 입력 스택에서 제거
+    PlayerController->PopInputComponent(InputComponent);
+}
+
 bool AActor::IsOverlappingActor(const AActor* Other) const
 {
     for (UActorComponent* OwnedComp : OwnedComponents)
@@ -326,4 +365,54 @@ void AActor::UpdateOverlaps() const
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)
 {
     bTickInEditor = InbInTickInEditor;
+}
+
+void AActor::InitLuaScriptComponent()
+{
+    if (!LuaScriptComponent)
+    {
+        LuaScriptComponent = AddComponent<ULuaScriptComponent>("LuaComponent");
+    }
+
+    if (LuaScriptComponent)
+    {
+        ApplyTypesOnLua(FLuaScriptManager::Get().GetLua());
+    }
+}
+
+FString AActor::GetLuaScriptPathName()
+{
+    return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : TEXT("");
+}
+
+void AActor::ApplyTypesOnLua(sol::state& Lua)
+{
+    static bool bRegisteredLuaProperties = false;
+    if (!bRegisteredLuaProperties)
+    {
+        Lua.new_usertype<AActor>("AActor",
+            "GetUUID", &ThisClass::GetUUID,
+            "GetActorLocation", &ThisClass::GetActorLocation,
+            "GetActorRotation", &ThisClass::GetActorRotation,
+            "GetActorScale", &ThisClass::GetActorScale
+        );
+        bRegisteredLuaProperties = true;
+    }
+}
+
+void AActor::SetupLuaProperties()
+{
+    if (!LuaScriptComponent)
+        return;
+
+    // TODO: Script 로드는 처음에만 한번.
+    sol::table& LuaEnv = LuaScriptComponent->LoadScript();
+    if (!LuaEnv.valid())
+        return;
+
+    // TODO: 매 프레임마다 table의 정보를 덮어 써줘야 함.
+    /*LuaEnv["UUID"] = UUID;
+    LuaEnv["ActorLocation"] = GetActorLocation();
+    LuaEnv["ActorRotation"] = GetActorRotation();
+    LuaEnv["ActorScale"] = GetActorScale();*/
 }

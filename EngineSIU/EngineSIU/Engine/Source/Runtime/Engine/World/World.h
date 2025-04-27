@@ -5,6 +5,7 @@
 #include "UObject/ObjectMacros.h"
 #include "WorldType.h"
 #include "Level.h"
+#include "GameFramework/PlayerController.h"
 
 class FObjectFactory;
 class AActor;
@@ -57,6 +58,20 @@ public:
 
     EWorldType WorldType = EWorldType::None;
 
+    void AddPlayerController(APlayerController* InPlayerController)
+    {
+        PlayerControllers.Add(InPlayerController);
+    }
+
+    APlayerController* GetFirstPlayerController()
+    {
+        if (PlayerControllers.Num() > 0)
+        {
+            return PlayerControllers[0];
+        }
+        return nullptr;
+    }
+
     
 private:
     FString WorldName = "DefaultWorld";
@@ -65,6 +80,9 @@ private:
 
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TArray<AActor*> PendingBeginPlayActors;
+
+    TArray<APlayerController*> PlayerControllers;
+
 };
 
 

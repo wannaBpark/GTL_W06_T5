@@ -11,8 +11,6 @@ void ULevel::InitLevel(UWorld* InOwningWorld)
 
 void ULevel::Release()
 {
-    
-    
     for (AActor* Actor : Actors)
     {
         Actor->EndPlay(EEndPlayReason::WorldTransition);
@@ -31,6 +29,7 @@ UObject* ULevel::Duplicate(UObject* InOuter)
     ThisClass* NewLevel = Cast<ThisClass>(Super::Duplicate(InOuter));
 
     NewLevel->OwningWorld = OwningWorld;
+    NewLevel->LevelName = LevelName;
 
     for (AActor* Actor : Actors)
     {

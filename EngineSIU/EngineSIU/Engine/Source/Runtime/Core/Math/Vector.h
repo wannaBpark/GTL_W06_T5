@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cassert>
 #include "MathUtility.h"
 #include "Serialization/Archive.h"
@@ -167,7 +167,8 @@ public:
     bool AllComponentsEqual(float Tolerance = KINDA_SMALL_NUMBER) const;
 
     float Length() const;
-    float LengthSquared() const;
+    float SquaredLength() const;
+    float SizeSquared() const;
 
     bool Normalize(float Tolerance = SMALL_NUMBER);
 
@@ -180,9 +181,12 @@ public:
     bool IsNearlyZero(float Tolerance = SMALL_NUMBER) const;
     bool IsZero() const;
 
+    bool IsNormalized() const;
     
     FString ToString() const;
     bool InitFromString(const FString& InSourceString);
+
+    FVector GetClampedToMaxSize(float MaxSize) const;
 };
 
 inline FVector::FVector(const FRotator& InRotator)
@@ -329,7 +333,7 @@ inline float FVector::Length() const
     return FMath::Sqrt(X * X + Y * Y + Z * Z);
 }
 
-inline float FVector::LengthSquared() const
+inline float FVector::SquaredLength() const
 {
     return X * X + Y * Y + Z * Z;
 }
@@ -400,7 +404,22 @@ inline bool FVector::IsZero() const
     return X==0.f && Y==0.f && Z==0.f;
 }
 
+inline FVector FVector::GetClampedToMaxSize(float MaxSize) const
+{
+    const float SquaredSum = X * X + Y * Y + Z * Z;
+    const float MaxSizeSq = MaxSize * MaxSize;
 
+    // 길이가 최대보다 크면
+    if (SquaredSum > MaxSizeSq && MaxSizeSq > 0.f)
+    {
+        // 스케일 비율 = MaxSize / 현재 길이
+        const float Scale = MaxSize / FMath::Sqrt(SquaredSum);
+        return FVector(X * Scale, Y * Scale, Z * Scale);
+    }
+
+    // 아니면 원본 그대로
+    return *this;
+}
 
 inline FArchive& operator<<(FArchive& Ar, FVector2D& V)
 {
