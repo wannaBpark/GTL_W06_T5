@@ -13,11 +13,11 @@ public:
     
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 
     // Begin FStaticMeshRenderPass override
-    virtual void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void PrepareRenderState(const std::shared_ptr<FViewportClient>& Viewport);
     // End FStaticMeshRenderPass override
 };
 

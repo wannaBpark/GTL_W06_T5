@@ -1,6 +1,5 @@
 #pragma once
 #include "IRenderPass.h"
-#include "EngineBaseTypes.h"
 #include "Container/Set.h"
 #include "Define.h"
 
@@ -20,7 +19,7 @@ public:
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 
     // 라인 렌더링 전용 함수
@@ -28,7 +27,7 @@ public:
     void UpdateShader();
     void PrepareLineShader() const;
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
-    void ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void ProcessLineRendering();
     void DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) const;
 
 private:

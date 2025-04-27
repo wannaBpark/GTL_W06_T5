@@ -46,7 +46,7 @@ void FCompositingPass::PrepareRenderArr()
 {
 }
 
-void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FCompositingPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     // Setup
     FViewportResource* ViewportResource = Viewport->GetViewportResource();

@@ -6,10 +6,8 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Define.h"
 #include "Engine/Classes/GameFramework/Actor.h"
-#include <wchar.h>
 #include <UObject/UObjectIterator.h>
 #include <Engine/Engine.h>
-#include "PropertyEditor/ShowFlags.h"
 
 FLightHeatMapRenderPass::FLightHeatMapRenderPass()
     : Graphics(nullptr)

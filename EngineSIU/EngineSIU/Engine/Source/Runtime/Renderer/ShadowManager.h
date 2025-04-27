@@ -107,7 +107,7 @@ struct FShadowCubeMapArrayRHI
     }
 };
 
-class FEditorViewportClient;
+class FViewportClient;
 class FShadowManager
 {
 public:
@@ -226,7 +226,7 @@ private:
     void ReleaseDirectionalShadowResources();
 
     /* 캐스케이드 분할 관련 Matrix를 갱신합니다 */
-    void UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight);
+    void UpdateCascadeMatrices(const std::shared_ptr<FViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight);
 
     /** 섀도우 샘플링에 사용될 D3D 샘플러 상태(비교 샘플러 등)를 생성합니다. */
     bool CreateSamplers();

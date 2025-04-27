@@ -68,7 +68,7 @@ void FUpdateLightBufferPass::PrepareRenderArr()
     }
 }
 
-void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FUpdateLightBufferPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     UpdateLightBuffer();
     Graphics->DeviceContext->PSSetConstantBuffers(8, 1, &TileConstantBuffer);
