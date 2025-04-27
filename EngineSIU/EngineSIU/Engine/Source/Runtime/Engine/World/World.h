@@ -5,7 +5,11 @@
 #include "UObject/ObjectMacros.h"
 #include "WorldType.h"
 #include "Level.h"
+#include "Actors/Player.h"
+#include "Components/CameraComponent.h"
+#include "Engine/EventManager.h"
 
+class UCameraComponent;
 class FObjectFactory;
 class AActor;
 class UObject;
@@ -56,7 +60,13 @@ public:
     T* DuplicateActor(T* InActor);
 
     EWorldType WorldType = EWorldType::None;
+    
+    FEventManager EventManager;
 
+    void SetMainCamera(UCameraComponent* InCamera) { MainCamera = InCamera; }
+    UCameraComponent* GetMainCamera(){ return MainCamera; }
+    void SetMainPlayer(APlayer* InPlayer){ MainPlayer = InPlayer; }
+    APlayer* GetMainPlayer(){ return MainPlayer; }
     
 private:
     FString WorldName = "DefaultWorld";
@@ -66,6 +76,9 @@ private:
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TArray<AActor*> PendingBeginPlayActors;
 
+    UCameraComponent* MainCamera = nullptr;
+
+    APlayer* MainPlayer = nullptr;
 };
 
 

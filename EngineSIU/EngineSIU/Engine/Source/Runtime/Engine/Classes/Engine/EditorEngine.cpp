@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
 #include "Components/Light/DirectionalLightComponent.h"
+#include "UObject/UObjectIterator.h"
 
 namespace PrivateEditorSelection
 {
@@ -123,6 +124,26 @@ void UEditorEngine::StartPIE()
 
     PIEWorldContext.SetCurrentWorld(PIEWorld);
     ActiveWorld = PIEWorld;
+
+    //나중에 MainCamera 설정할 좋은 방법 나온다고 해서 Camera 1개라고 전제하고 진행 
+    for (const auto iter : TObjectRange<UCameraComponent>())
+    {
+        if (iter->GetWorld() == ActiveWorld)
+        {
+            ActiveWorld->SetMainCamera(iter);
+            break;
+        }
+    }
+
+    //마찬가지
+    for (const auto iter: TObjectRange<APlayer>())
+    {
+        if (iter->GetWorld() == ActiveWorld)
+        {
+            ActiveWorld->SetMainPlayer(iter);
+            break;
+        }
+    }
     
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.

@@ -44,3 +44,14 @@ public:
     EControlMode GetControlMode() const { return ControlMode; }
     ECoordMode GetCoordMode() const { return CoordMode; }
 };
+
+class APlayer : public AActor
+{
+    DECLARE_CLASS(APlayer, AActor)
+
+public:
+    APlayer() = default;
+
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void Tick(float DeltaTime) override;
+};

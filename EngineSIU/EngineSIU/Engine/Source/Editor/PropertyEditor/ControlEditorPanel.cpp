@@ -12,6 +12,7 @@
 #include "Components/SphereComp.h"
 #include "Components/ParticleSubUVComponent.h"
 #include "Components/TextComponent.h"
+#include "Components/CameraComponent.h"
 #include "Components/ProjectileMovementComponent.h"
 
 #include "Engine/FObjLoader.h"
@@ -296,7 +297,8 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             { .Label= "Particle",  .OBJ= OBJ_PARTICLE },
             { .Label= "Text",      .OBJ= OBJ_TEXT },
             { .Label= "Fireball",  .OBJ = OBJ_FIREBALL},
-            { .Label= "Fog",       .OBJ= OBJ_FOG }
+            { .Label= "Fog",       .OBJ= OBJ_FOG },
+            { .Label= "Camera",     .OBJ= OBJ_CAMERA },
         };
 
         for (const auto& primitive : primitives)
@@ -383,8 +385,14 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
                     break;
                 }
-                case OBJ_TRIANGLE:
                 case OBJ_CAMERA:
+                    {
+                        SpawnedActor = World->SpawnActor<AActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_CAMERA"));
+                        UCameraComponent* CameraComponent = SpawnedActor->AddComponent<UCameraComponent>();
+                    }
+                    break;
+                case OBJ_TRIANGLE:
                 case OBJ_PLAYER:
                 case OBJ_END:
                     break;

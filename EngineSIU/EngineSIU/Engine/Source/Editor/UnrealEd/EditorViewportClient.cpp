@@ -11,6 +11,7 @@
 
 #include "UObject/ObjectFactory.h"
 #include "BaseGizmos/TransformGizmo.h"
+#include "Components/CameraComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "SlateCore/Input/Events.h"
 
@@ -439,27 +440,47 @@ void FEditorViewportClient::PivotMoveUp(const float InValue) const
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
-    if (IsPerspective())
+    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
-        View = JungleMath::CreateViewMatrix(PerspectiveCamera.GetLocation(),
-            PerspectiveCamera.GetLocation() + PerspectiveCamera.GetForwardVector(),
+        UCameraComponent* MainCamera = GEngine->ActiveWorld->GetMainCamera();
+
+        if (MainCamera == nullptr)
+        {
+            MainCamera = UCameraComponent::DefaultCamera.get();
+        }
+        
+        View = JungleMath::CreateViewMatrix(
+            MainCamera->GetWorldLocation(),
+            MainCamera->GetWorldLocation() + MainCamera->GetForwardVector(),
             FVector{ 0.0f,0.0f, 1.0f }
         );
-    }
-    else 
+        //TODO: 2D Orthogonal모드 추가 - Perpective(3D 시점) 게임만 가정하고 2D Orthogonal시점의 게임은 가정안함
+    }else
     {
-        UpdateOrthoCameraLoc();
-        if (ViewportType == LVT_OrthoXY || ViewportType == LVT_OrthoNegativeXY)
+        UCameraComponent* MainCamera = GEngine->ActiveWorld->GetMainCamera();
+
+        if (IsPerspective())
         {
-            View = JungleMath::CreateViewMatrix(OrthogonalCamera.GetLocation(),
-                Pivot, FVector(0.0f, -1.0f, 0.0f)
+            View = JungleMath::CreateViewMatrix(PerspectiveCamera.GetLocation(),
+                PerspectiveCamera.GetLocation() + PerspectiveCamera.GetForwardVector(),
+                FVector{ 0.0f,0.0f, 1.0f }
             );
         }
-        else
+        else 
         {
-            View = JungleMath::CreateViewMatrix(OrthogonalCamera.GetLocation(),
-                Pivot, FVector(0.0f, 0.0f, 1.0f)
-            );
+            UpdateOrthoCameraLoc();
+            if (ViewportType == LVT_OrthoXY || ViewportType == LVT_OrthoNegativeXY)
+            {
+                View = JungleMath::CreateViewMatrix(OrthogonalCamera.GetLocation(),
+                    Pivot, FVector(0.0f, -1.0f, 0.0f)
+                );
+            }
+            else
+            {
+                View = JungleMath::CreateViewMatrix(OrthogonalCamera.GetLocation(),
+                    Pivot, FVector(0.0f, 0.0f, 1.0f)
+                );
+            }
         }
     }
 }
@@ -467,28 +488,47 @@ void FEditorViewportClient::UpdateViewMatrix()
 void FEditorViewportClient::UpdateProjectionMatrix()
 {
     AspectRatio = GetViewport()->GetD3DViewport().Width / GetViewport()->GetD3DViewport().Height;
-    if (IsPerspective())
-    {
-        Projection = JungleMath::CreateProjectionMatrix(
-            FMath::DegreesToRadians(ViewFOV),
-            AspectRatio,
-            NearClip,
-            FarClip
-        );
-    }
-    else
-    {
-        // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
-        const float OrthoWidth = OrthoSize * AspectRatio;
-        const float OrthoHeight = OrthoSize;
 
-        // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
-        Projection = JungleMath::CreateOrthoProjectionMatrix(
-            OrthoWidth,
-            OrthoHeight,
-            NearClip,
-            FarClip
+    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    {
+        UCameraComponent* MainCamera = GEngine->ActiveWorld->GetMainCamera();
+
+        if (MainCamera == nullptr)
+        {
+            MainCamera = UCameraComponent::DefaultCamera.get();
+        }
+        
+        Projection = JungleMath::CreateProjectionMatrix(
+            FMath::DegreesToRadians(MainCamera->ViewFOV),
+            AspectRatio,
+            MainCamera->NearClip,
+            MainCamera->FarClip
         );
+    }else
+    {
+        if (IsPerspective())
+        {
+            Projection = JungleMath::CreateProjectionMatrix(
+                FMath::DegreesToRadians(ViewFOV),
+                AspectRatio,
+                NearClip,
+                FarClip
+            );
+        }
+        else
+        {
+            // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
+            const float OrthoWidth = OrthoSize * AspectRatio;
+            const float OrthoHeight = OrthoSize;
+
+            // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
+            Projection = JungleMath::CreateOrthoProjectionMatrix(
+                OrthoWidth,
+                OrthoHeight,
+                NearClip,
+                FarClip
+            );
+        }
     }
 }
 
