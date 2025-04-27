@@ -59,29 +59,7 @@ public:
         ActiveViewportClient = ViewportClients[Index];
     }
 
-    //Save And Load
-private:
-    const FString IniFilePath = "editor.ini";
-
 public:
     void LoadConfig();
     void SaveConfig();
-
-private:
-    TMap<FString, FString> ReadIniFile(const FString& FilePath);
-    void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config);
-
-    template <typename T>
-    T GetValueFromConfig(const TMap<FString, FString>& Config, const FString& Key, T DefaultValue) {
-        if (const FString* Value = Config.Find(Key))
-        {
-            std::istringstream iss(**Value);
-            T ConfigValue;
-            if (iss >> ConfigValue)
-            {
-                return ConfigValue;
-            }
-        }
-        return DefaultValue;
-    }
 };

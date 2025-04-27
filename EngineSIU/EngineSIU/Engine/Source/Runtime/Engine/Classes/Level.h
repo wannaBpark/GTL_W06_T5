@@ -1,4 +1,6 @@
 #pragma once
+#include <filesystem>
+
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -22,8 +24,15 @@ public:
     UWorld* OwningWorld;
 
     FString GetLevelName() const { return LevelName; }
-    void SetLevelName(const FString& InLevelName) { LevelName = InLevelName; }
-    
+    FString GetLevelPath() const { return LevelPath; }
+    void SetLevelPath(const std::filesystem::path& InLevelPath)
+    {
+        LevelName = FString(InLevelPath.stem());
+        LevelPath = FString(InLevelPath);
+    }
+
 private:
+    // Default Path는 엔진 시작시 LoadLevel에서 넣어짐.
     FString LevelName = "DefaultLevel";
+    FString LevelPath = "Saved/DefaultLevel.scene";
 };

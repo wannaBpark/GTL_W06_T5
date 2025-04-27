@@ -2,13 +2,14 @@
 
 #include "World/World.h"
 #include "Level.h"
-#include "Actors/Cube.h"
-#include "Actors/DirectionalLightActor.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
 #include "Components/Light/DirectionalLightComponent.h"
+#include "UnrealEd/EditorConfigManager.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Character.h"
+#include "tinyfiledialogs/tinyfiledialogs.h"
+#include "UnrealEd/SceneManager.h"
 
 namespace PrivateEditorSelection
 {
@@ -41,21 +42,74 @@ void UEditorEngine::Init()
         assert(AssetManager);
         AssetManager->InitAssetManager();
     }
-    LoadLevel("Saved/AutoSaves.scene");
 
-// #ifdef _DEBUG
-//     AActor* Actor = EditorWorld->SpawnActor<ACube>();
-//     
-//     ADirectionalLight* DirLight = EditorWorld->SpawnActor<ADirectionalLight>();
-//     DirLight->SetActorRotation(FRotator(20, -61, 11));
-//     DirLight->SetActorLocation(FVector(0, 0, 20));
-//     DirLight->SetIntensity(2.f);
-// #endif
+    
+    TMap<FString, FString> Config = FEditorConfigManager::GetInstance().Read();
+    FString ScenePath = FEditorConfigManager::GetValueFromConfig<std::string>(Config, "ScenePath", "Saved/DefaultLevel.scene");
+
+    LoadLevel(ScenePath);
+}
+
+bool UEditorEngine::TryQuit(bool& OutbIsSave)
+{
+    int response = tinyfd_messageBox(
+        "Engine SIUUU",
+        "변경 사항을 저장하시겠습니까?",
+        "yesnocancel", // 버튼 세 개
+        "question",    // 아이콘
+        0              // 기본 버튼 (0 = 첫 번째 버튼이 기본)
+    );
+
+    if (response == 1)
+    {
+        // Save
+        OutbIsSave = true;
+        return true;
+    }
+    else if (response == 2)
+    {
+        // Do not Save
+        OutbIsSave = false;
+        return true;
+    }
+    else if (response == 0)
+    {
+        // 취소
+        OutbIsSave = false;
+        return false;
+    }
+
+    OutbIsSave = false;
+    return true;   
 }
 
 void UEditorEngine::Release()
 {
-    SaveLevel("Saved/AutoSaves.scene");
+}
+
+void UEditorEngine::LoadLevel(const FString& FilePath) const
+{
+    SceneManager::LoadSceneFromJsonFile(GetData(FilePath), *ActiveWorld);
+}
+
+void UEditorEngine::SaveLevel(const FString& FilePath) const
+{
+    FString ScenePath;
+    if (FilePath.IsEmpty())
+    {
+        ScenePath = ActiveWorld->GetActiveLevel()->GetLevelPath();
+    }
+    else
+    {
+        ScenePath = FilePath;
+    }
+    SceneManager::SaveSceneToJsonFile(GetData(ScenePath), *ActiveWorld);
+}
+
+void UEditorEngine::SaveConfig() const
+{
+    FString ScenePath = ActiveWorld->GetActiveLevel()->GetLevelPath();
+    FEditorConfigManager::GetInstance().AddConfig("ScenePath", ScenePath);
 }
 
 void UEditorEngine::Tick(float DeltaTime)

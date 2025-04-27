@@ -20,8 +20,14 @@ public:
 
     virtual void Init() override;
     virtual void Tick(float DeltaTime) override;
+    bool TryQuit(bool& OutbIsSave) override;
     void Release() override;
 
+    void LoadLevel(const FString& FilePath) const;
+    // 현재 Level을 저장하는 경우 빈 FString을 넣으세요.
+    void SaveLevel(const FString& FilePath = FString("")) const;
+    void SaveConfig() const;
+    
     UWorld* PIEWorld = nullptr;
     UWorld* EditorWorld = nullptr;
 

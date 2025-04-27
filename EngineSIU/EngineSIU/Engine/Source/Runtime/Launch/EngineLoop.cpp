@@ -15,6 +15,7 @@
 #include "Renderer/TileLightCullingPass.h"
 
 #include "Engine/Lua/LuaScriptManager.h" 
+#include "UnrealEd/EditorConfigManager.h"
 
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -247,6 +248,31 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, uint32 Msg, WPARAM wParam, L
 
     switch (Msg)
     {
+    case WM_CLOSE:
+        // TODO: Editor Engine이 아닌 경우에 bIsSave는 좋은 선택지가 아님. Enum으로 바꾸는 것도 괜찮아 보임
+        bool bIsSave;
+        if (GEngine->TryQuit(bIsSave))
+        {
+            if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+            {
+                if (bIsSave)
+                {
+                    EditorEngine->SaveLevel();
+                }
+                
+                FEditorConfigManager::GetInstance().Clear();
+                EditorEngine->SaveConfig();
+                if (auto LevelEditor = GEngineLoop.GetLevelEditor())
+                {
+                    LevelEditor->SaveConfig();
+                }
+                FEditorConfigManager::GetInstance().Write();
+            }
+        }
+        else
+        {
+            break;
+        }
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

@@ -10,6 +10,11 @@ void UEngine::Init()
 {
 }
 
+bool UEngine::TryQuit(bool& OutbIsSave)
+{
+    return true;
+}
+
 FWorldContext* UEngine::GetWorldContextFromWorld(const UWorld* InWorld)
 {
     for (FWorldContext* WorldContext : WorldList)
@@ -30,16 +35,4 @@ FWorldContext& UEngine::CreateNewWorldContext(EWorldType InWorldType)
     NewWorldContext->ContextHandle = FName(*FString::Printf(TEXT("WorldContext_%d"), NextWorldContextHandle++));
 
     return *NewWorldContext;
-}
-
-
-void UEngine::LoadLevel(const FString& FileName) const
-{
-    SceneManager::LoadSceneFromJsonFile(*FileName, *ActiveWorld);
-}
-
-void UEngine::SaveLevel(const FString& FileName) const
-{
-    ActiveWorld->GetActiveLevel()->SetLevelName(FString(std::filesystem::path(GetData(FileName)).stem()));
-    SceneManager::SaveSceneToJsonFile(*FileName, *ActiveWorld);
 }

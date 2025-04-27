@@ -110,6 +110,7 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
     std::ifstream JsonFile(FilePath);
     if (!JsonFile.is_open())
     {
+        MessageBox(nullptr, (FString(FilePath) + FString("(으)로부터 Scene을 읽어오는데 실패했습니다!")).ToWideString().c_str(), L"Scene Load Error", MB_ICONWARNING | MB_OK);
         UE_LOG(LogLevel::Error, "Failed to open file for reading: %s", FilePath.c_str());
         return;
     }
@@ -131,7 +132,7 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
         return ;
     }
 
-    LoadWorldFromData(SceneData, FString(FilePath.stem()), &OutWorld);
+    LoadWorldFromData(SceneData, FilePath, &OutWorld);
 }
 
 bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, const UWorld& InWorld)
@@ -145,6 +146,8 @@ bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, co
         return false;
     }
 
+    InWorld.GetActiveLevel()->SetLevelPath(FilePath);
+    
     FString JsonData;
     SceneDataToJson(SceneData, JsonData);
     outFile << JsonData.GetContainerPrivate();
@@ -227,7 +230,7 @@ FSceneData SceneManager::WorldToSceneData(const UWorld& InWorld)
     return sceneData;
 }
 
-bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const FString& SceneName, UWorld* targetWorld)
+bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const std::filesystem::path& ScenePath, UWorld* targetWorld)
 {
     if (targetWorld == nullptr)
     {
@@ -235,8 +238,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const FString&
         return false;
     }
 
-    targetWorld->GetActiveLevel()->SetLevelName(SceneName);
-    
+    targetWorld->GetActiveLevel()->SetLevelPath(ScenePath);
     // 임시 맵: 저장된 ID와 새로 생성된 객체 포인터를 매핑
     TMap<FString, AActor*> SpawnedActorsMap;
     //TMap<FString, UActorComponent*> SpawnedComponentsMap;
