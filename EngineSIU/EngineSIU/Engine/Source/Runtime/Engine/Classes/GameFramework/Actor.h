@@ -7,9 +7,9 @@
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FActorBeginOverlapSignature, AActor*, AActor*);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FActorEndOverlapSignature, AActor*, AActor*);
-DECLARE_MULTICAST_DELEGATE_FourParams(FActorHitSignature, AActor*, AActor*, FVector, const FHitResult&);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FActorBeginOverlapSignature, AActor* /* OverlappedActor */, AActor* /* OtherActor */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FActorEndOverlapSignature, AActor* /* OverlappedActor */, AActor* /* OtherActor */);
+DECLARE_MULTICAST_DELEGATE_FourParams(FActorHitSignature, AActor* /* SelfActor */, AActor* /* OtherActor */, FVector /*NormalImpulse*/, const FHitResult& /* Hit */);
 
 class UActorComponent;
 
