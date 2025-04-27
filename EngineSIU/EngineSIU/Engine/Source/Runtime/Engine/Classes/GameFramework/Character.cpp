@@ -2,13 +2,24 @@
 #include "Components/InputComponent.h"  
 #include "Controller.h"
 #include "Components/StaticMeshComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/FLoaderOBJ.h"
 
 ACharacter::ACharacter()  
 {  
-    StaticMeshComponent = AddComponent<UStaticMeshComponent>("StaticMeshComponent_0");
-    RootComponent = StaticMeshComponent;
-    StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Contents/Reference/Reference.obj"));
+    RootScene = AddComponent<USceneComponent>("RootScene");
+    RootComponent = RootScene;
+
+    BodyMesh = AddComponent<UStaticMeshComponent>("Player");
+    BodyMesh->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Contents/Reference/Reference.obj"));
+    BodyMesh->SetupAttachment(RootComponent);
+
+    //CameraBoom = AddComponent<USpringArmComponent>("CameraBoom");
+    //CameraBoom->SetupAttachment(RootComponent);
+    //CameraBoom->TargetArmLength = 300.f;
+
+    //FollowCamera = AddComponent<UCameraComponent>("PlayerCamera");
+    //FollowCamera->SetupAttachment(RootComponent);
 }  
 
 void ACharacter::BeginPlay()  

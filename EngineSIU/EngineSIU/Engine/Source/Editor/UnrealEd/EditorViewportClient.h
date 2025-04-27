@@ -98,6 +98,7 @@ public:
     void ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right);
 
     bool IsSelected(const FVector2D& InPoint) const;
+    bool IsPIEMode() const;
 
     /**
      * ScreenPos를 World Space로 Deprojection 합니다.
@@ -132,6 +133,8 @@ public:
     /** Viewport camera transform data for perspective viewports */
     FViewportCamera PerspectiveCamera;
     FViewportCamera OrthogonalCamera;
+    // Viewport 분리전 임시적으로 PIE모드에서 Player를 따라다니는 카메라
+    FViewportCamera PlayerCamera;
     // 카메라 정보 
     float ViewFOV = 90.0f;
     float AspectRatio;

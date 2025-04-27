@@ -4,6 +4,7 @@
 class UInputComponent;
 class AController;
 class UStaticMeshComponent;
+class UCameraComponent;
 class ACharacter : public APawn
 {
     DECLARE_CLASS(ACharacter, APawn)
@@ -25,6 +26,15 @@ public:
 
 private:
     UPROPERTY
-    (UStaticMeshComponent*, StaticMeshComponent, = nullptr);
+    (USceneComponent*, RootScene, = nullptr);
+
+    UPROPERTY
+    (UStaticMeshComponent*, BodyMesh, = nullptr);
+
+    //UPROPERTY
+    //(USpringArmComponent*, CameraBoom, = nullptr);
+
+    UPROPERTY
+    (UCameraComponent*, FollowCamera, = nullptr);
 };
 

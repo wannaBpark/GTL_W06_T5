@@ -104,8 +104,8 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
 {
     // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
-
-    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
+    if (IsPIEMode())
     {
         // PIE 모드 → 게임 플레이 입력 처리
         UWorld* PlayWorld = GEngine->ActiveWorld;
@@ -414,6 +414,11 @@ bool FEditorViewportClient::IsSelected(const FVector2D& InPoint) const
     return GetViewport()->bIsHovered(InPoint);
 }
 
+bool FEditorViewportClient::IsPIEMode() const
+{
+    return GEngine->ActiveWorld->WorldType == EWorldType::PIE;
+}
+
 void FEditorViewportClient::DeprojectFVector2D(const FVector2D& ScreenPos, FVector& OutWorldOrigin, FVector& OutWorldDir) const
 {
     const float TopLeftX = Viewport->GetD3DViewport().TopLeftX;
@@ -525,6 +530,7 @@ void FEditorViewportClient::PivotMoveUp(const float InValue) const
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
+
     if (IsPerspective())
     {
         View = JungleMath::CreateViewMatrix(PerspectiveCamera.GetLocation(),
