@@ -495,6 +495,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EditorEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EventManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FObjLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\HitResult.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapInfo.h" />

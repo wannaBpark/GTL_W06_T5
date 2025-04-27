@@ -79,7 +79,7 @@ public:
     float OrthoZoom;
 };
 
-class FEditorViewportClient : public FViewportClient
+class  FEditorViewportClient : public FViewportClient
 {
 public:
     FEditorViewportClient();

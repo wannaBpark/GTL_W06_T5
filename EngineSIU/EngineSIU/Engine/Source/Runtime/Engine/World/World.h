@@ -6,6 +6,7 @@
 #include "WorldType.h"
 #include "Level.h"
 #include "Actors/Player.h"
+#include "Engine/EventManager.h"
 
 class UCameraComponent;
 class FObjectFactory;
@@ -58,6 +59,8 @@ public:
     T* DuplicateActor(T* InActor);
 
     EWorldType WorldType = EWorldType::None;
+    
+    FEventManager EventManager;
 
     void SetMainCamera(UCameraComponent* InCamera) {MainCamera = InCamera;}
     UCameraComponent* GetMainCamera(){ return MainCamera; }
