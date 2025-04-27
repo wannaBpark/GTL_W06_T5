@@ -48,13 +48,13 @@ UObject* UWorld::Duplicate(UObject* InOuter)
 
 void UWorld::Tick(float DeltaTime)
 {
-    for (AActor* Actor : PendingBeginPlayActors)
+    if (WorldType != EWorldType::Editor)
     {
-        if (Actor->bUseScript)
+        for (AActor* Actor : PendingBeginPlayActors)
         {
-            Actor->InitLuaScriptComponent();
+            Actor->BeginPlay();
         }
-        Actor->BeginPlay();
+        PendingBeginPlayActors.Empty();
     }
 
     for (AActor* Actor : GetActiveLevel()->Actors)
@@ -83,9 +83,6 @@ void UWorld::Tick(float DeltaTime)
             }
         }
     }
-
-    // 4. BeginPlay 대기 리스트 비우기
-    PendingBeginPlayActors.Empty();
 }
 
 void UWorld::BeginPlay()  
@@ -94,13 +91,14 @@ void UWorld::BeginPlay()
     {
         if (Actor->GetWorld() == this)
         {
-            if (Actor->bUseScript)
-            {
-                Actor->SetupLuaProperties();
-            }
             Actor->BeginPlay();
+            if (PendingBeginPlayActors.Contains(Actor))
+            {
+                PendingBeginPlayActors.Remove(Actor);
+            }
         }
     }
+
 }
 
 void UWorld::Release()
