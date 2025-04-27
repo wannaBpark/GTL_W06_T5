@@ -6,6 +6,7 @@
 #include "WorldType.h"
 #include "Level.h"
 
+class UCameraComponent;
 class FObjectFactory;
 class AActor;
 class UObject;
@@ -57,6 +58,7 @@ public:
 
     EWorldType WorldType = EWorldType::None;
 
+    UCameraComponent* MainCamera = nullptr;
     
 private:
     FString WorldName = "DefaultWorld";

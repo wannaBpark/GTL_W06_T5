@@ -58,6 +58,26 @@
             "Components": [
                 {
                     "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "UStaticMeshComponent_113",
+                    "Properties": {
+                        "AABB_max": "X=0.500 Y=0.500 Z=0.500",
+                        "AABB_min": "X=-0.500 Y=-0.500 Z=-0.500",
+                        "AttachParentID": "UDirectionalLightComponent_115",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "UStaticMeshComponent_113",
+                        "ComponentOwner": "ACube_113",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=2.357 Y=0.773 Z=-1.954",
+                        "RelativeRotation": "Pitch=-27.366 Yaw=81.893 Roll=-21.438",
+                        "RelativeScale3D": "X=1.538 Y=1.000 Z=2.782",
+                        "StaticMeshPath": "Contents/CubePrimitive.obj",
+                        "bAutoActive": "true",
+                        "bIsActive": "true",
+                        "m_Type": ""
+                    }
+                },
+                {
+                    "ComponentClass": "UStaticMeshComponent",
                     "ComponentID": "StaticMeshComponent_0",
                     "Properties": {
                         "AABB_max": "X=1.287 Y=1.199 Z=2.555",
@@ -67,9 +87,9 @@
                         "ComponentName": "StaticMeshComponent_0",
                         "ComponentOwner": "ACube_113",
                         "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=2.412 Y=5.260 Z=-0.002",
-                        "RelativeRotation": "Pitch=-1.022 Yaw=27.316 Roll=21.384",
-                        "RelativeScale3D": "X=1.632 Y=1.074 Z=0.956",
+                        "RelativeLocation": "X=0.092 Y=6.437 Z=-0.071",
+                        "RelativeRotation": "Pitch=-9.080 Yaw=-12.924 Roll=1.949",
+                        "RelativeScale3D": "X=1.048 Y=1.008 Z=1.000",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
@@ -90,8 +110,32 @@
                         "Direction": "X=-1.000 Y=-0.000 Z=-0.000",
                         "Intensity": "10.000000",
                         "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "RelativeLocation": "X=4.808 Y=-0.959 Z=0.392",
-                        "RelativeRotation": "Pitch=39.491 Yaw=-38.461 Roll=-35.055",
+                        "RelativeLocation": "X=4.908 Y=-1.402 Z=0.393",
+                        "RelativeRotation": "Pitch=38.171 Yaw=-48.770 Roll=-36.168",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                }
+            ],
+            "RootComponentID": "StaticMeshComponent_0"
+        },
+        {
+            "ActorClass": "AActor",
+            "ActorID": "AActor_113",
+            "ActorLabel": "OBJ_CAMERA_113",
+            "Components": [
+                {
+                    "ComponentClass": "UCameraComponent",
+                    "ComponentID": "UCameraComponent_114",
+                    "Properties": {
+                        "AttachParentID": "nullptr",
+                        "ComponentClass": "UCameraComponent",
+                        "ComponentName": "UCameraComponent_114",
+                        "ComponentOwner": "AActor_113",
+                        "ComponentOwnerClass": "AActor",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.500 Yaw=43.120 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true"
@@ -99,26 +143,26 @@
                 },
                 {
                     "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "UStaticMeshComponent_113",
+                    "ComponentID": "UStaticMeshComponent_157",
                     "Properties": {
-                        "AABB_max": "X=0.500 Y=0.500 Z=0.500",
-                        "AABB_min": "X=-0.500 Y=-0.500 Z=-0.500",
-                        "AttachParentID": "UDirectionalLightComponent_115",
+                        "AABB_max": "X=1.000 Y=-0.000 Z=1.000",
+                        "AABB_min": "X=0.000 Y=-1.000 Z=0.000",
+                        "AttachParentID": "UCameraComponent_114",
                         "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "UStaticMeshComponent_113",
-                        "ComponentOwner": "ACube_113",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=1.942 Y=1.196 Z=-1.860",
-                        "RelativeRotation": "Pitch=-30.677 Yaw=47.733 Roll=-17.231",
-                        "RelativeScale3D": "X=1.538 Y=1.000 Z=2.782",
-                        "StaticMeshPath": "Contents/CubePrimitive.obj",
+                        "ComponentName": "UStaticMeshComponent_157",
+                        "ComponentOwner": "AActor_113",
+                        "ComponentOwnerClass": "AActor",
+                        "RelativeLocation": "X=0.071 Y=-0.000 Z=8.082",
+                        "RelativeRotation": "Pitch=0.281 Yaw=63.984 Roll=-0.449",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "StaticMeshPath": "Contents/Cube/cube-tex.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
                     }
                 }
             ],
-            "RootComponentID": "StaticMeshComponent_0"
+            "RootComponentID": "UCameraComponent_114"
         }
     ],
     "NextUUID": 0,

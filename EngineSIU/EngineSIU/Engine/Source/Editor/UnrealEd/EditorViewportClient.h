@@ -7,7 +7,7 @@
 #include "EngineLoop.h"
 #include "EngineBaseTypes.h"
 
-#define MIN_ORTHOZOOM (1.0)  // 2D ortho viewport zoom >= MIN_ORTHOZOOM
+#define  MIN_ORTHOZOOM (1.0)  // 2D ortho viewport zoom >= MIN_ORTHOZOOM
 #define MAX_ORTHOZOOM (1e25)
 
 struct FPointerEvent;

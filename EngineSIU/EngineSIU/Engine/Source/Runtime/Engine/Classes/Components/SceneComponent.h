@@ -14,7 +14,6 @@ public:
     USceneComponent();
 
     virtual UObject* Duplicate(UObject* InOuter) override;
-
     
     void GetProperties(TMap<FString, FString>& OutProperties) const override;
     void SetProperties(const TMap<FString, FString>& InProperties) override;
@@ -72,22 +71,21 @@ public:
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
     UPROPERTY
-    (FVector, RelativeLocation);
+    (FVector, RelativeLocation)
 
     /** 부모 컴포넌트로부터 상대적인 회전 */
     UPROPERTY
-    (FRotator, RelativeRotation);
+    (FRotator, RelativeRotation)
 
     /** 부모 컴포넌트로부터 상대적인 크기 */
     UPROPERTY
-    (FVector, RelativeScale3D);
-
-
-    UPROPERTY
-    (USceneComponent*, AttachParent, = nullptr);
+    (FVector, RelativeScale3D)
 
     UPROPERTY
-    (TArray<USceneComponent*>, AttachChildren);
+    (USceneComponent*, AttachParent, = nullptr)
+
+    UPROPERTY
+    (TArray<USceneComponent*>, AttachChildren)
 
     virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps);
 

@@ -128,6 +128,11 @@ void PropertyEditorPanel::Render()
         RenderForExponentialHeightFogComponent(FogComponent);
     }
 
+    if (UCameraComponent* CameraComponent = GetTargetComponent<UCameraComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForCameraComponent(CameraComponent);
+    }
+
     ImGui::End();
 }
 
@@ -229,6 +234,14 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
     }
 
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForCameraComponent(UCameraComponent* CameraComponent)
+{
+    if (ImGui::Button("SetMainCamera"))
+    {
+        GEngine->ActiveWorld->MainCamera = CameraComponent;
+    }
 }
 
 void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent* TargetComponent) const
