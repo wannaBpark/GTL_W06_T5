@@ -79,16 +79,10 @@ void PropertyEditorPanel::Render()
 
     if (TargetComponent != nullptr)
     {
-        if (ImGui::Button("Duplicate"))
-        {
-            AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
-            Engine->SelectActor(NewActor);
-        }
-        
         AEditorPlayer* Player = Engine->GetEditorPlayer();
         RenderForSceneComponent(TargetComponent, Player);
-
     }
+
     if (SelectedActor)
     {
         RenderForActor(SelectedActor, TargetComponent);
@@ -299,18 +293,21 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
 
 void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const
 {
-    if (StaticMeshComp->GetStaticMesh() == nullptr)
-    {
-        return;
-    }
-
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Static Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
         ImGui::Text("StaticMesh");
         ImGui::SameLine();
 
-        FString PreviewName = StaticMeshComp->GetStaticMesh()->GetRenderData()->DisplayName;
+        FString PreviewName = FString("None");
+        if (UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh())
+        {
+            if (FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData())
+            {
+                PreviewName = RenderData->DisplayName;
+            }
+        }
+        
         const TMap<FName, FAssetInfo> Assets = UAssetManager::Get().GetAssetRegistry();
 
         if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))

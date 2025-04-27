@@ -10,6 +10,7 @@ FHitResult::FHitResult(class AActor* InActor, class UPrimitiveComponent* InCompo
     ImpactPoint = HitLoc;
     Normal = HitNorm;
     ImpactNormal = HitNorm;
+    HitActor = InActor;
     // HitObjectHandle = FActorInstanceHandle(InActor);
     Component = InComponent;
 }
