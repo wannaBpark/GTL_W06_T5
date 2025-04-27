@@ -4,7 +4,6 @@
 #include "HAL/PlatformType.h"
 #include "UObject/NameTypes.h"
 #include "ImGUI/imgui.h"
-#include "PropertyEditor/IWindowToggleable.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -53,7 +52,7 @@ private:
     bool bShowWindow = true;
 };
 
-class Console : public IWindowToggleable
+class Console
 {
 private:
     Console() = default;
@@ -73,19 +72,6 @@ public:
     void Draw();
     void ExecuteCommand(const std::string& Command);
     void OnResize(HWND hWnd);
-
-    virtual void Toggle() override
-    {
-        if (bWasOpen)
-        {
-            bWasOpen = false;
-        }
-        else
-        {
-            bWasOpen = true;
-        }
-    }
-
 public:
     struct LogEntry
     {

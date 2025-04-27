@@ -26,11 +26,10 @@
 #include "PostProcessCompositingPass.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
-#include "SlateRenderPass.h"
+#include "ShowFlag.h"
 #include "UnrealClient.h"
 #include "GameFrameWork/Actor.h"
 
-#include "PropertyEditor/ShowFlags.h"
 #include "Stats/Stats.h"
 #include "Stats/GPUTimingManager.h"
 
@@ -247,7 +246,7 @@ void FRenderer::ClearRenderArr() const
     TileLightCullingPass->ClearRenderArr();
 }
 
-void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     FCameraConstantBuffer CameraConstantBuffer;
     CameraConstantBuffer.ViewMatrix = Viewport->GetViewMatrix();
@@ -255,12 +254,12 @@ void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>&
     CameraConstantBuffer.ProjectionMatrix = Viewport->GetProjectionMatrix();
     CameraConstantBuffer.InvProjectionMatrix = FMatrix::Inverse(CameraConstantBuffer.ProjectionMatrix);
     CameraConstantBuffer.ViewLocation = Viewport->GetCameraLocation();
-    CameraConstantBuffer.NearClip = Viewport->GetCameraNearClip();
-    CameraConstantBuffer.FarClip = Viewport->GetCameraFarClip();
+    CameraConstantBuffer.NearClip = Viewport->GetNearClip();
+    CameraConstantBuffer.FarClip = Viewport->GetFarClip();
     BufferManager->UpdateConstantBuffer("FCameraConstantBuffer", CameraConstantBuffer);
 }
 
-void FRenderer::BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::BeginRender(const std::shared_ptr<FViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     if (!ViewportResource)
@@ -274,7 +273,7 @@ void FRenderer::BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewpo
 }
 
 
-void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FRenderer::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     if (!GPUTimingManager || !GPUTimingManager->IsInitialized())
     {
@@ -357,7 +356,7 @@ void FRenderer::EndRender()
     ShaderManager->ReloadAllShaders(); // 
 }
 
-void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FRenderer::RenderWorldScene(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     
@@ -386,7 +385,7 @@ void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& V
     }
 }
 
-void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FRenderer::RenderPostProcess(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
@@ -423,7 +422,7 @@ void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FRenderer::RenderEditorOverlay(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
@@ -466,7 +465,7 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void FRenderer::RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FRenderer::RenderViewport(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     QUICK_SCOPE_CYCLE_COUNTER(SlatePass_CPU)
     QUICK_GPU_SCOPE_CYCLE_COUNTER(SlatePass_GPU, *GPUTimingManager)

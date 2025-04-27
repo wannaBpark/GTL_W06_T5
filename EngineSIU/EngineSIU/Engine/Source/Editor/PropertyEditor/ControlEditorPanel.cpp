@@ -3,21 +3,15 @@
 #include "World/World.h"
 
 #include "Actors/Player.h"
-#include "Actors/LightActor.h"
 #include "Actors/FireballActor.h"
 
 #include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/ParticleSubUVComponent.h"
 #include "Components/TextComponent.h"
-#include "Components/ProjectileMovementComponent.h"
 
 #include "Engine/FLoaderOBJ.h"
-#include "Engine/StaticMeshActor.h"
 #include "LevelEditor/SLevelEditor.h"
-#include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 
@@ -25,6 +19,8 @@
 
 #include "Engine/EditorEngine.h"
 #include <Actors/HeightFogActor.h>
+
+#include "ShowFlag.h"
 #include "Actors/PointLightActor.h"
 #include "Actors/DirectionalLightActor.h"
 #include "Actors/SpotLightActor.h"
@@ -249,11 +245,11 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         ImGui::Separator();
 
         ImGui::Text("Camera FOV");
-        FOV = &GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->ViewFOV;
+        float FOV = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetFieldOfView();
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##Fov", FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
+        if (ImGui::DragFloat("##Fov", &FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
         {
-            //GEngineLoop.GetWorld()->GetCamera()->SetFOV(FOV);
+            GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->SetFieldOfView(FOV);
         }
 
         ImGui::Spacing();
@@ -476,7 +472,40 @@ void ControlEditorPanel::CreateFlagButton()
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    ShowFlags::GetInstance().Draw(ActiveViewport);
+
+
+    if (ImGui::Button("Show", ImVec2(60, 32)))
+    {
+        ImGui::OpenPopup("ShowFlags");
+    }
+
+    const char* Items[] = { "AABB", "Primitives", "BillBoardText", "UUID", "Fog", "LightWireframe", "LightWireframeSelectedOnly", "Shadow", "Collision", "CollisionSelectedOnly" };
+    const uint64 CurFlag = ActiveViewport->GetShowFlag();
+
+    if (ImGui::BeginPopup("ShowFlags"))
+    {
+        bool Selected[IM_ARRAYSIZE(Items)] = 
+        {
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_AABB),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_Primitives),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_BillboardText),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_UUIDText),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_Fog),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_LightWireframe),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_LightWireframeSelectedOnly),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_Shadow),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_Collision),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_CollisionSelectedOnly),
+        }; // 각 항목의 체크 상태 저장
+
+        for (int i = 0; i < IM_ARRAYSIZE(Items); i++)
+        {
+            ImGui::Checkbox(Items[i], &Selected[i]);
+        }
+
+        ActiveViewport->SetShowFlag(ConvertSelectionToFlags(Selected));
+        ImGui::EndPopup();
+    }
 }
 
 void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize, ImFont* IconFont)
@@ -622,4 +651,57 @@ void ControlEditorPanel::CreateLightSpawnButton(const ImVec2 InButtonSize, ImFon
 
         ImGui::EndPopup();
     }
+}
+
+uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool Selected[])
+{
+    uint64 Flags = EEngineShowFlags::None;
+
+    if (Selected[0])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_AABB);
+    }
+    if (Selected[1])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Primitives);
+    }
+    if (Selected[2])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
+    }
+    if (Selected[3])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_UUIDText);
+    }
+    if (Selected[4])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Fog);
+    }
+    if (Selected[5])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_LightWireframe);
+    }
+    if (Selected[6])
+    {
+        // Need SF_LightWireframe to Draw
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_LightWireframe);
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_LightWireframeSelectedOnly);
+    }
+    if (Selected[7])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Shadow);
+    }
+
+    if (Selected[8])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Collision);
+    }
+    
+    if (Selected[9])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Collision);
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_CollisionSelectedOnly);
+    }
+
+    return Flags;
 }

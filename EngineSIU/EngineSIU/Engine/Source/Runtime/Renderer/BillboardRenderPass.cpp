@@ -143,7 +143,7 @@ void FBillboardRenderPass::ReleaseShader()
 {
 }
 
-void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FBillboardRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
 

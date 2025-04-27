@@ -180,8 +180,6 @@
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.cpp" />
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ShowFlags.cpp" />
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\PrimitiveDrawBatch.cpp" />
@@ -264,6 +262,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\OverlapInfo.h" />
     <ClCompile Include="Engine\Source\Runtime\Engine\UnrealClient.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\UserInterface\Console.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\ViewportClient.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\World\World.cpp" />
     <ClCompile Include="Engine\Source\Runtime\InputCore\InputCoreTypes.cpp" />
     <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoArrowComponent.cpp" />
@@ -410,11 +409,8 @@
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.h" />
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\IWindowToggleable.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.h" />
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ShowFlags.h" />
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.h" />
@@ -532,6 +528,7 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\EngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ImGuiManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LightDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlag.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\CompositingPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\DepthPrePass.h" />

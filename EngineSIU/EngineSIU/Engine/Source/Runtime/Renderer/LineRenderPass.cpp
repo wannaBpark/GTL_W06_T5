@@ -99,7 +99,7 @@ void FLineRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVe
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
-void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FLineRenderPass::ProcessLineRendering()
 {
     UpdateShader();
     PrepareLineShader();
@@ -113,7 +113,7 @@ void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewport
     FEngineLoop::PrimitiveDrawBatch.RemoveArr();
 }
 
-void FLineRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FLineRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     const EResourceType ResourceType = EResourceType::ERT_Editor;
 
@@ -122,7 +122,7 @@ void FLineRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewp
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
-    ProcessLineRendering(Viewport);
+    ProcessLineRendering();
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }

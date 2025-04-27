@@ -94,8 +94,8 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
                 {
                     // 초기 Actor와 Cursor의 거리차를 저장
                     const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewportClient->PerspectiveCamera
-                                                        : &ActiveViewportClient->OrthogonalCamera;
+                                                        ? &ActiveViewportClient->GetPerspectiveCamera()
+                                                        : &ActiveViewportClient->GetOrthogonalCamera();
 
                     FVector RayOrigin, RayDir;
                     ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
@@ -251,8 +251,8 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
                         if (const UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewportClient->GetPickedGizmoComponent()))
                         {
                             const FViewportCamera* ViewTransform = ActiveViewportClient->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewportClient->PerspectiveCamera
-                                                        : &ActiveViewportClient->OrthogonalCamera;
+                                                        ? &ActiveViewportClient->GetPerspectiveCamera()
+                                                        : &ActiveViewportClient->GetOrthogonalCamera();
 
                             FVector RayOrigin, RayDir;
                             ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
@@ -339,16 +339,16 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         {
             if (!InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
             {
-                const FVector CameraLoc = ActiveViewportClient->PerspectiveCamera.GetLocation();
-                const FVector CameraForward = ActiveViewportClient->PerspectiveCamera.GetForwardVector();
-                ActiveViewportClient->PerspectiveCamera.SetLocation(
+                const FVector CameraLoc = ActiveViewportClient->GetPerspectiveCamera().GetLocation();
+                const FVector CameraForward = ActiveViewportClient->GetPerspectiveCamera().GetForwardVector();
+                ActiveViewportClient->GetPerspectiveCamera().SetLocation(
                     CameraLoc + CameraForward * InMouseEvent.GetWheelDelta() * 50.0f
                 );
             }
         }
         else
         {
-            FEditorViewportClient::SetOthoSize(-InMouseEvent.GetWheelDelta());
+            FEditorViewportClient::SetOrthoSize(FEditorViewportClient::GetOrthoSize() + (-InMouseEvent.GetWheelDelta()));
         }
     });
 
@@ -444,10 +444,15 @@ bool SLevelEditor::IsMultiViewport() const
 void SLevelEditor::LoadConfig()
 {
     auto Config = FEditorConfigManager::GetInstance().Read();
-    FEditorViewportClient::Pivot.X = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotX", 0.0f);
-    FEditorViewportClient::Pivot.Y = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotY", 0.0f);
-    FEditorViewportClient::Pivot.Z = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotZ", 0.0f);
-    FEditorViewportClient::OrthoSize = FEditorConfigManager::GetValueFromConfig(Config, "OrthoZoomSize", 10.0f);
+    FVector Pivot;
+    float OrthoSize;
+    Pivot.X = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotX", 0.0f);
+    Pivot.Y = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotY", 0.0f);
+    Pivot.Z = FEditorConfigManager::GetValueFromConfig(Config, "OrthoPivotZ", 0.0f);
+    OrthoSize = FEditorConfigManager::GetValueFromConfig(Config, "OrthoZoomSize", 10.0f);
+
+    FEditorViewportClient::SetOrthoPivot(Pivot);
+    FEditorViewportClient::SetOrthoSize(OrthoSize);
 
     SetActiveViewportClient(FEditorConfigManager::GetValueFromConfig(Config, "ActiveViewportIndex", 0));
     bMultiViewportMode = FEditorConfigManager::GetValueFromConfig(Config, "bMultiView", false);
@@ -494,12 +499,12 @@ void SLevelEditor::SaveConfig()
     }
     ActiveViewportClient->SaveConfig(config);
     config["bMultiView"] = std::to_string(bMultiViewportMode);
-    config["ActiveViewportIndex"] = std::to_string(ActiveViewportClient->ViewportIndex);
+    config["ActiveViewportIndex"] = std::to_string(ActiveViewportClient->GetViewportIndex());
     config["ScreenWidth"] = std::to_string(EditorWidth);
     config["ScreenHeight"] = std::to_string(EditorHeight);
-    config["OrthoPivotX"] = std::to_string(ActiveViewportClient->Pivot.X);
-    config["OrthoPivotY"] = std::to_string(ActiveViewportClient->Pivot.Y);
-    config["OrthoPivotZ"] = std::to_string(ActiveViewportClient->Pivot.Z);
-    config["OrthoZoomSize"] = std::to_string(ActiveViewportClient->OrthoSize);
+    config["OrthoPivotX"] = std::to_string(FEditorViewportClient::GetOrthoPivot().X);
+    config["OrthoPivotY"] = std::to_string(FEditorViewportClient::GetOrthoPivot().Y);
+    config["OrthoPivotZ"] = std::to_string(FEditorViewportClient::GetOrthoPivot().Z);
+    config["OrthoZoomSize"] = std::to_string(FEditorViewportClient::GetOrthoSize());
     FEditorConfigManager::GetInstance().AddConfig(config);
 }
