@@ -9,12 +9,11 @@ UCapsuleComponent::UCapsuleComponent()
 
 UObject* UCapsuleComponent::Duplicate(UObject* InOuter)
 {
-    UCapsuleComponent* NewComponent = Cast<UCapsuleComponent>(Super::Duplicate(InOuter));
-    if (NewComponent)
-    {
-        NewComponent->CapsuleHalfHeight = CapsuleHalfHeight;
-        NewComponent->CapsuleRadius = CapsuleRadius;
-    }
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewComponent->CapsuleHalfHeight = CapsuleHalfHeight;
+    NewComponent->CapsuleRadius = CapsuleRadius;
+    
     return NewComponent;
 }
 
