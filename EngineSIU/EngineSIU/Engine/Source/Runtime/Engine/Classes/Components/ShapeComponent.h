@@ -2,6 +2,15 @@
 #pragma once
 #include "PrimitiveComponent.h"
 
+enum class EShapeType : uint8
+{
+    Box,
+    Sphere,
+    Capsule,
+
+    MAX,
+};
+
 class UShapeComponent : public UPrimitiveComponent
 {
     DECLARE_CLASS(UShapeComponent, UPrimitiveComponent)    
@@ -11,4 +20,9 @@ public:
     
     FColor ShapeColor = FColor(180, 180, 180, 255);
     bool bDrawOnlyIfSelected = true;
+
+    EShapeType GetShapeType() const { return ShapeType; }
+
+protected:
+    EShapeType ShapeType = EShapeType::MAX;
 };

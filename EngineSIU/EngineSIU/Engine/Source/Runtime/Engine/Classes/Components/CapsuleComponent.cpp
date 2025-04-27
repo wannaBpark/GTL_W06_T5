@@ -4,6 +4,7 @@
 
 UCapsuleComponent::UCapsuleComponent()
 {
+    ShapeType = EShapeType::Capsule;
 }
 
 UObject* UCapsuleComponent::Duplicate(UObject* InOuter)

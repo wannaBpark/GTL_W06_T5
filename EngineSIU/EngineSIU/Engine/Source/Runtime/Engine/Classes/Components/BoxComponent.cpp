@@ -4,6 +4,7 @@
 
 UBoxComponent::UBoxComponent()
 {
+    ShapeType = EShapeType::Box;
 }
 
 UObject* UBoxComponent::Duplicate(UObject* InOuter)

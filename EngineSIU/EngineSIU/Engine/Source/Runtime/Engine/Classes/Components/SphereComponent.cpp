@@ -4,6 +4,7 @@
 
 USphereComponent::USphereComponent()
 {
+    ShapeType = EShapeType::Sphere;
 }
 
 UObject* USphereComponent::Duplicate(UObject* InOuter)
