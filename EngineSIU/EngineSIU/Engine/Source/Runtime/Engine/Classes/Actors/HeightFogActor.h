@@ -10,6 +10,7 @@ class AHeightFogActor : public AActor
 
 public:
     AHeightFogActor();
+    UObject* Duplicate(UObject* InOuter) override;
 
     UHeightFogComponent* HeightFogComponent;
 };

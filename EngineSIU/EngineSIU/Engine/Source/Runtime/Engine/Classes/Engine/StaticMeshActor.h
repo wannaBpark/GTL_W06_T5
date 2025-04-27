@@ -11,6 +11,8 @@ class AStaticMeshActor : public AActor
 public:
     AStaticMeshActor();
 
+    UObject* Duplicate(UObject* InOuter) override;
+
     UStaticMeshComponent* GetStaticMeshComponent() const;
 
 protected:

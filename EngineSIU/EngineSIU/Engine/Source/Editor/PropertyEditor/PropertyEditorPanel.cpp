@@ -284,6 +284,27 @@ void PropertyEditorPanel::RenderForActor(AActor* InActor, USceneComponent* Targe
                 MessageBox(nullptr, L"파일 열기에 실패했습니다.", L"Error", MB_OK | MB_ICONERROR);
             }
         }
+
+        ImGui::SameLine();
+        
+        if (ImGui::Button("Delete Script"))
+        {
+            try
+            {
+                if (std::filesystem::exists(FilePath))
+                {
+                    std::filesystem::remove(FilePath);
+                }
+                else
+                {
+                    MessageBoxA(nullptr, "The script file does not exist.", "Error", MB_OK | MB_ICONERROR);
+                }
+            }
+            catch (const std::filesystem::filesystem_error& e)
+            {
+                MessageBoxA(nullptr, "Failed to Delete Script File: ", "Error", MB_OK | MB_ICONERROR);
+            }
+        }
     }
     else
     {

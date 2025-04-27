@@ -139,9 +139,11 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
                 ImGui::End();
                 return;
             }
-            if (const UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+            if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
             {
                 EditorEngine->SaveLevel(FileName);
+                EditorEngine->NewLevel();
+                EditorEngine->LoadLevel(FileName);
             }
 
             tinyfd_messageBox("알림", "저장되었습니다.", "ok", "info", 1);

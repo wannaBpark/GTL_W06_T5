@@ -85,6 +85,29 @@ UObject* AActor::Duplicate(UObject* InOuter)
     return NewActor;
 }
 
+void AActor::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    TMap<FString, FString>& Properties = OutProperties;
+    
+    Properties.Add(TEXT("bTickInEditor"), bTickInEditor ? TEXT("true") : TEXT("false"));
+    Properties.Add(TEXT("bUseScript"), bUseScript ? TEXT("true") : TEXT("false"));
+}
+
+void AActor::SetProperties(const TMap<FString, FString>& InProperties)
+{
+    const FString* TempStr = nullptr;
+    TempStr = InProperties.Find(TEXT("bTickInEditor"));
+    if (TempStr)
+    {
+        bTickInEditor = *TempStr == TEXT("true");
+    }
+    TempStr = InProperties.Find(TEXT("bUseScript"));
+    if (TempStr)
+    {
+        bUseScript = *TempStr == TEXT("true");
+    }
+}
+
 void AActor::BeginPlay()
 {
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
@@ -369,9 +392,13 @@ void AActor::SetActorTickInEditor(bool InbInTickInEditor)
 
 void AActor::InitLuaScriptComponent()
 {
-    if (!LuaScriptComponent)
+    if (LuaScriptComponent == nullptr)
     {
-        LuaScriptComponent = AddComponent<ULuaScriptComponent>("LuaComponent");
+        LuaScriptComponent = GetComponentByFName<ULuaScriptComponent>("LuaComponent_0");
+        if (LuaScriptComponent == nullptr)
+        {
+            LuaScriptComponent = AddComponent<ULuaScriptComponent>("LuaComponent_0");
+        }
     }
 
     if (LuaScriptComponent)

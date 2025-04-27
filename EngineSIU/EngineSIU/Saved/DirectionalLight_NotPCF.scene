@@ -47,6 +47,10 @@
                     }
                 }
             ],
+            "Properties": {
+                "bTickInEditor": "false",
+                "bUseScript": "true"
+            },
             "RootComponentID": "UBillboardComponent_0"
         },
         {
@@ -74,6 +78,10 @@
                     }
                 }
             ],
+            "Properties": {
+                "bTickInEditor": "false",
+                "bUseScript": "true"
+            },
             "RootComponentID": "StaticMeshComponent_0"
         },
         {
@@ -101,6 +109,10 @@
                     }
                 }
             ],
+            "Properties": {
+                "bTickInEditor": "false",
+                "bUseScript": "true"
+            },
             "RootComponentID": "StaticMeshComponent_0"
         }
     ],

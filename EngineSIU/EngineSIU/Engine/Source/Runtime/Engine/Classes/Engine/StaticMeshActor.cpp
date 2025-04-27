@@ -9,6 +9,15 @@ AStaticMeshActor::AStaticMeshActor()
     RootComponent = StaticMeshComponent;
 }
 
+UObject* AStaticMeshActor::Duplicate(UObject* InOuter)
+{
+    UObject* NewActor = AActor::Duplicate(InOuter);
+    AStaticMeshActor* NewStaticMeshActor = Cast<AStaticMeshActor>(NewActor);
+    NewStaticMeshActor->StaticMeshComponent = GetComponentByFName<UStaticMeshComponent>("StaticMeshComponent_0");
+
+    return NewActor;
+}
+
 UStaticMeshComponent* AStaticMeshActor::GetStaticMeshComponent() const
 {
     return StaticMeshComponent;

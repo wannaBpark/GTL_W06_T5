@@ -13,6 +13,7 @@ public:
     virtual ~AFireballActor();
     virtual void BeginPlay() override;
 
+    UObject* Duplicate(UObject* InOuter) override;
 protected:
     
     UPROPERTY

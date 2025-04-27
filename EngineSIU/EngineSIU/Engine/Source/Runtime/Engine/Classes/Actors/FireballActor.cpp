@@ -37,3 +37,14 @@ AFireballActor::~AFireballActor()
 void AFireballActor::BeginPlay()
 {
 }
+
+UObject* AFireballActor::Duplicate(UObject* InOuter)
+{
+    UObject* NewActor = AActor::Duplicate(InOuter);
+    AFireballActor* FireballActor = Cast<AFireballActor>(NewActor);
+    FireballActor->ProjectileMovementComponent = GetComponentByFName<UProjectileMovementComponent>("UProjectileMovementComponent_0");
+    FireballActor->SphereComp = GetComponentByFName<USphereComp>("USphereComp_0");
+    FireballActor->PointLightComponent = GetComponentByFName<UPointLightComponent>("UPointLightComponent_0");
+
+    return NewActor;
+}

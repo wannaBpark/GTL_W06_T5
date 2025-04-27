@@ -16,7 +16,6 @@ UObject* UActorComponent::Duplicate(UObject* InOuter)
 
 void UActorComponent::GetProperties(TMap<FString, FString>& OutProperties) const
 {
-    
     TMap<FString, FString>& Properties = OutProperties;
     
     Properties.Add(TEXT("ComponentName"), *GetName());

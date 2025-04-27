@@ -32,6 +32,15 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
+    /**
+    * 해당 액터의 직렬화 가능한 속성들을 문자열 맵으로 반환합니다.
+    * 하위 클래스는 이 함수를 재정의하여 자신만의 속성을 추가해야 합니다.
+    */
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const;
+
+    /** 저장된 Properties 맵에서 액터의 상태를 복원합니다. */
+    virtual void SetProperties(const TMap<FString, FString>& InProperties);
+
     /** Actor가 게임에 배치되거나 스폰될 때 호출됩니다. */
     virtual void BeginPlay();
 

@@ -86,7 +86,9 @@ struct FActorSaveData
     FString RootComponentID;               // 이 액터의 루트 컴포넌트 ID (아래 Components 리스트 내 ID 참조)
     TArray<FComponentSaveData> Components; // 이 액터가 소유한 컴포넌트 목록
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(FActorSaveData, ActorID, ActorClass, ActorLabel, RootComponentID, Components)
+    TMap<FString, FString> Properties;
+    
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(FActorSaveData, ActorID, ActorClass, ActorLabel, RootComponentID, Components, Properties)
 };
 
 struct FSceneData
@@ -138,7 +140,13 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
 bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, const UWorld& InWorld)
 {
     FSceneData SceneData = WorldToSceneData(InWorld);
-
+    
+    std::filesystem::path Dir = std::filesystem::path(FilePath).parent_path();
+    
+    if (!std::filesystem::exists(Dir)) {
+        std::filesystem::create_directories(Dir); // 중간 경로까지 모두 생성
+    }
+    
     std::ofstream outFile(FilePath);
     if (!outFile)
     {
@@ -205,7 +213,9 @@ FSceneData SceneManager::WorldToSceneData(const UWorld& InWorld)
 
         USceneComponent* RootComp = Actor->GetRootComponent();
         actorData.RootComponentID = (RootComp != nullptr) ? RootComp->GetName() : TEXT(""); // 루트 없으면 빈 문자열
-        
+
+        Actor->GetProperties(actorData.Properties);
+
         for (const auto& Component : Actor->GetComponents())
         {
             FComponentSaveData componentData;
@@ -289,6 +299,8 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, const std::fil
         SpawnedActor->SetActorLabel(actorData.ActorLabel, false); // 액터 레이블 설정
         SpawnedActorsMap.Add(actorData.ActorID, SpawnedActor); // 맵에 추가
 
+        SpawnedActor->SetProperties(actorData.Properties);
+        
         // 액터별 로컬 컴포넌트 맵: ComponentID -> 생성/재사용된 컴포넌트 포인터
         TMap<FString, UActorComponent*> ActorComponentsMap;
 
