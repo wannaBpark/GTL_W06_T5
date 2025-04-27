@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "RawInput.h"
 #include "Delegates/DelegateCombination.h"
 #include "HAL/PlatformType.h"
@@ -23,6 +23,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseMoveDelegate, const FPointerEvent& /
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRawMouseInputDelegate, const FPointerEvent& /*InRawMouseEvent*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRawKeyboardInputDelegate, const FKeyEvent& /*InRawKeyboardEvent*/);
 
+DECLARE_MULTICAST_DELEGATE(FOnPIEModeStart);
+DECLARE_MULTICAST_DELEGATE(FOnPIEModeEnd);
 
 class FSlateAppMessageHandler
 {
@@ -44,6 +46,9 @@ public:
     /** ModifierKeys의 상태를 가져옵니다. */
     FModifierKeysState GetModifierKeys() const;
 
+    void OnPIEModeStart();
+    void OnPIEModeEnd();
+
 protected:
     void OnKeyChar(const TCHAR Character, const bool IsRepeat);
     void OnKeyDown(uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat);
@@ -56,6 +61,7 @@ protected:
 
     void OnRawMouseInput(const RAWMOUSE& RawMouseInput);
     void OnRawKeyboardInput(const RAWKEYBOARD& RawKeyboardInput);
+
     // 추가적인 함수는 UnrealEngine [SlateApplication.h:1628]을 참조
 
 public:
@@ -70,6 +76,9 @@ public:
 
     FOnRawMouseInputDelegate OnRawMouseInputDelegate;
     FOnRawKeyboardInputDelegate OnRawKeyboardInputDelegate;
+
+    FOnPIEModeStart OnPIEModeStartDelegate;
+    FOnPIEModeEnd OnPIEModeEndDelegate;
 
 private:
     struct EModifierKey

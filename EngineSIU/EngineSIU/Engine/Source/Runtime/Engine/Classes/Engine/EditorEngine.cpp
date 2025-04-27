@@ -111,6 +111,10 @@ void UEditorEngine::StartPIE()
         return;
     }
     this->ClearActorSelection(); // Editor World 기준 Select Actor 해제 
+    
+    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
+
+    Handler->OnPIEModeStart();
 
     FWorldContext& PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
 
@@ -140,6 +144,10 @@ void UEditorEngine::EndPIE()
         SelectActor(nullptr);
         SelectComponent(nullptr);
     }
+
+    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
+
+    Handler->OnPIEModeEnd();
     // 다시 EditorWorld로 돌아옴.
     ActiveWorld = EditorWorld;
 }
