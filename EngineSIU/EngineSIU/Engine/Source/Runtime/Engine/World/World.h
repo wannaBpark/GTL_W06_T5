@@ -5,6 +5,7 @@
 #include "UObject/ObjectMacros.h"
 #include "WorldType.h"
 #include "Level.h"
+#include "Engine/EventManager.h"
 
 class FObjectFactory;
 class AActor;
@@ -56,7 +57,8 @@ public:
     T* DuplicateActor(T* InActor);
 
     EWorldType WorldType = EWorldType::None;
-
+    
+    FEventManager EventManager;
     
 private:
     FString WorldName = "DefaultWorld";
@@ -65,7 +67,6 @@ private:
 
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TArray<AActor*> PendingBeginPlayActors;
-
 };
 
 

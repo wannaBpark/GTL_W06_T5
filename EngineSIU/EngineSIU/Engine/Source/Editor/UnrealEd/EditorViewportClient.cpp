@@ -282,6 +282,8 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
         }
         case VK_SPACE:
         {
+            UWorld* world = GEngine->ActiveWorld;
+            world->EventManager.Delegates["Lua"].Broadcast();
             EdEngine->GetEditorPlayer()->AddControlMode();
             break;
         }

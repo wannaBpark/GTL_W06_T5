@@ -50,8 +50,7 @@ private:
     FString ScriptPath;
     FString DisplayName;
 
-    TArray<FDelegateHandle> KeyDownDelegateHandles;
-    TArray<FDelegateHandle> FOnLocationDelegateHandles;
+    TArray<FDelegateHandle> DelegateHandles;
     
     sol::state LuaState;
     bool bScriptValid = false;

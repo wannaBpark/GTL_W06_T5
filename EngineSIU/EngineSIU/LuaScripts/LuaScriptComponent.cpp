@@ -1,10 +1,9 @@
 #include "LuaScriptComponent.h"
-#include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "LuaBindingHelpers.h"
-#include "World/World.h"
 #include "LuaScriptFileUtils.h"
-#include <tchar.h>
+#include "World/World.h"
 #include "Engine/EditorEngine.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
 
 ULuaScriptComponent::ULuaScriptComponent()
 {
@@ -18,9 +17,18 @@ void ULuaScriptComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    KeyDownDelegateHandles.Empty();
+    DelegateHandles.Empty();
+
+    FEventManager& EM = GetWorld()->EventManager;
     
-    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
+    // if (GetWorld()->WorldType == EWorldType::PIE)
+    {
+        FDelegateHandle PressSpaceDelegateHandler = EM.Delegates["Lua"].AddLambda([this]()
+        {
+            OnPressSpacebar();
+        });
+        DelegateHandles.Add(PressSpaceDelegateHandler);
+    }
     
     CallLuaFunction("BeginPlay");
 }
@@ -28,6 +36,16 @@ void ULuaScriptComponent::BeginPlay()
 void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 { 
     Super::EndPlay(EndPlayReason);
+
+    // if (GetWorld()->WorldType == EWorldType::PIE)
+    {
+        FEventManager& EM = GetWorld()->EventManager;
+        
+        for (FDelegateHandle DelegateHandle : DelegateHandles)
+        {
+            EM.Delegates["Lua"].Remove(DelegateHandle);
+        }        
+    }
     
     CallLuaFunction("EndPlay");
 }
