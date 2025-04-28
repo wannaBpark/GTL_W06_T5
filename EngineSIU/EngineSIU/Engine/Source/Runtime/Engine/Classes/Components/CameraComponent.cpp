@@ -23,6 +23,10 @@ void UCameraComponent::InitializeComponent()
 {
     USceneComponent::InitializeComponent();
 
+    FVector FL = GetWorldLocation();
+    FVector TL = FL + GetForwardVector() * 10;
+    
+    LerpMovement(FL, TL, 0.8);
 }
 
 void UCameraComponent::TickComponent(float DeltaTime)

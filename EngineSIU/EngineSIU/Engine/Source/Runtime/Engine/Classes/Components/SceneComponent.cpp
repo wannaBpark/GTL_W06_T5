@@ -399,26 +399,23 @@ bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRo
 
 void USceneComponent::ProceedLerp(float DeltaTime)
 {
-    if (LerpTime > 0) // Lerp중
+    if (LerpDeltaVector > 0 ) // Lerp중
     {
-        float LerpDeltaTime = DeltaTime;
+        FVector FromLocation = GetWorldLocation();
+        FVector ToLocation = FromLocation + LerpDeltaVector;
 
-        //LerpTime이 0이 아닌 음수까지 가면 더 많이 움직이기 때문에 예외처리
-        LerpDeltaTime = std::min(LerpTime, LerpDeltaTime);
+        FVector MoveLocation = FMath::FInterpTo(FromLocation, ToLocation, DeltaTime, LerpSpeed);
+        SetWorldLocation(MoveLocation);
 
-        FVector DeltaLocation = LerpMoveVector / LerpTime * LerpDeltaTime;
-
-        FVector CameraLocation = GetWorldLocation();
-        CameraLocation += DeltaLocation;
-        SetWorldLocation(CameraLocation);
-
-        LerpMoveVector -= DeltaLocation;
-        LerpTime -= LerpDeltaTime;
+        //움직인만큼 빼주기
+        LerpDeltaVector -= MoveLocation - FromLocation;
+        LerpDeltaVector = FMath::Max(LerpDeltaVector, FVector::ZeroVector);
     }
 }
 
-void USceneComponent::LerpMovement(FVector& FromLocation, FVector& ToLocation, float Time)
+void USceneComponent::LerpMovement(FVector& FromLocation, FVector& ToLocation, float InLerpSpeed) //LerpSpeed = 0은 안움직이고 1은 바로이동
 {
-    LerpTime = Time;
-    LerpMoveVector = ToLocation - FromLocation;
+    LerpDeltaVector = ToLocation - FromLocation;
+
+    LerpSpeed = InLerpSpeed;
 }
