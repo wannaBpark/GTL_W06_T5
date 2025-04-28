@@ -266,6 +266,7 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
     
     FString BasePath = FString(L"LuaScripts\\");
     FString LuaDisplayPath;
+    
     if (SelectedActor->GetComponentByClass<ULuaScriptComponent>())
     {
         LuaDisplayPath = SelectedActor->GetComponentByClass<ULuaScriptComponent>()->GetDisplayName();
@@ -286,6 +287,38 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
         {
             // Lua Script Component 생성 및 추가
             ULuaScriptComponent* NewScript = SelectedActor->AddComponent<ULuaScriptComponent>();
+            FString LuaFilePath = NewScript->GetScriptPath();
+            std::filesystem::path FilePath = std::filesystem::path(GetData(LuaFilePath));
+            
+            try
+            {
+                std::filesystem::path Dir = FilePath.parent_path();
+                if (!std::filesystem::exists(Dir))
+                {
+                    std::filesystem::create_directories(Dir);
+                }
+
+                std::ifstream luaTemplateFile(TemplateFilePath.ToWideString());
+
+                std::ofstream file(FilePath);
+                if (file.is_open())
+                {
+                    if (luaTemplateFile.is_open())
+                    {
+                        file << luaTemplateFile.rdbuf();
+                    }
+                    // 생성 완료
+                    file.close();
+                }
+                else
+                {
+                    MessageBoxA(nullptr, "Failed to Create Script File for writing: ", "Error", MB_OK | MB_ICONERROR);
+                }
+            }
+            catch (const std::filesystem::filesystem_error& e)
+            {
+                MessageBoxA(nullptr, "Failed to Create Script File for writing: ", "Error", MB_OK | MB_ICONERROR);
+            }
             LuaDisplayPath = NewScript->GetDisplayName();
         }
     }
@@ -764,7 +797,7 @@ void PropertyEditorPanel::RenderForShapeComponent(UShapeComponent* ShapeComponen
             float Radius = Component->GetRadius();
             ImGui::Text("Radius");
             ImGui::SameLine();
-            if (ImGui::DragFloat("##Radius", &Radius))
+            if (ImGui::DragFloat("##Radius", &Radius, 0.01f, 0.f, 1000.f))
             {
                 Component->SetRadius(Radius);
             }
@@ -782,7 +815,8 @@ void PropertyEditorPanel::RenderForShapeComponent(UShapeComponent* ShapeComponen
 
             ImGui::Text("Extent");
             ImGui::SameLine();
-            if (ImGui::DragFloat3("##Extent", Extents)) {
+            if (ImGui::DragFloat3("##Extent", Extents, 0.01f, 0.f, 1000.f))
+            {
                 Component->SetBoxExtent(FVector(Extents[0], Extents[1], Extents[2]));
             }
             ImGui::TreePop();
@@ -798,13 +832,13 @@ void PropertyEditorPanel::RenderForShapeComponent(UShapeComponent* ShapeComponen
 
             ImGui::Text("HalfHeight");
             ImGui::SameLine();
-            if (ImGui::DragFloat("##HalfHeight", &HalfHeight, 0.1f)) {
+            if (ImGui::DragFloat("##HalfHeight", &HalfHeight, 0.01f, 0.f, 1000.f)) {
                 Component->SetHalfHeight(HalfHeight);
             }
 
             ImGui::Text("Radius");
             ImGui::SameLine();
-            if (ImGui::DragFloat("##Radius", &Radius, 0.1f)) {
+            if (ImGui::DragFloat("##Radius", &Radius, 0.01f, 0.f, 1000.f)) {
                 Component->SetRadius(Radius);
             }
             ImGui::TreePop();
