@@ -266,6 +266,7 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
     
     FString BasePath = FString(L"LuaScripts\\");
     FString LuaDisplayPath;
+    
     if (SelectedActor->GetComponentByClass<ULuaScriptComponent>())
     {
         LuaDisplayPath = SelectedActor->GetComponentByClass<ULuaScriptComponent>()->GetDisplayName();
@@ -286,6 +287,38 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
         {
             // Lua Script Component 생성 및 추가
             ULuaScriptComponent* NewScript = SelectedActor->AddComponent<ULuaScriptComponent>();
+            FString LuaFilePath = NewScript->GetScriptPath();
+            std::filesystem::path FilePath = std::filesystem::path(GetData(LuaFilePath));
+            
+            try
+            {
+                std::filesystem::path Dir = FilePath.parent_path();
+                if (!std::filesystem::exists(Dir))
+                {
+                    std::filesystem::create_directories(Dir);
+                }
+
+                std::ifstream luaTemplateFile(TemplateFilePath.ToWideString());
+
+                std::ofstream file(FilePath);
+                if (file.is_open())
+                {
+                    if (luaTemplateFile.is_open())
+                    {
+                        file << luaTemplateFile.rdbuf();
+                    }
+                    // 생성 완료
+                    file.close();
+                }
+                else
+                {
+                    MessageBoxA(nullptr, "Failed to Create Script File for writing: ", "Error", MB_OK | MB_ICONERROR);
+                }
+            }
+            catch (const std::filesystem::filesystem_error& e)
+            {
+                MessageBoxA(nullptr, "Failed to Create Script File for writing: ", "Error", MB_OK | MB_ICONERROR);
+            }
             LuaDisplayPath = NewScript->GetDisplayName();
         }
     }

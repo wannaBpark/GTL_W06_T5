@@ -14,9 +14,13 @@ public:
     ULuaScriptComponent();
     ~ULuaScriptComponent();
 
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& Properties) override;
+
     FString BasePath = FString(L"LuaScripts");
 
     TMap<FString, sol::object> ExposedProperties;
+
 
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

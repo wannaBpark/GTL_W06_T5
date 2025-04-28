@@ -11,7 +11,7 @@
 namespace LuaScriptFileUtils
 {
     // template.lua → Scene_Actor.lua 로 복제
-    inline bool CopyTemplateToActorScript(
+    inline bool MakeScriptPathAndDisplayName(
         const std::wstring& templateName,
         const std::wstring& sceneName,
         const std::wstring& actorName,
@@ -34,8 +34,8 @@ namespace LuaScriptFileUtils
         PathCombineW(dst, luaDir, destName.c_str());
 
         // 복제 (덮어쓰기 허용)
-        if (!CopyFileW(src, dst, FALSE))
-            return false;
+        /*if (!CopyFileW(src, dst, FALSE))
+            return false;*/
 
         outScriptPath = FString(dst);
         return true;
