@@ -163,19 +163,19 @@ void UPrimitiveComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 
-    OnComponentBeginOverlap.AddLambda(
-        [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
-        {
-            UE_LOG(LogLevel::Display, "Component [%s] Begin overlap with [%s]", *OverlappedComponent->GetName(), *OtherComp->GetName());
-        }
-    );
-
-    OnComponentEndOverlap.AddLambda(
-        [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-        {
-            UE_LOG(LogLevel::Display, "Component [%s] End overlap with [%s]", *OverlappedComponent->GetName(), *OtherComp->GetName());
-        }
-    );
+    // OnComponentBeginOverlap.AddLambda(
+    //     [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
+    //     {
+    //         UE_LOG(LogLevel::Display, "Component [%s] Begin overlap with [%s]", *OverlappedComponent->GetName(), *OtherComp->GetName());
+    //     }
+    // );
+    //
+    // OnComponentEndOverlap.AddLambda(
+    //     [](UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+    //     {
+    //         UE_LOG(LogLevel::Display, "Component [%s] End overlap with [%s]", *OverlappedComponent->GetName(), *OtherComp->GetName());
+    //     }
+    // );
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)

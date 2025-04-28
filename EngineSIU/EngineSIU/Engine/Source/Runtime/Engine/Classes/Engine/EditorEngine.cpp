@@ -164,17 +164,6 @@ void UEditorEngine::BindEssentialObjects()
         ActiveWorld->SetMainPlayer(TempPlayer);
     }
 
-    //마찬가지
-    for (const auto iter: TObjectRange<APlayerController>())
-    {
-        if (iter->GetWorld() == ActiveWorld)
-        {
-            ActiveWorld->SetPlayerController(iter);
-            break;
-        }
-    }
-
-    //실수로 안만들면 넣어주기
     if (ActiveWorld->GetPlayerController() == nullptr)
     {
         APlayerController* TempController = ActiveWorld->SpawnActor<APlayerController>();
