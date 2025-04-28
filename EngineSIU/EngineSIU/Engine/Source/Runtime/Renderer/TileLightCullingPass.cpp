@@ -72,7 +72,7 @@ void FTileLightCullingPass::PrepareRenderArr()
     CreateSpotLightBufferGPU();
 }
 
-void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FTileLightCullingPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     DepthSRV = Viewport->GetViewportResource()->GetDepthStencil(
         EResourceType::ERT_Debug
@@ -84,7 +84,7 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     //ParseCulledLightMaskData();
 }
 
-void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FTileLightCullingPass::Dispatch(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     // 한 스레드 그룹(groupSizeX, groupSizeY)은 16x16픽셀 영역처리
     const UINT GroupSizeX = (Viewport->GetD3DViewport().Width  + TILE_SIZE - 1) / TILE_SIZE;
@@ -455,7 +455,7 @@ void FTileLightCullingPass::ClearUAVs() const
     Graphics->DeviceContext->ClearUnorderedAccessViewFloat(DebugHeatmapUAV, ClearColorF);
 }
 
-void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<FViewportClient>& Viewport) const
 {
     // 1. Constant Buffer 업데이트
     TileLightCullSettings Settings;
@@ -463,8 +463,8 @@ void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<
     Settings.ScreenSize[1] = static_cast<uint32>(Viewport->GetD3DViewport().Height);
     Settings.TileSize[0] = TILE_SIZE;
     Settings.TileSize[1] = TILE_SIZE;
-    Settings.NearZ = Viewport->NearClip;
-    Settings.FarZ = Viewport->FarClip;
+    Settings.NearZ = Viewport->GetNearClip();
+    Settings.FarZ = Viewport->GetFarClip();
     Settings.ViewMatrix = Viewport->GetViewMatrix();
     Settings.ProjectionMatrix = Viewport->GetProjectionMatrix();
     Settings.InvProjectionMatrix = FMatrix::Inverse(Viewport->GetProjectionMatrix());

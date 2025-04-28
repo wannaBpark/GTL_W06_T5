@@ -12,7 +12,7 @@ public:
     
     virtual void PrepareRenderArr() override;
 
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
     

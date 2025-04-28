@@ -27,7 +27,7 @@ void FDepthPrePass::PrepareRenderArr()
     __super::PrepareRenderArr();
 }
 
-void FDepthPrePass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FDepthPrePass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     PrepareRenderState(Viewport);
     __super::RenderAllStaticMeshes(Viewport);
@@ -41,7 +41,7 @@ void FDepthPrePass::ClearRenderArr()
     __super::ClearRenderArr();
 }
 
-void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FViewportClient>& Viewport)
 {
     /*
     // A. 컬러 쓰기 비활성화 (깊이만 기록)

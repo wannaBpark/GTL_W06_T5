@@ -33,7 +33,7 @@ void FSlateRenderPass::PrepareRenderArr()
 {
 }
 
-void FSlateRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FSlateRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     const FRect Rect = Viewport->GetViewport()->GetRect();
 

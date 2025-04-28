@@ -1,7 +1,6 @@
 #pragma once
 #include "IRenderPass.h"
 #include "EngineBaseTypes.h"
-#include "Container/Set.h"
 
 #include "Define.h"
 #include "Components/Light/PointLightComponent.h"
@@ -10,7 +9,6 @@ class FShadowManager;
 class FDXDShaderManager;
 class UWorld;
 class UMaterial;
-class FEditorViewportClient;
 class UStaticMeshComponent;
 struct FStaticMaterial;
 class FShadowRenderPass;
@@ -28,14 +26,14 @@ public:
     
     virtual void PrepareRenderArr() override;
 
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
-    void RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
+    void RenderAllStaticMeshesForPointLight(const std::shared_ptr<FViewportClient>& Viewport, UPointLightComponent*& PointLight);
 
-    virtual void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void PrepareRenderState(const std::shared_ptr<FViewportClient>& Viewport);
 
-    virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void RenderAllStaticMeshes(const std::shared_ptr<FViewportClient>& Viewport);
     
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
   

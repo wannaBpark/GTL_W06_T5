@@ -1,6 +1,7 @@
 #include "ShadowRenderPass.h"
 
 #include "ShadowManager.h"
+#include "ShowFlag.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
@@ -8,18 +9,15 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Engine/EditorEngine.h"
 #include "Engine/Engine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/Casts.h"
 #include "UObject/UObjectIterator.h"
-#include "Editor/PropertyEditor/ShowFlags.h"
 
 class UEditorEngine;
 class UStaticMeshComponent;
-#include "UnrealEd/EditorViewportClient.h"
 
 FShadowRenderPass::FShadowRenderPass()
 {
@@ -110,7 +108,7 @@ void FShadowRenderPass::Render(ULightComponentBase* Light)
     
 }
 
-void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FShadowRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     if (ShowFlag & EEngineShowFlags::SF_Shadow)
@@ -139,7 +137,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             ShadowManager->BeginDirectionalShadowCascadePass(0);
             //RenderAllStaticMeshes(Viewport);
 
-            RenderAllStaticMeshesForCSM(Viewport, CascadeData);
+            RenderAllStaticMeshesForCSM(CascadeData);
 
             Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
             Graphics->DeviceContext->RSSetViewports(0, nullptr);
@@ -158,7 +156,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
         ShadowManager->BeginSpotShadowPass(i);
-        RenderAllStaticMeshes(Viewport);
+        RenderAllStaticMeshes();
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
         Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -169,7 +167,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     {
         
         ShadowManager->BeginPointShadowPass(i);
-        RenderAllStaticMeshesForPointLight(Viewport, PointLights[i]);
+        RenderAllStaticMeshesForPointLight(PointLights[i]);
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
         Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -231,7 +229,7 @@ void FShadowRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData, 
     }
 }
 
-void FShadowRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FShadowRenderPass::RenderAllStaticMeshes()
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -259,7 +257,7 @@ void FShadowRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorViewp
     }
 }
 
-void FShadowRenderPass::RenderAllStaticMeshesForCSM(const std::shared_ptr<FEditorViewportClient>& Viewport, FCascadeConstantBuffer FCasCadeData)
+void FShadowRenderPass::RenderAllStaticMeshesForCSM(FCascadeConstantBuffer FCasCadeData)
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -305,7 +303,7 @@ void FShadowRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const F
     //Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
 }
 
-void FShadowRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+void FShadowRenderPass::RenderAllStaticMeshesForPointLight(UPointLightComponent*& PointLight)
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -422,7 +420,7 @@ void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& Point
     BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
 }
 
-void FShadowRenderPass::RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
+void FShadowRenderPass::RenderCubeMap(UPointLightComponent*& PointLight)
 {
     //UpdateCubeMapConstantBuffer(PointLight);
     PrepareCubeMapRenderState();

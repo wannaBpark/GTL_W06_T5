@@ -31,6 +31,9 @@ class AActor : public UObject
 public:
     AActor() = default;
 
+    // SpawnActor 내부에서 Actor 생성 이후 호출될 함수.
+    // 생성 로직 단계에서 계층 구조에 종속되는 초기화를 대신 해주는 초기화 함수.
+    virtual void PostSpawnInitialize();
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     /**
@@ -198,8 +201,8 @@ public: // Lua Script.
 	// 자기 자신이 가진 정보들 Lua에 등록.
 	void InitLuaScriptComponent();
 	FString GetLuaScriptPathName();
-	virtual void ApplyTypesOnLua(sol::state& Lua); // Lua에 클래스 등록해주는 함수.
-    virtual void SetupLuaProperties(); // LuaEnv에서 사용할 멤버 변수 등록 함수.
+	virtual void RegisterLuaType(sol::state& Lua); // Lua에 클래스 등록해주는 함수.
+    virtual bool BindSelfLuaProperties(); // LuaEnv에서 사용할 멤버 변수 등록 함수.
 
 	bool bUseScript = true;
 private:

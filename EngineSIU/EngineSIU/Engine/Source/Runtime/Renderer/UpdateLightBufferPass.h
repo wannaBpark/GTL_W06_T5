@@ -1,8 +1,6 @@
 #pragma once
 
 #include "IRenderPass.h"
-#include "EngineBaseTypes.h"
-#include "Container/Set.h"
 #include "Define.h"
 
 #define MAX_POINTLIGHT_PER_TILE 256
@@ -10,7 +8,6 @@
 
 class FDXDShaderManager;
 class UWorld;
-class FEditorViewportClient;
 
 class UPointLightComponent;
 class USpotLightComponent;
@@ -37,7 +34,7 @@ public:
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
     void UpdateLightBuffer() const;
 

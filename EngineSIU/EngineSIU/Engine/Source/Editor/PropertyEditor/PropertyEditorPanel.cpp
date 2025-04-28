@@ -618,8 +618,8 @@ void PropertyEditorPanel::RenderForLightShadowCommon(ULightComponentBase* LightC
         // 3. 뷰포트 클라이언트가 유효하면 카메라 설정
         if (ViewportClient)
         {
-            ViewportClient->PerspectiveCamera.SetLocation(LightLocation + LightForward); // 카메라 위치 설정 함수 호출
-            ViewportClient->PerspectiveCamera.SetRotation(LightRotationVecter); // 카메라 회전 설정 함수 호출
+            ViewportClient->GetPerspectiveCamera().SetLocation(LightLocation + LightForward); // 카메라 위치 설정 함수 호출
+            ViewportClient->GetPerspectiveCamera().SetRotation(LightRotationVecter); // 카메라 회전 설정 함수 호출
 
             // 필요시 뷰포트 강제 업데이트/다시 그리기 호출
             // ViewportClient->Invalidate();

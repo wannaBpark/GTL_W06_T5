@@ -1,8 +1,8 @@
 #include "ShadowManager.h"
 
+#include "ViewportClient.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "Math/JungleMath.h"
-#include "UnrealEd/EditorViewportClient.h"
 #include "D3D11RHI/DXDBufferManager.h"
 
 // --- 생성자 및 소멸자 ---
@@ -541,17 +541,17 @@ void FShadowManager::ReleaseDirectionalShadowResources()
     }
 }
 
-void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FEditorViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight)
+void FShadowManager::UpdateCascadeMatrices(const std::shared_ptr<FViewportClient>& Viewport, UDirectionalLightComponent* DirectionalLight)
 {    
     FMatrix InvViewProj = FMatrix::Inverse(Viewport->GetViewMatrix()*Viewport->GetProjectionMatrix());
 
     CascadesViewProjMatrices.Empty();
     CascadesInvProjMatrices.Empty();
 	const FMatrix CamView = Viewport->GetViewMatrix();
-    float NearClip = Viewport->GetCameraNearClip();
-    float FarClip = Viewport->GetCameraFarClip();
-	const float FOV = Viewport->GetCameraFOV();          // Degrees
-	const float AspectRatio = Viewport->AspectRatio;
+    float NearClip = Viewport->GetNearClip();
+    float FarClip = Viewport->GetFarClip();
+	const float FOV = Viewport->GetFieldOfView();          // Degrees
+	const float AspectRatio = Viewport->GetAspectRatio();
 
 	float halfHFOV = FMath::DegreesToRadians(FOV) * 0.5f;
 	float tanHFOV = FMath::Tan(halfHFOV);

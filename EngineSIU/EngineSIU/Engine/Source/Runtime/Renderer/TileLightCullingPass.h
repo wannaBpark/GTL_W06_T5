@@ -1,6 +1,5 @@
 #pragma once
 #include "IRenderPass.h"
-#include "EngineBaseTypes.h"
 #include "Container/Set.h"
 
 #include "Define.h"
@@ -52,7 +51,7 @@ public:
     void ResizeTiles(UINT InWidth, UINT InHeight);
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 
     void CreateShader();
@@ -61,9 +60,9 @@ public:
     void CreateViews();
     void CreateBuffers(uint32 InWidth, uint32 InHeight);
     void Release();
-    void Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void Dispatch(const std::shared_ptr<FViewportClient>& Viewport) const;
     void ClearUAVs() const;
-    void UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void UpdateTileLightConstantBuffer(const std::shared_ptr<FViewportClient>& Viewport) const;
 
     void ResizeViewBuffers(uint32 InWidth, uint32 InHeight);
 

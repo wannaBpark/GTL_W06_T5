@@ -24,7 +24,7 @@ class UWorld;
 class UObject;
 
 class FDXDShaderManager;
-class FEditorViewportClient;
+class FViewportClient;
 
 class FViewportResource;
 
@@ -56,17 +56,17 @@ public:
     //==========================================================================
     // 렌더 패스 관련 함수
     //==========================================================================
-    void Render(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const; // TODO: 추후 RenderSlate로 변경해야함
+    void Render(const std::shared_ptr<FViewportClient>& Viewport);
+    void RenderViewport(const std::shared_ptr<FViewportClient>& Viewport) const; // TODO: 추후 RenderSlate로 변경해야함
 
 protected:
-    void BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void BeginRender(const std::shared_ptr<FViewportClient>& Viewport);
+    void UpdateCommonBuffer(const std::shared_ptr<FViewportClient>& Viewport) const;
     void PrepareRender(FViewportResource* ViewportResource) const;
     void PrepareRenderPass() const;
-    void RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderWorldScene(const std::shared_ptr<FViewportClient>& Viewport) const;
+    void RenderPostProcess(const std::shared_ptr<FViewportClient>& Viewport) const;
+    void RenderEditorOverlay(const std::shared_ptr<FViewportClient>& Viewport) const;
 
     void EndRender();
     void ClearRenderArr() const;

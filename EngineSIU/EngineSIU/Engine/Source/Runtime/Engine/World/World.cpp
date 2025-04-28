@@ -121,6 +121,8 @@ AActor* UWorld::SpawnActor(UClass* InClass, FName InActorName)
         AActor* NewActor = Cast<AActor>(FObjectFactory::ConstructObject(InClass, this, InActorName));
         ActiveLevel->Actors.Add(NewActor);
         PendingBeginPlayActors.Add(NewActor);
+
+        NewActor->PostSpawnInitialize();
         return NewActor;
     }
 

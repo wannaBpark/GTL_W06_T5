@@ -1,9 +1,6 @@
 #pragma once
 #include "IRenderPass.h"
-#include "EngineBaseTypes.h"
-#include "Container/Set.h"
 #include "Define.h"
-#include "UnrealClient.h" // Depth Stencil View
 #include <d3d11.h>
 
 #include "Components/Light/PointLightComponent.h"
@@ -28,7 +25,7 @@ public:
     void PrepareCubeMapRenderState(
     );
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
-    void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
+    void RenderCubeMap(UPointLightComponent*& PointLight);
     void SetLightData(const TArray<class UPointLightComponent*>& InPointLights, const TArray<class USpotLightComponent*>& InSpotLights);
     
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
@@ -38,18 +35,17 @@ public:
     virtual void PrepareRenderArr() override;
     void UpdateIsShadowConstant(int32 isShadow) const;
     void Render(ULightComponentBase* Light);
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;    
+    virtual void Render(const std::shared_ptr<FViewportClient>& Viewport) override;    
     virtual void ClearRenderArr() override;
 
     void RenderPrimitive(OBJ::FStaticMeshRenderData* render_data, const TArray<FStaticMaterial*> array, TArray<UMaterial*> materials, int getselected_sub_mesh_index);
-    virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    void RenderAllStaticMeshesForCSM(const std::shared_ptr<FEditorViewportClient>& Viewport,
-                                     FCascadeConstantBuffer FCasCadeData);
+    virtual void RenderAllStaticMeshes();
+    void RenderAllStaticMeshesForCSM(FCascadeConstantBuffer FCasCadeData);
     void BindResourcesForSampling();
 
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
 
-    void RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
+    void RenderAllStaticMeshesForPointLight(UPointLightComponent*& PointLight);
 
 
 private:
