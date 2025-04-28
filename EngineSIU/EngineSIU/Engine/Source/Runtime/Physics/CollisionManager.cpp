@@ -11,13 +11,40 @@
 #include "UObject/Casts.h"
 #include "UObject/UObjectIterator.h"
 
-// 점 P와 선분 AB 사이의 가장 가까운 점을 찾는 함수
-FVector ClosestPointOnLineSegment(const FVector& P, const FVector& A, const FVector& B)
+/**
+ * @brief 점 Point와 선분 SegmentStart-SegmentEnd 사이의 가장 가까운 점을 찾습니다.
+ * (참고: UKismetMathLibrary::FindClosestPointOnSegment 를 사용할 수도 있습니다)
+ * @param Point 대상 점 (월드 좌표계)
+ * @param SegmentStart 선분 시작점 (월드 좌표계)
+ * @param SegmentEnd 선분 끝점 (월드 좌표계)
+ * @return 선분 위의 가장 가까운 점 (월드 좌표계)
+ */
+FVector ClosestPointOnLineSegment(const FVector& Point, const FVector& SegmentStart, const FVector& SegmentEnd)
 {
-    FVector AB = B - A;
-    float t = FVector::DotProduct(P - A, AB) / FVector::DotProduct(AB, AB);
-    t = FMath::Max(0.f, FMath::Min(1.f, t)); // 선분 내로 클램핑
-    return A + AB * t;
+    // 선분의 길이가 0인 경우 시작점 반환
+    if (SegmentStart == SegmentEnd)
+    {
+        return SegmentStart;
+    }
+
+    FVector SegmentDir = SegmentEnd - SegmentStart;
+    double SegmentLengthSq = SegmentDir.LengthSquared(); // double 사용 권장 (정밀도)
+
+    // 수치 안정성을 위해 매우 작은 길이는 0으로 처리
+    if (SegmentLengthSq < KINDA_SMALL_NUMBER)
+    {
+        return SegmentStart;
+    }
+
+    // 점을 선분이 정의하는 무한선에 투영합니다.
+    // t = Dot(Point - Start, Dir) / Dot(Dir, Dir)
+    double t = FVector::DotProduct(Point - SegmentStart, SegmentDir) / SegmentLengthSq;
+
+    // t 값을 [0, 1] 범위로 클램핑하여 선분 위에 있도록 합니다.
+    t = FMath::Clamp(t, 0.0, 1.0);
+
+    // 선분 위의 가장 가까운 점 계산
+    return SegmentStart + SegmentDir * static_cast<float>(t);
 }
 
 // 두 선분 (A-B, C-D) 사이의 최단 거리 제곱을 반환하는 함수 (구현 복잡)
@@ -102,14 +129,100 @@ bool OverlapOnAxis(float MinA, float MaxA, float MinB, float MaxB)
     return MaxA >= MinB && MinA <= MaxB;
 }
 
-// 선분(A-B)과 OBB Box 사이의 최단 거리 제곱을 계산하는 가상 함수 (구현 복잡)
-float SquaredDistSegmentOBB(const FVector& A, const FVector& B, const UBoxComponent* Box)
+/**
+ * @brief 점 P와 원점에 중심을 둔 AABB 사이의 가장 가까운 점을 찾습니다.
+ * @param P 대상 점 (로컬 좌표계)
+ * @param Extent AABB의 절반 크기 (Half-dimensions)
+ * @return AABB 위의 가장 가까운 점 (로컬 좌표계)
+ */
+inline FVector ClosestPointOnAABB(const FVector& P, const FVector& Extent)
 {
-    // 구현: 선분의 각 점 P에 대해 ClosestPointOnOBB(P, Box)를 찾고,
-    // P와 그 결과 점 사이의 거리 제곱 중 최소값을 찾아야 함.
-    // 이는 OBB의 면, 에지, 꼭지점 영역을 고려해야 하는 복잡한 과정임.
-    // Real-Time Collision Detection 책 등 고급 자료 참고 필요.
-    return FLT_MAX; // 플레이스홀더
+    return FVector(
+        FMath::Clamp(P.X, -Extent.X, Extent.X),
+        FMath::Clamp(P.Y, -Extent.Y, Extent.Y),
+        FMath::Clamp(P.Z, -Extent.Z, Extent.Z)
+    );
+}
+
+/**
+ * @brief 월드 좌표계의 점 P와 UBoxComponent로 표현된 OBB 사이의 가장 가까운 점을 찾습니다.
+ * @param P 대상 점 (월드 좌표계)
+ * @param BoxComponent OBB를 나타내는 박스 컴포넌트
+ * @return OBB 위의 가장 가까운 점 (월드 좌표계)
+ */
+FVector ClosestPointOnOBB_FromComponent(const FVector& P, const UBoxComponent* BoxComponent)
+{
+    if (!BoxComponent)
+    {
+        // BoxComponent가 유효하지 않으면 입력 점 P를 그대로 반환하거나, 적절한 오류 처리
+        return P;
+    }
+
+    // 박스의 월드 트랜스폼 가져오기
+    const FMatrix BoxWorldMatrix = BoxComponent->GetWorldMatrix();
+    const FMatrix BoxWorldMatrixInv = FMatrix::Inverse(BoxWorldMatrix);
+
+    // 점 P를 월드 공간에서 박스의 로컬 공간으로 변환
+    const FVector P_Local = BoxWorldMatrixInv.TransformPosition(P);
+
+    // 박스의 스케일을 포함한 Extent 가져오기 (로컬 공간 기준)
+    const FVector BoxExtent = BoxComponent->GetBoxExtent();
+
+    // 로컬 공간에서 가장 가까운 점 찾기 (원점에 중심을 둔 AABB에 대한 연산)
+    const FVector ClosestP_Local = ClosestPointOnAABB(P_Local, BoxExtent);
+
+    // 로컬 공간의 가장 가까운 점을 다시 월드 공간으로 변환하여 반환
+    return BoxWorldMatrix.TransformPosition(ClosestP_Local);
+}
+
+/**
+ * @brief 선분(A-B)과 UBoxComponent로 표현된 OBB 사이의 최단 거리 제곱을 계산합니다.
+ * 이 함수는 'Alternating Projections'와 유사한 반복적 접근 방식을 사용합니다.
+ * 두 볼록 집합 사이의 가장 가까운 점을 찾는 데 사용될 수 있습니다.
+ *
+ * @param A 선분 시작점 (월드 좌표계)
+ * @param B 선분 끝점 (월드 좌표계)
+ * @param BoxComponent OBB를 나타내는 박스 컴포넌트
+ * @param MaxIterations 최대 반복 횟수
+ * @param ToleranceSq 수렴으로 간주할 거리 제곱 허용 오차
+ * @return 선분과 OBB 사이의 최단 거리 제곱. 교차하거나 매우 가까우면 0에 가까운 값 반환.
+ */
+float SquaredDistSegmentOBB(const FVector& A, const FVector& B, const UBoxComponent* BoxComponent, int32 MaxIterations = 10, double ToleranceSq = 1e-6)
+{
+    // 선분 위의 초기 추정점 (예: 선분 중점 또는 시작점 A)
+    FVector PointOnSegment = A; // 또는 (A + B) * 0.5;
+    FVector PointOnBox;
+
+    double LastDistSq = DBL_MAX;
+    
+    for (int32 i = 0; i < MaxIterations; ++i)
+    {
+        // 1. 현재 선분 위의 점에서 OBB 위의 가장 가까운 점 찾기
+        PointOnBox = ClosestPointOnOBB_FromComponent(PointOnSegment, BoxComponent);
+
+        // 2. 현재 OBB 위의 점에서 선분 위의 가장 가까운 점 찾기
+        FVector NewPointOnSegment = ClosestPointOnLineSegment(PointOnBox, A, B);
+
+        // 3. 수렴 확인: 이전 단계의 점과 새 점 사이의 거리 제곱 확인
+        double CurrentDistSq = (PointOnBox - NewPointOnSegment).LengthSquared();
+        double ImprovementSq = FMath::Abs(CurrentDistSq - LastDistSq);
+
+        // 점이 거의 움직이지 않거나 거리가 더 이상 줄어들지 않으면 수렴으로 간주
+        if ((PointOnSegment - NewPointOnSegment).LengthSquared() < ToleranceSq || ImprovementSq < ToleranceSq * 0.1 ) // 개선 정도도 확인
+        {
+            PointOnSegment = NewPointOnSegment; // 마지막 위치 업데이트
+            LastDistSq = CurrentDistSq;
+            break;
+        }
+
+        // 다음 반복을 위해 선분 위의 점 업데이트
+        PointOnSegment = NewPointOnSegment;
+        LastDistSq = CurrentDistSq; // 현재 거리 저장
+    }
+
+    // 최종적으로 찾은 가장 가까운 두 점 사이의 거리 제곱 반환
+    // 마지막 반복 후 PointOnBox는 PointOnSegment에 대한 최단점이므로 다시 계산할 필요 없음
+    return static_cast<float>(LastDistSq);
 }
 
 FCollisionManager::FCollisionManager()

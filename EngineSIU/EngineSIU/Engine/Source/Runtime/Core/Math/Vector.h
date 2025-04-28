@@ -161,7 +161,48 @@ public:
     float& operator[](int Index);
     const float& operator[](int Index) const;
 
+    // 길이 제곱 계산
+    FORCEINLINE float SizeSquared() const
+    {
+        return (X * X + Y * Y + Z * Z);
+    }
+
+    // < 연산자: 제곱 길이 비교
+    FORCEINLINE bool operator<(const FVector& Other) const
+    {
+        return (SizeSquared() < Other.SizeSquared());
+    }
+
+    // > 연산자: 제곱 길이 비교
+    FORCEINLINE bool operator>(const FVector& Other) const
+    {
+        return (SizeSquared() > Other.SizeSquared());
+    }
     
+    // FVector < float (제곱 길이 비교)
+    FORCEINLINE bool operator<(float Scalar) const
+    {
+        return SizeSquared() < Scalar * Scalar;
+    }
+
+    // FVector > float (제곱 길이 비교)
+    FORCEINLINE bool operator>(float Scalar) const
+    {
+        return SizeSquared() > Scalar * Scalar;
+    }
+
+    // float < FVector (제곱 길이 비교)
+    friend FORCEINLINE bool operator<(float Scalar, const FVector& Vec)
+    {
+        return Scalar * Scalar < Vec.SizeSquared();
+    }
+
+    // float > FVector (제곱 길이 비교)
+    friend FORCEINLINE bool operator>(float Scalar, const FVector& Vec)
+    {
+        return Scalar * Scalar > Vec.SizeSquared();
+    }
+
 public:
     bool Equals(const FVector& V, float Tolerance = KINDA_SMALL_NUMBER) const;
     bool AllComponentsEqual(float Tolerance = KINDA_SMALL_NUMBER) const;
