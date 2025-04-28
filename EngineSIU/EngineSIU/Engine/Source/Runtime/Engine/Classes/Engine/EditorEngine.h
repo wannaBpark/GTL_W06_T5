@@ -26,6 +26,7 @@ public:
     UWorld* EditorWorld = nullptr;
 
     void StartPIE();
+    void BindEssentialObjects();
     void EndPIE();
 
     // 주석은 UE에서 사용하던 매개변수.

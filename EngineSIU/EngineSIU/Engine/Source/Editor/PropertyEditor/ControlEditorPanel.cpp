@@ -34,6 +34,7 @@
 #include "Actors/CubeActor.h"
 #include "Actors/SphereActor.h"
 #include "Actors/CapsuleActor.h"
+#include "Actors/PlayerController.h"
 
 void ControlEditorPanel::Render()
 {
@@ -305,6 +306,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             {.Label = "BoxCol", .OBJ = OBJ_BOX_COLLISION},
             {.Label = "SphereCol", .OBJ = OBJ_SPHERE_COLLISION},
             {.Label = "CapsuleCol", .OBJ = OBJ_CAPSULE_COLLISION},
+            {.Label = "PlayerController", .OBJ = OBJ_PLAYER_CONTROLLER},
         };
 
         for (const auto& primitive : primitives)
@@ -410,6 +412,13 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     SpawnedActor = World->SpawnActor<ACapsuleActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_CAPSULE_COLLISION"));
                     SpawnedActor->SetActorTickInEditor(true); // TODO: 콜리전 테스트 용도
+                    break;
+                }
+                case OBJ_PLAYER_CONTROLLER:
+                {
+                    SpawnedActor = World->SpawnActor<APlayerController>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_PLAYER_CONTROLLER"));
+                    SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }
                 case OBJ_CAMERA:

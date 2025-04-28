@@ -6,6 +6,7 @@
 #include "WorldType.h"
 #include "Level.h"
 #include "Actors/Player.h"
+#include "Actors/PlayerController.h"
 #include "Components/CameraComponent.h"
 #include "Engine/EventManager.h"
 
@@ -70,6 +71,8 @@ public:
     UCameraComponent* GetMainCamera(){ return MainCamera; }
     void SetMainPlayer(APlayer* InPlayer){ MainPlayer = InPlayer; }
     APlayer* GetMainPlayer(){ return MainPlayer; }
+    void SetPlayerController(APlayerController* InPlayerController){ PlayerController = InPlayerController; }
+    APlayerController* GetPlayerController(){ return PlayerController; }
     
     void CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
 
@@ -82,6 +85,8 @@ private:
     TArray<AActor*> PendingBeginPlayActors;
 
     UCameraComponent* MainCamera = nullptr;
+
+    APlayerController* PlayerController = nullptr;
 
     APlayer* MainPlayer = nullptr;
 

@@ -1,23 +1,37 @@
 {
     "Actors": [
         {
-            "ActorClass": "ACubeActor",
-            "ActorID": "ACubeActor_112",
-            "ActorLabel": "OBJ_BOX_COLLISION_112",
-            "ActorTickInEditor": "true",
+            "ActorClass": "ACube",
+            "ActorID": "ACube_106",
+            "ActorLabel": "OBJ_CUBE_106",
             "Components": [
                 {
-                    "ComponentClass": "UBoxComponent",
-                    "ComponentID": "UBoxComponent_113",
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "USceneComponent_112",
+                    "Properties": {
+                        "AttachParentID": "nullptr",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "USceneComponent_112",
+                        "ComponentOwner": "ACube_106",
+                        "ComponentOwnerClass": "ACube",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "UStaticMeshComponent",
+                    "ComponentID": "StaticMeshComponent_0",
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
                         "AttachParentID": "nullptr",
-                        "BoxExtent": "X=1.000 Y=1.000 Z=1.000",
-                        "ComponentClass": "UBoxComponent",
-                        "ComponentName": "UBoxComponent_113",
-                        "ComponentOwner": "ACubeActor_112",
-                        "ComponentOwnerClass": "ACubeActor",
+                        "ComponentClass": "UStaticMeshComponent",
+                        "ComponentName": "StaticMeshComponent_0",
+                        "ComponentOwner": "ACube_106",
+                        "ComponentOwnerClass": "ACube",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
@@ -27,28 +41,55 @@
                     }
                 }
             ],
-            "RootComponentID": "UBoxComponent_113"
+            "RootComponentID": "StaticMeshComponent_0"
         },
         {
-            "ActorClass": "ACapsuleActor",
-            "ActorID": "ACapsuleActor_114",
-            "ActorLabel": "OBJ_CAPSULE_COLLISION_114",
-            "ActorTickInEditor": "true",
+            "ActorClass": "APlayerController",
+            "ActorID": "APlayerController_108",
+            "ActorLabel": "OBJ_PLAYER_CONTROLLER_108",
             "Components": [
                 {
-                    "ComponentClass": "UCapsuleComponent",
-                    "ComponentID": "UCapsuleComponent_115",
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "USceneComponent_115",
                     "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
                         "AttachParentID": "nullptr",
-                        "CapsuleHalfHeight": "0.880000",
-                        "CapsuleRadius": "0.340000",
-                        "ComponentClass": "UCapsuleComponent",
-                        "ComponentName": "UCapsuleComponent_115",
-                        "ComponentOwner": "ACapsuleActor_114",
-                        "ComponentOwnerClass": "ACapsuleActor",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=2.716",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "USceneComponent_115",
+                        "ComponentOwner": "APlayerController_108",
+                        "ComponentOwnerClass": "APlayerController",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "USceneComponent_116",
+                    "Properties": {
+                        "AttachParentID": "USceneComponent_110",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "USceneComponent_116",
+                        "ComponentOwner": "APlayerController_108",
+                        "ComponentOwnerClass": "APlayerController",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "USceneComponent_110",
+                    "Properties": {
+                        "AttachParentID": "nullptr",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "USceneComponent_110",
+                        "ComponentOwner": "APlayerController_108",
+                        "ComponentOwnerClass": "APlayerController",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
@@ -56,7 +97,7 @@
                     }
                 }
             ],
-            "RootComponentID": "UCapsuleComponent_115"
+            "RootComponentID": "USceneComponent_110"
         }
     ],
     "NextUUID": 0,

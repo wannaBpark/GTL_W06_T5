@@ -1,9 +1,14 @@
 #include "PlayerController.h"
 
+#include "UObject/UObjectIterator.h"
+
 APlayerController::APlayerController()
 {
+    RootComponent = AddComponent<USceneComponent>();
+    
     SetupInputComponent();
 }
+
 
 APlayerController::~APlayerController()
 {
@@ -15,8 +20,19 @@ void APlayerController::BeginPlay()
 
 void APlayerController::Tick(float DeltaTime)
 {
-    if (bHasPossessed) {
+    AActor::Tick(DeltaTime);
+    
+    if (bHasPossessed)
+    {
         ProcessInput(DeltaTime);
+    }
+}
+
+void APlayerController::ProcessInput(float DeltaTime) const
+{
+    if (InputComponent)
+    {
+        InputComponent->ProcessInput(DeltaTime);
     }
 }
 
@@ -32,12 +48,22 @@ void APlayerController::Possess(AActor* InActor)
 {
     CurrentPossess = InActor;
     bHasPossessed = true;
+
+    if (InputComponent)
+    {
+        InputComponent->SetPossess();
+    }
 }
 
 void APlayerController::UnPossess()
 {
     CurrentPossess = nullptr;
     bHasPossessed = false;
+
+    if (InputComponent)
+    {
+        InputComponent->UnPossess();
+    }
 }
 
 void APlayerController::SetupInputComponent()
@@ -48,7 +74,10 @@ void APlayerController::SetupInputComponent()
     }
 }
 
-void APlayerController::ProcessInput(float DeltaTime)
+void APlayerController::BindAction(const FString& Key, const std::function<void(float)>& Callback)
 {
-    if (InputComponent) InputComponent->ProcessInput(DeltaTime);
+    if (bHasPossessed && InputComponent)
+    {
+        InputComponent->BindAction(Key, Callback);
+    }
 }

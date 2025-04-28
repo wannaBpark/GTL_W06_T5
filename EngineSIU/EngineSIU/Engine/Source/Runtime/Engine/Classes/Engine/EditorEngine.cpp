@@ -115,7 +115,16 @@ void UEditorEngine::StartPIE()
 
     PIEWorldContext.SetCurrentWorld(PIEWorld);
     ActiveWorld = PIEWorld;
+    
+    BindEssentialObjects();
+    
+    PIEWorld->BeginPlay();
+    // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
+    WorldList.Add(GetWorldContextFromWorld(PIEWorld));
+}
 
+void UEditorEngine::BindEssentialObjects()
+{
     //나중에 MainCamera 설정할 좋은 방법 나온다고 해서 Camera 1개라고 전제하고 진행 
     for (const auto iter : TObjectRange<UCameraComponent>())
     {
@@ -124,6 +133,16 @@ void UEditorEngine::StartPIE()
             ActiveWorld->SetMainCamera(iter);
             break;
         }
+    }
+
+    //실수로 안만들면 넣어주기
+    if (ActiveWorld->GetMainCamera() == nullptr)
+    {
+        AActor* TempActor = ActiveWorld->SpawnActor<AActor>();
+        TempActor->SetActorLabel(TEXT("OBJ_CAMERA"));
+        TempActor->SetActorTickInEditor(false);
+        UCameraComponent* TempCameraComponent = TempActor->AddComponent<UCameraComponent>();
+        ActiveWorld->SetMainCamera(TempCameraComponent);
     }
 
     //마찬가지
@@ -136,9 +155,35 @@ void UEditorEngine::StartPIE()
         }
     }
     
-    PIEWorld->BeginPlay();
-    // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
-    WorldList.Add(GetWorldContextFromWorld(PIEWorld));
+    //실수로 안만들면 넣어주기
+    if (ActiveWorld->GetMainPlayer() == nullptr)
+    {
+        APlayer* TempPlayer = ActiveWorld->SpawnActor<APlayer>();
+        TempPlayer->SetActorLabel(TEXT("OBJ_PLAYER"));
+        TempPlayer->SetActorTickInEditor(false);
+        ActiveWorld->SetMainPlayer(TempPlayer);
+    }
+
+    //마찬가지
+    for (const auto iter: TObjectRange<APlayerController>())
+    {
+        if (iter->GetWorld() == ActiveWorld)
+        {
+            ActiveWorld->SetPlayerController(iter);
+            break;
+        }
+    }
+
+    //실수로 안만들면 넣어주기
+    if (ActiveWorld->GetPlayerController() == nullptr)
+    {
+        APlayerController* TempController = ActiveWorld->SpawnActor<APlayerController>();
+        TempController->SetActorLabel(TEXT("OBJ_PLAYER_CONTROLLER"));
+        TempController->SetActorTickInEditor(false);
+        ActiveWorld->SetPlayerController(TempController);
+    }
+
+    ActiveWorld->GetPlayerController()->Possess(ActiveWorld->GetMainPlayer());
 }
 
 void UEditorEngine::EndPIE()
