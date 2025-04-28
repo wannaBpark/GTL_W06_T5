@@ -17,6 +17,7 @@ class AActor;
 class UObject;
 class USceneComponent;
 class FCollisionManager;
+class AGameMode;
 
 class UWorld : public UObject
 {
@@ -74,6 +75,8 @@ public:
     void CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
 
 private:
+    AGameMode* GameMode = nullptr;
+
     FString WorldName = "DefaultWorld";
 
     ULevel* ActiveLevel;

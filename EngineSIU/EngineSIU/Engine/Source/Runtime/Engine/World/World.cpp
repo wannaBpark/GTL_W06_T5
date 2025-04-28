@@ -13,6 +13,7 @@
 #include "UnrealEd/SceneManager.h"
 #include "Actors/PointLightActor.h"
 #include "Actors/SpotLightActor.h"
+#include "GameFramework/GameMode.h"
 
 class UEditorEngine;
 
@@ -22,6 +23,7 @@ UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, cons
     NewWorld->WorldName = InWorldName;
     NewWorld->WorldType = InWorldType;
     NewWorld->InitializeNewWorld();
+
     
     return NewWorld;
 }
@@ -119,6 +121,12 @@ void UWorld::Tick(float DeltaTime)
 
 void UWorld::BeginPlay()
 {
+    if (!GameMode && this->WorldType == EWorldType::PIE)
+    {
+        GameMode = this->SpawnActor<AGameMode>();
+        GameMode->SetActorLabel(TEXT("OBJ_GAMEMODE"));
+		GameMode->InitializeComponent();
+    }
     for (AActor* Actor : ActiveLevel->Actors)
     {
         if (Actor->GetWorld() == this)
