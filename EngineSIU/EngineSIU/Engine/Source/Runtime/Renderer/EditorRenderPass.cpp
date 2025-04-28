@@ -764,7 +764,6 @@ void FEditorRenderPass::RenderSphereInstanced(uint64 ShowFlag)
 void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
 {
     BindShaderResource(L"CapsuleVS", L"CapsulePS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    //BindBuffers(Resources.Primitives.Capsule);
     
     // 위치랑 bounding box 크기 정보 가져오기
     TArray<FConstantBufferDebugCapsule> BufferAll;
