@@ -91,10 +91,4 @@ protected:
 
     virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
 
-    void ProceedLerp(float DeltaTime);
-    void LerpMovement(FVector& FromLocation, FVector& ToLocation, float DeltaTime);
-    
-    FVector LerpDeltaVector = FVector::ZeroVector;
-    float LerpSpeed = 0.f;
-
 };

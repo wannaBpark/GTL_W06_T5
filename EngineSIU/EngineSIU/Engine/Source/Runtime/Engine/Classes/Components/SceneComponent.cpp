@@ -72,8 +72,6 @@ void USceneComponent::InitializeComponent()
 void USceneComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
-
-    ProceedLerp(DeltaTime);
 }
 
 
@@ -395,27 +393,4 @@ bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRo
     }
 
     return true;
-}
-
-void USceneComponent::ProceedLerp(float DeltaTime)
-{
-    if (LerpDeltaVector > 0 ) // Lerp중
-    {
-        FVector FromLocation = GetWorldLocation();
-        FVector ToLocation = FromLocation + LerpDeltaVector;
-
-        FVector MoveLocation = FMath::FInterpTo(FromLocation, ToLocation, DeltaTime, LerpSpeed);
-        SetWorldLocation(MoveLocation);
-
-        //움직인만큼 빼주기
-        LerpDeltaVector -= MoveLocation - FromLocation;
-        LerpDeltaVector = FMath::Max(LerpDeltaVector, FVector::ZeroVector);
-    }
-}
-
-void USceneComponent::LerpMovement(FVector& FromLocation, FVector& ToLocation, float InLerpSpeed) //LerpSpeed = 0은 안움직이고 1은 바로이동
-{
-    LerpDeltaVector = ToLocation - FromLocation;
-
-    LerpSpeed = InLerpSpeed;
 }
