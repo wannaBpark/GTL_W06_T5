@@ -157,6 +157,16 @@ FMatrix FRotator::ToMatrix() const
     return FMatrix::GetRotationMatrix(*this);
 }
 
+FRotator FRotator::MakeLookAtRotation(const FVector& From, const FVector& To)
+{
+    FVector Dir = To - From;
+    float Yaw = std::atan2(Dir.Y, Dir.X) * 180.0f / PI;
+    float DistanceXY = std::sqrt(Dir.X * Dir.X + Dir.Y * Dir.Y);
+    float Pitch = std::atan2(Dir.Z, DistanceXY) * 180.0f / PI;
+    float Roll = 0.0f;
+    return FRotator(Pitch, Yaw, Roll);
+}
+
 float FRotator::ClampAxis(float Angle)
 {
     Angle = FMath::Fmod(Angle, 360.0f);

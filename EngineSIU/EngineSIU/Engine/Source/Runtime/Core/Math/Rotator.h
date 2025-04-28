@@ -60,13 +60,14 @@ struct FRotator
     FVector RotateVector(const FVector& Vec) const;
     FMatrix ToMatrix() const;
 
+    
     static float ClampAxis(float Angle);
     FRotator GetNormalized() const;
     void Normalize();
-
     
     FString ToString() const;
     bool InitFromString(const FString& InSourceString);
 
     static float NormalizeAxis(float Angle);
+    static FRotator MakeLookAtRotation(const FVector& From, const FVector& To);
 };
