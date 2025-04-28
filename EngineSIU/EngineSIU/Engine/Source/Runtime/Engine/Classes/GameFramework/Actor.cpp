@@ -87,6 +87,10 @@ UObject* AActor::Duplicate(UObject* InOuter)
 
     NewActor->LuaScriptComponent = NewActor->GetComponentByClass<ULuaScriptComponent>();
 
+    NewActor->OnActorOverlapHandle.Invalidate();
+    NewActor->OnActorBeginOverlapHandle.Invalidate();
+    NewActor->OnActorEndOverlapHandle.Invalidate();
+
     return NewActor;
 }
 
