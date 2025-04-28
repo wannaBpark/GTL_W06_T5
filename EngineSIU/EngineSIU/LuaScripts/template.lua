@@ -23,3 +23,9 @@ function Tick(dt)
     -- actor.Location = FVector(0, 0, 0)
     -- actor.Location.X = actor.Location.X + dt
 end
+
+function BeginOverlap()
+end
+
+function EndOverlap()
+end

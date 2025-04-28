@@ -879,7 +879,7 @@ void FEditorRenderPass::RenderSphereInstanced(uint64 ShowFlag)
 void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
 {
     BindShaderResource(L"CapsuleVS", L"CapsulePS", D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    BindBuffers(Resources.Primitives.Capsule);
+    //BindBuffers(Resources.Primitives.Capsule);
     
     // 위치랑 bounding box 크기 정보 가져오기
     TArray<FConstantBufferDebugCapsule> BufferAll;
@@ -931,7 +931,10 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
         if (SubBuffer.Num() > 0)
         {
             BufferManager->UpdateConstantBuffer<FConstantBufferDebugCapsule>(TEXT("CapsuleConstantBuffer"), SubBuffer);
-            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Capsule.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+            //Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Capsule.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+
+            // 수평 링 : stacks + 1개, 수직 줄 stacks 개
+            Graphics->DeviceContext->DrawInstanced(1184, SubBuffer.Num(), 0, 0);
         }
     }
 }
