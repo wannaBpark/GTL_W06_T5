@@ -1,6 +1,7 @@
 #include "Level.h"
 #include "GameFramework/Actor.h"
 #include "UObject/Casts.h"
+#include "World/World.h"
 
 
 void ULevel::InitLevel(UWorld* InOwningWorld)
@@ -11,15 +12,11 @@ void ULevel::InitLevel(UWorld* InOwningWorld)
 
 void ULevel::Release()
 {
-    for (AActor* Actor : Actors)
+    const auto CopiedActors = Actors;
+    for (AActor* Actor : CopiedActors)
     {
         Actor->EndPlay(EEndPlayReason::WorldTransition);
-        TSet<UActorComponent*> Components = Actor->GetComponents();
-        for (UActorComponent* Component : Components)
-        {
-            GUObjectArray.MarkRemoveObject(Component);
-        }
-        GUObjectArray.MarkRemoveObject(Actor);
+        OwningWorld->DestroyActor(Actor);
     }
     Actors.Empty();
 }

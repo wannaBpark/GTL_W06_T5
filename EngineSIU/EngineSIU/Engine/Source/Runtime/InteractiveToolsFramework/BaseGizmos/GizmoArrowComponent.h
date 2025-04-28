@@ -10,7 +10,6 @@ class UGizmoArrowComponent : public UGizmoBaseComponent
 public:
     UGizmoArrowComponent() = default;
 
-    virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
 
 private:

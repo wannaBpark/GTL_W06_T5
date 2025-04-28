@@ -8,7 +8,5 @@ class UGizmoRectangleComponent : public UGizmoBaseComponent
 
 public:
     UGizmoRectangleComponent() = default;
-
-    virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
 };

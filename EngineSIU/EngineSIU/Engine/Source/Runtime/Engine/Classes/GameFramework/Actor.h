@@ -19,7 +19,8 @@ namespace sol
 }
 // Actor가 다른 Actor와 충돌했을 때 호출될 Delegate
 DECLARE_MULTICAST_DELEGATE_OneParam(FActorHitSignature, AActor*);
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FActorBeginOverlapSignature, AActor*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FActorEndOverlapSignature, AActor*);
 
 class UActorComponent;
 
@@ -30,6 +31,9 @@ class AActor : public UObject
 public:
     AActor() = default;
 
+    // SpawnActor 내부에서 Actor 생성 이후 호출될 함수.
+    // 생성 로직 단계에서 계층 구조에 종속되는 초기화를 대신 해주는 초기화 함수.
+    virtual void PostSpawnInitialize();
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     /**
@@ -123,7 +127,15 @@ public:
 public:
     // 충돌시 호출되는 Delegate
     FActorHitSignature OnActorOverlap;
+    FActorBeginOverlapSignature OnActorBeginOverlap;
+    FActorEndOverlapSignature OnActorEndOverlap;
+
     FDelegateHandle OnActorOverlapHandle;
+    FDelegateHandle OnActorBeginOverlapHandle;
+    FDelegateHandle OnActorEndOverlapHandle;
+
+
+    void ProcessOverlaps();
 
     void HandleOverlap(AActor* OtherActor)
     {
@@ -131,8 +143,6 @@ public:
         {
             return;
         }
-
-        // 자기 자신을 Destroy
         Destroy();
     }
 
@@ -157,6 +167,9 @@ private:
 
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1 = false;
+
+    TArray<AActor*> PendingDestroyActors;
+
 
 
 #if 1 // TODO: WITH_EDITOR 추가
@@ -188,8 +201,8 @@ public: // Lua Script.
 	// 자기 자신이 가진 정보들 Lua에 등록.
 	void InitLuaScriptComponent();
 	FString GetLuaScriptPathName();
-	virtual void ApplyTypesOnLua(sol::state& Lua); // Lua에 클래스 등록해주는 함수.
-    virtual void SetupLuaProperties(); // LuaEnv에서 사용할 멤버 변수 등록 함수.
+	virtual void RegisterLuaType(sol::state& Lua); // Lua에 클래스 등록해주는 함수.
+    virtual bool BindSelfLuaProperties(); // LuaEnv에서 사용할 멤버 변수 등록 함수.
 
 	bool bUseScript = true;
 private:

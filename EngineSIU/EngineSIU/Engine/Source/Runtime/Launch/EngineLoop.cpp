@@ -181,6 +181,11 @@ void FEngineLoop::Tick()
             GPUTimingManager.EndFrame();        // End GPU frame timing
         }
 
+        if (LuaScriptManager)
+        {
+            LuaScriptManager->HotReloadLuaScript();
+        }
+
         GraphicDevice.SwapBuffer();
         do
         {

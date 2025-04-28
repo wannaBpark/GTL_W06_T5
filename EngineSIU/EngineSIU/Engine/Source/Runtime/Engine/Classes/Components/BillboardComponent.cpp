@@ -63,12 +63,6 @@ void UBillboardComponent::SetProperties(const TMap<FString, FString>& InProperti
     }
 }
 
-void UBillboardComponent::InitializeComponent()
-{
-    Super::InitializeComponent();
-
-}
-
 void UBillboardComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);

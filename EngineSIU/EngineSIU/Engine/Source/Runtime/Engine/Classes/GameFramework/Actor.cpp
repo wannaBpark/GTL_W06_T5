@@ -1,13 +1,18 @@
 #include "Actor.h"
-#include "Actor.h"
 #include "Components/PrimitiveComponent.h"
 #include "Delegates/DelegateCombination.h"
 #include "World/World.h"
 #include "PlayerController.h"
 #include "Components/InputComponent.h"
-#include "sol/sol.hpp"
 #include "Components/LuaScriptComponent.h"
 #include "Engine/Lua/LuaScriptManager.h"
+
+#include "Engine/Lua/LuaUtils/LuaTypeMacros.h"
+
+void AActor::PostSpawnInitialize()
+{
+    InitLuaScriptComponent();
+}
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
@@ -37,7 +42,6 @@ UObject* AActor::Duplicate(UObject* InOuter)
 
     for (UActorComponent* Component : OwnedComponents)
     {
-
         UActorComponent* NewComponent = Cast<UActorComponent>(Component->Duplicate(NewActor));
         NewComponent->OwnerPrivate = NewActor;
         NewActor->OwnedComponents.Add(NewComponent);
@@ -113,9 +117,8 @@ void AActor::BeginPlay()
 {
     if (bUseScript)
     {
-        ApplyTypesOnLua(FLuaScriptManager::Get().GetLua());
-        InitLuaScriptComponent();
-        SetupLuaProperties();
+        RegisterLuaType(FLuaScriptManager::Get().GetLua());
+        BindSelfLuaProperties();
     }
 
     const auto CopyComponents = OwnedComponents;
@@ -123,7 +126,7 @@ void AActor::BeginPlay()
     {  
         Comp->BeginPlay();
     }
-    OnActorOverlapHandle = OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
+    OnActorEndOverlapHandle = OnActorEndOverlap.AddDynamic(this, &AActor::HandleOverlap);
 }
 
 void AActor::Tick(float DeltaTime)
@@ -152,11 +155,21 @@ void AActor::Destroyed()
 
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    // 본인이 소유하고 있는 모든 컴포넌트의 EndPlay 호출
+
     if (OnActorOverlapHandle.IsValid())
     {
         OnActorOverlap.Remove(OnActorOverlapHandle);
         OnActorOverlapHandle.Invalidate();
+    }
+    if (OnActorBeginOverlapHandle.IsValid())
+    {
+        OnActorBeginOverlap.Remove(OnActorBeginOverlapHandle);
+        OnActorBeginOverlapHandle.Invalidate();
+    }
+    if (OnActorEndOverlapHandle.IsValid())
+    {
+        OnActorEndOverlap.Remove(OnActorEndOverlapHandle); 
+        OnActorEndOverlapHandle.Invalidate();
     }
 
     for (UActorComponent* Component : GetComponents())
@@ -166,6 +179,7 @@ void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
             Component->EndPlay(EndPlayReason);
         }
     }
+
     UninitializeComponents();
 }
 
@@ -250,10 +264,7 @@ void AActor::InitializeComponents()
             ActorComp->Activate();
         }
 
-        if (!ActorComp->HasBeenInitialized())
-        {
-            ActorComp->InitializeComponent();
-        }
+        ActorComp->InitializeComponent();
     }
 }
 
@@ -408,32 +419,58 @@ FString AActor::GetLuaScriptPathName()
     return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : TEXT("");
 }
 
-void AActor::ApplyTypesOnLua(sol::state& Lua)
+
+
+void AActor::RegisterLuaType(sol::state& Lua)
 {
-    static bool bRegisteredLuaProperties = false;
-    if (!bRegisteredLuaProperties)
+    DEFINE_LUA_TYPE_NO_PARENT(AActor,
+        "UUID", sol::property(&ThisClass::GetUUID),
+        /*"ActorName", &ThisClass::GetName,*/ // FString은 넘어가지 않는 중 내부에서 사용 불가.
+        "ActorLocation", sol::property(&ThisClass::GetActorLocation, &ThisClass::SetActorLocation),
+        "ActorRotation", sol::property(&ThisClass::GetActorRotation, &ThisClass::SetActorRotation),
+        "ActorScale", sol::property(&ThisClass::GetActorScale, &ThisClass::SetActorScale)
+    )
+}
+
+bool AActor::BindSelfLuaProperties()
+{
+    if (!LuaScriptComponent)
     {
-        Lua.new_usertype<AActor>("AActor",
-            "GetUUID", &ThisClass::GetUUID,
-            "GetActorLocation", &ThisClass::GetActorLocation,
-            "GetActorRotation", &ThisClass::GetActorRotation,
-            "GetActorScale", &ThisClass::GetActorScale
-        );
-        bRegisteredLuaProperties = true;
+        return false;
+    }
+    // LuaScript Load 실패.
+    if (!LuaScriptComponent->LoadScript())
+    {
+        return false;
+    }
+    
+    sol::table& LuaTable = LuaScriptComponent->GetLuaSelfTable();
+    if (!LuaTable.valid())
+    {
+        return false;
+    }
+
+    // 자기 자신 등록.
+    // self에 this를 하게 되면 내부에서 임의로 Table로 바꿔버리기 때문에 self:함수() 형태의 호출이 불가능.
+    // 자기 자신 객체를 따로 넘겨주어야만 AActor:GetName() 같은 함수를 실행시켜줄 수 있다.
+    LuaTable["this"] = this;
+    LuaTable["Name"] = *GetName(); // FString 해결되기 전까지 임시로 Table로 전달.
+    // 이 아래에서 또는 하위 클래스 함수에서 멤버 변수 등록.
+
+    return true;
+}
+
+// Actor.cpp
+void AActor::ProcessOverlaps()
+{
+    const auto CopyComponents = OwnedComponents; // ★ 복사
+
+    for (UActorComponent* Component : CopyComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Component))
+        {
+            PrimComp->ProcessOverlaps();
+        }
     }
 }
 
-void AActor::SetupLuaProperties()
-{
-    if (!LuaScriptComponent)
-        return;
-
-    // TODO: Script 로드는 처음에만 한번.
-    LuaScriptComponent->LoadScript();
-
-    // TODO: 매 프레임마다 table의 정보를 덮어 써줘야 함.
-    /*LuaEnv["UUID"] = UUID;
-    LuaEnv["ActorLocation"] = GetActorLocation();
-    LuaEnv["ActorRotation"] = GetActorRotation();
-    LuaEnv["ActorScale"] = GetActorScale();*/
-}

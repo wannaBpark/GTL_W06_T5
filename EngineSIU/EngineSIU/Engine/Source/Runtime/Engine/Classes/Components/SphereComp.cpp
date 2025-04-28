@@ -10,11 +10,6 @@ USphereComp::USphereComp()
     AABB.min = {-1, -1, -1};
 }
 
-void USphereComp::InitializeComponent()
-{
-    Super::InitializeComponent();
-}
-
 void USphereComp::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);

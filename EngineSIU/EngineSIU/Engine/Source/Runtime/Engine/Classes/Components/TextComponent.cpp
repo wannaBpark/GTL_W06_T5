@@ -74,11 +74,6 @@ void UTextComponent::SetProperties(const TMap<FString, FString>& InProperties)
     
 }
 
-void UTextComponent::InitializeComponent()
-{
-    Super::InitializeComponent();
-}
-
 void UTextComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
