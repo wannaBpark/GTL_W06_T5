@@ -171,6 +171,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorConfigManager.cpp" />
+    <ClCompile Include="Engine\Source\Games\LastWar\Characters\Player.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\CollisionMath.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Shapes\BoxComponent.cpp" />
@@ -401,6 +402,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Games\LastWar\Characters\Player.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\CollisionMath.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorConfigManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.h" />
