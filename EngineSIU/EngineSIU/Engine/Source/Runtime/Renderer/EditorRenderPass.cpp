@@ -932,7 +932,9 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
         {
             BufferManager->UpdateConstantBuffer<FConstantBufferDebugCapsule>(TEXT("CapsuleConstantBuffer"), SubBuffer);
             //Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Capsule.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
-            Graphics->DeviceContext->DrawInstanced(1120, SubBuffer.Num(), 0, 0);
+
+            // 수평 링 : stacks + 1개, 수직 줄 stacks 개
+            Graphics->DeviceContext->DrawInstanced(1184, SubBuffer.Num(), 0, 0);
         }
     }
 }
