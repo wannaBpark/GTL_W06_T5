@@ -4,8 +4,6 @@
 
 APlayerController::APlayerController()
 {
-    RootComponent = AddComponent<USceneComponent>();
-    
     SetupInputComponent();
 }
 
