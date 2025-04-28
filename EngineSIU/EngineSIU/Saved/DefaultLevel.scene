@@ -2,6 +2,7 @@
     "Actors": [
         {
             "ActorClass": "ACube",
+
             "ActorID": "ACube_117",
             "ActorLabel": "ACube117",
             "Components": [
@@ -38,30 +39,7 @@
                     }
                 },
                 {
-                    "ComponentClass": "ULuaScriptComponent",
-                    "ComponentID": "ULuaScriptComponent_123",
-                    "Properties": {
-                        "ComponentClass": "ULuaScriptComponent",
-                        "ComponentName": "ULuaScriptComponent_123",
-                        "ComponentOwner": "ACube_117",
-                        "ComponentOwnerClass": "ACube",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
-                    }
-                }
-            ],
-            "Properties": {
-                "bTickInEditor": "false",
-                "bUseScript": "true"
-            },
-            "RootComponentID": "StaticMeshComponent_0"
-        },
-        {
-            "ActorClass": "ACube",
-            "ActorID": "ACube_124",
-            "ActorLabel": "ACube124",
-            "Components": [
-                {
+
                     "ComponentClass": "UStaticMeshComponent",
                     "ComponentID": "StaticMeshComponent_0",
                     "Properties": {
@@ -70,9 +48,11 @@
                         "AttachParentID": "nullptr",
                         "ComponentClass": "UStaticMeshComponent",
                         "ComponentName": "StaticMeshComponent_0",
+
                         "ComponentOwner": "ACube_124",
                         "ComponentOwnerClass": "ACube",
                         "RelativeLocation": "X=0.000 Y=-7.326 Z=0.000",
+
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Reference/Reference.obj",
@@ -87,13 +67,16 @@
                     "Properties": {
                         "ComponentClass": "ULuaScriptComponent",
                         "ComponentName": "LuaComponent_0",
+
                         "ComponentOwner": "ACube_124",
+
                         "ComponentOwnerClass": "ACube",
                         "bAutoActive": "true",
                         "bIsActive": "true"
                     }
                 },
                 {
+
                     "ComponentClass": "ULuaScriptComponent",
                     "ComponentID": "ULuaScriptComponent_130",
                     "Properties": {
@@ -103,6 +86,7 @@
                         "ComponentOwnerClass": "ACube",
                         "bAutoActive": "true",
                         "bIsActive": "true"
+
                     }
                 }
             ],
@@ -113,6 +97,7 @@
             "RootComponentID": "StaticMeshComponent_0"
         },
         {
+
             "ActorClass": "APlayerController",
             "ActorID": "APlayerController_131",
             "ActorLabel": "APlayerController131",
@@ -140,6 +125,7 @@
             "ActorClass": "ACharacter",
             "ActorID": "ACharacter_133",
             "ActorLabel": "ACharacter133",
+
             "Components": [
                 {
                     "ComponentClass": "UStaticMeshComponent",
@@ -150,6 +136,7 @@
                         "AttachParentID": "nullptr",
                         "ComponentClass": "UStaticMeshComponent",
                         "ComponentName": "StaticMeshComponent_0",
+
                         "ComponentOwner": "ACharacter_133",
                         "ComponentOwnerClass": "ACharacter",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
@@ -162,6 +149,7 @@
                     }
                 },
                 {
+
                     "ComponentClass": "ULuaScriptComponent",
                     "ComponentID": "LuaComponent_0",
                     "Properties": {
@@ -170,7 +158,7 @@
                         "ComponentOwner": "ACharacter_133",
                         "ComponentOwnerClass": "ACharacter",
                         "bAutoActive": "true",
-                        "bIsActive": "true"
+
                     }
                 }
             ],

@@ -13,9 +13,8 @@
 #include "UnrealEd/SceneManager.h"
 #include "Actors/PointLightActor.h"
 #include "Actors/SpotLightActor.h"
-
-
-class UEditorEngine;
+#include "Components/PrimitiveComponent.h"
+#include "GameFramework/Actor.h"
 
 UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, const FString& InWorldName)
 {
@@ -33,17 +32,27 @@ void UWorld::InitializeNewWorld()
     ActiveLevel->InitLevel(this);
 }
 
-void UWorld::InitializeLightScene()
-{
-    // (생략 가능: 여기는 LightScene 생성하는 테스트 코드)
-}
-
 UObject* UWorld::Duplicate(UObject* InOuter)
 {
     UWorld* NewWorld = Cast<UWorld>(Super::Duplicate(InOuter));
     NewWorld->ActiveLevel = Cast<ULevel>(ActiveLevel->Duplicate(NewWorld));
     NewWorld->ActiveLevel->InitLevel(NewWorld);
     return NewWorld;
+}
+
+void UWorld::BeginPlay()
+{
+    for (AActor* Actor : ActiveLevel->Actors)
+        {
+            if (Actor->GetWorld() == this)
+            {
+                Actor->BeginPlay();
+                if (PendingBeginPlayActors.Contains(Actor))
+                {
+                    PendingBeginPlayActors.Remove(Actor);
+                }
+            }
+        }
 }
 
 void UWorld::Tick(float DeltaTime)
@@ -56,50 +65,36 @@ void UWorld::Tick(float DeltaTime)
         }
         PendingBeginPlayActors.Empty();
     }
-
-    for (AActor* Actor : GetActiveLevel()->Actors)
-    {
-        Actor->UpdateOverlaps();
-    }
-
     TArray<AActor*> ActorsCopy = GetActiveLevel()->Actors;
 
     for (AActor* Actor : ActorsCopy)
     {
-        for (AActor* Other : ActorsCopy)
-        {
-            if (!Other || Other->IsActorBeingDestroyed())
-            {
-                continue;
-            }
+        if (!Actor || Actor->IsActorBeingDestroyed())
+            continue;
 
-            if (Actor != Other)
-            {
-                if (Actor->IsOverlappingActor(Other))
-                {
-                    Actor->OnActorOverlap.Broadcast(Other);
-                    Other->OnActorOverlap.Broadcast(Actor);
-                }
-            }
-        }
+        Actor->UpdateOverlaps();
     }
-}
 
-void UWorld::BeginPlay()  
-{
-    for (AActor* Actor : ActiveLevel->Actors)
+    for (AActor* Actor : ActorsCopy)
     {
-        if (Actor->GetWorld() == this)
-        {
-            Actor->BeginPlay();
-            if (PendingBeginPlayActors.Contains(Actor))
-            {
-                PendingBeginPlayActors.Remove(Actor);
-            }
-        }
+        if (!Actor || Actor->IsActorBeingDestroyed())
+            continue;
+
+        Actor->ProcessOverlaps();
     }
 
+    if (!PendingDestroyActors.IsEmpty())
+    {
+        for (AActor* Actor : PendingDestroyActors)
+        {
+            ActiveLevel->Actors.Remove(Actor);
+            GUObjectArray.MarkRemoveObject(Actor);
+        }
+        PendingDestroyActors.Empty();
+    }
 }
+
+
 
 void UWorld::Release()
 {
@@ -147,34 +142,26 @@ bool UWorld::DestroyActor(AActor* ThisActor)
         return true;
     }
 
-
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
     if (EditorEngine->GetSelectedActor() == ThisActor)
     {
         EditorEngine->DeselectActor(ThisActor);
     }
-    if (EditorEngine->GetSelectedComponent() && 
-        
-        
-        
-        
-        
-        ThisActor->GetComponentByFName<UActorComponent>(EditorEngine->GetSelectedComponent()->GetFName()))
+
+    if (EditorEngine->GetSelectedComponent() && ThisActor->GetComponentByFName<UActorComponent>(EditorEngine->GetSelectedComponent()->GetFName()))
     {
         EditorEngine->DeselectComponent(EditorEngine->GetSelectedComponent());
     }
 
     ThisActor->Destroyed();
-
-  
-
     if (ThisActor->GetOwner())
     {
         ThisActor->SetOwner(nullptr);
     }
 
-    ActiveLevel->Actors.Remove(ThisActor);
+    // 실제 Remove는 나중에
+    PendingDestroyActors.Add(ThisActor);
 
     GUObjectArray.MarkRemoveObject(ThisActor);
     return true;
@@ -184,3 +171,5 @@ UWorld* UWorld::GetWorld() const
 {
     return const_cast<UWorld*>(this);
 }
+
+

@@ -126,7 +126,7 @@ void AActor::BeginPlay()
     {  
         Comp->BeginPlay();
     }
-    OnActorOverlapHandle = OnActorOverlap.AddDynamic(this, &AActor::HandleOverlap);
+    OnActorEndOverlapHandle = OnActorEndOverlap.AddDynamic(this, &AActor::HandleOverlap);
 }
 
 void AActor::Tick(float DeltaTime)
@@ -155,11 +155,21 @@ void AActor::Destroyed()
 
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    // 본인이 소유하고 있는 모든 컴포넌트의 EndPlay 호출
+
     if (OnActorOverlapHandle.IsValid())
     {
         OnActorOverlap.Remove(OnActorOverlapHandle);
         OnActorOverlapHandle.Invalidate();
+    }
+    if (OnActorBeginOverlapHandle.IsValid())
+    {
+        OnActorBeginOverlap.Remove(OnActorBeginOverlapHandle);
+        OnActorBeginOverlapHandle.Invalidate();
+    }
+    if (OnActorEndOverlapHandle.IsValid())
+    {
+        OnActorEndOverlap.Remove(OnActorEndOverlapHandle); 
+        OnActorEndOverlapHandle.Invalidate();
     }
 
     for (UActorComponent* Component : GetComponents())
@@ -169,6 +179,7 @@ void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
             Component->EndPlay(EndPlayReason);
         }
     }
+
     UninitializeComponents();
 }
 
@@ -451,3 +462,18 @@ bool AActor::BindSelfLuaProperties()
 
     return true;
 }
+
+// Actor.cpp
+void AActor::ProcessOverlaps()
+{
+    const auto CopyComponents = OwnedComponents; // ★ 복사
+
+    for (UActorComponent* Component : CopyComponents)
+    {
+        if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Component))
+        {
+            PrimComp->ProcessOverlaps();
+        }
+    }
+}
+

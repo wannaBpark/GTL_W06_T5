@@ -19,7 +19,8 @@ namespace sol
 }
 // Actor가 다른 Actor와 충돌했을 때 호출될 Delegate
 DECLARE_MULTICAST_DELEGATE_OneParam(FActorHitSignature, AActor*);
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FActorBeginOverlapSignature, AActor*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FActorEndOverlapSignature, AActor*);
 
 class UActorComponent;
 
@@ -126,7 +127,15 @@ public:
 public:
     // 충돌시 호출되는 Delegate
     FActorHitSignature OnActorOverlap;
+    FActorBeginOverlapSignature OnActorBeginOverlap;
+    FActorEndOverlapSignature OnActorEndOverlap;
+
     FDelegateHandle OnActorOverlapHandle;
+    FDelegateHandle OnActorBeginOverlapHandle;
+    FDelegateHandle OnActorEndOverlapHandle;
+
+
+    void ProcessOverlaps();
 
     void HandleOverlap(AActor* OtherActor)
     {
@@ -134,8 +143,6 @@ public:
         {
             return;
         }
-
-        // 자기 자신을 Destroy
         Destroy();
     }
 
@@ -160,6 +167,9 @@ private:
 
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1 = false;
+
+    TArray<AActor*> PendingDestroyActors;
+
 
 
 #if 1 // TODO: WITH_EDITOR 추가
