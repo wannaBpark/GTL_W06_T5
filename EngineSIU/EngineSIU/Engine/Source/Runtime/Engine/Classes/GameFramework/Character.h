@@ -4,6 +4,7 @@
 class UInputComponent;
 class AController;
 class UStaticMeshComponent;
+class UCapsuleComponent;
 
 class ACharacter : public APawn
 {
@@ -24,5 +25,8 @@ protected:
 
     UPROPERTY
     (UStaticMeshComponent*, BodyMesh, = nullptr);
+
+    UPROPERTY
+    (UCapsuleComponent*, CollisionCapsule, = nullptr);
 };
 

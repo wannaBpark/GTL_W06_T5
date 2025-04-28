@@ -1,11 +1,12 @@
 #include "Character.h"  
 #include "Components/InputComponent.h"  
 #include "Controller.h"
+#include "Components/Shapes/CapsuleComponent.h"
 
 ACharacter::ACharacter()  
 {  
-    RootScene = AddComponent<USceneComponent>("RootScene");
-    RootComponent = RootScene;
+    CollisionCapsule = AddComponent<UCapsuleComponent>("CollisionCapsule");
+    RootComponent = CollisionCapsule;
 }  
 
 void ACharacter::BeginPlay()  
