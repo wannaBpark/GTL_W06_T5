@@ -3,9 +3,10 @@
 #include <UserInterface/Console.h>
 
 #include "Engine/Lua/LuaTypes/LuaUserTypes.h"
+#include "Components/LuaScriptComponent.h"
 
-
-TMap<FString, sol::table> FLuaScriptManager::ScriptCacheMap;
+TMap<FString, FLuaTableScriptInfo> FLuaScriptManager::ScriptCacheMap;
+TSet<ULuaScriptComponent*> FLuaScriptManager::ActiveLuaComponents;
 
 FLuaScriptManager::FLuaScriptManager()
 {
@@ -30,7 +31,7 @@ FLuaScriptManager::FLuaScriptManager()
 
 void FLuaScriptManager::SetLuaDefaultTypes()
 {
-    sol::table TypeTable = LuaState.create_table("EngineType");
+    sol::table TypeTable = LuaState.create_table("EngineTypes");
 
     // Default Math Types.
     LuaTypes::FBindLua<FColor>::Bind(TypeTable);
@@ -62,7 +63,7 @@ sol::table FLuaScriptManager::CreateLuaTable(const FString& ScriptName)
         //assert(false && "Lua File not found");
         return sol::table();
     }
-    
+
     if (!ScriptCacheMap.Contains(ScriptName))
     {
         sol::protected_function_result Result = LuaState.script_file(*ScriptName);
@@ -79,26 +80,91 @@ sol::table FLuaScriptManager::CreateLuaTable(const FString& ScriptName)
             UE_LOG(LogLevel::Error, TEXT("Lua Error: %s"), *FString("Script file did not return a table."));
             return sol::table();
         }
-        else
-        {
-            ScriptCacheMap.Add(ScriptName, ReturnValue.as<sol::table>());
-        }
+        
+        FLuaTableScriptInfo NewInfo;
+        NewInfo.ScriptTable = ReturnValue.as<sol::table>();
+        NewInfo.LastWriteTime = std::filesystem::last_write_time(ScriptName.ToWideString());
+        ScriptCacheMap.Add(ScriptName, NewInfo);
     }
 
     //return ScriptCacheMap[ScriptName];
 
-    sol::table& ScriptClass = ScriptCacheMap[ScriptName];
+    sol::table& ScriptClass = ScriptCacheMap[ScriptName].ScriptTable;
 
     sol::table NewEnv = LuaState.create_table();
     for (auto& pair : ScriptClass)
     {
-        // For Debug
-        std::string keyA;
-        if (pair.first.get_type() == sol::type::string) {   
-            keyA = pair.first.as<std::string>(); // 문자열로 변환      
-        }
-        NewEnv[pair.first] = pair.second;
+        NewEnv.set(pair.first, pair.second);
     }
 
     return NewEnv;
+}
+
+void FLuaScriptManager::RegisterActiveLuaComponent(ULuaScriptComponent* LuaComponent)
+{
+    ActiveLuaComponents.Add(LuaComponent);
+}
+
+void FLuaScriptManager::UnRigisterActiveLuaComponent(ULuaScriptComponent* LuaComponent)
+{
+    if (ActiveLuaComponents.Contains(LuaComponent))
+        ActiveLuaComponents.Remove(LuaComponent);
+}
+
+void FLuaScriptManager::ReloadLuaScript(const FString& ScriptName)
+{
+    if (!std::filesystem::exists(*ScriptName))
+    {
+        UE_LOG(LogLevel::Error, TEXT("InValid Lua File name."));
+        return;
+    }
+
+    if (!ScriptCacheMap.Contains(ScriptName))
+    {
+        return;
+    }
+
+    ScriptCacheMap.Remove(ScriptName);
+
+    sol::protected_function_result Result = LuaState.script_file(*ScriptName);
+    if (!Result.valid())
+    {
+        sol::error err = Result;
+        UE_LOG(LogLevel::Error, TEXT("Lua Error: %s"), *FString(err.what()));
+        return;
+    }
+
+    sol::object ReturnValue = Result.get<sol::object>();
+    if (!ReturnValue.is<sol::table>())
+    {
+        UE_LOG(LogLevel::Error, TEXT("Lua Error: %s"), *FString("Script file did not return a table."));
+        return;
+    }
+
+    FLuaTableScriptInfo NewInfo;
+    NewInfo.ScriptTable = ReturnValue.as<sol::table>();
+    NewInfo.LastWriteTime = std::filesystem::last_write_time(*ScriptName);
+    ScriptCacheMap.Add(ScriptName, NewInfo);
+    UE_LOG(LogLevel::Display, TEXT("Reload Lua Script: %s"), *ScriptName);
+}
+
+void FLuaScriptManager::HotReloadLuaScript()
+{
+    for (const auto& pair : ScriptCacheMap)
+    {
+        // if (pair.Value.LastWriteTime == filetime())
+        // {
+        //      ReloadLuaScript(pair.Key);
+        //      ChangedScriptName.Add(pair.Key)
+        // }
+
+        // Reload 된 컴포넌트 이름만 저장.
+    }
+
+    //for (ChangedScriptName)
+    //{
+    //    // Reload된 이름이 ActiveLuaComponents의 Name이랑 같으면
+    //    // Actor->BindSelfLuaProperties(); 불러주기.
+    //}
+
 }
