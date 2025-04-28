@@ -172,6 +172,10 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Contents\Actors\Fish.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Actors\PlatformActor.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Components\FishBodyComponent.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Components\FishTailComponent.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.cpp" />
@@ -402,6 +406,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Contents\Actors\Fish.h" />
+    <ClInclude Include="Engine\Source\Contents\Actors\PlatformActor.h" />
+    <ClInclude Include="Engine\Source\Contents\Components\FishBodyComponent.h" />
+    <ClInclude Include="Engine\Source\Contents\Components\FishTailComponent.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.h" />
@@ -622,6 +630,7 @@
     <Content Include="Engine\Source\ThirdParty\DirectXTK\Lib\x86\Debug\DirectXTK.lib" />
     <Content Include="Engine\Source\ThirdParty\DirectXTK\Lib\x86\Release\DirectXTK.lib" />
     <Content Include="Engine\Source\ThirdParty\tinyfiledialogs\README.txt" />
+    <Content Include="LuaScripts\template.lua" />
     <Natvis Include="EngineSIU.natvis" />
   </ItemGroup>
   <ItemGroup>
@@ -677,6 +686,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <None Include="Shaders\StaticMeshPixelShaderWorldTangent.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Engine\Source\Contents\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

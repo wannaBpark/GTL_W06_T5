@@ -2,7 +2,9 @@
 #include <sol/sol.hpp>
 #include "Runtime/Core/Math/Vector.h"
 #include "Runtime/Engine/UserInterface/Console.h"
-#include "EngineLoop.h"
+
+#include "Engine/Engine.h"
+#include "World/World.h"
 
 namespace LuaBindingHelpers
 {
@@ -40,6 +42,26 @@ namespace LuaBindingHelpers
         );
     }
 
+    inline void BindFRotator(sol::state& Lua)
+    {
+        Lua.new_usertype<FRotator>("FRotator",
+            // 생성자
+            sol::constructors<
+                FRotator(), 
+                FRotator(float, float, float)
+            >(),
+
+            // 속성
+            "Pitch", &FRotator::Pitch,
+            "Yaw",   &FRotator::Yaw,
+            "Roll",  &FRotator::Roll,
+
+            // 연산자
+            sol::meta_function::addition,      [](const FRotator& a, const FRotator& b){ return a + b; },
+            sol::meta_function::subtraction,   [](const FRotator& a, const FRotator& b){ return a - b; }
+        );
+    }
+    
     // UE_LOG 바인딩 함수
     inline void BindUE_LOG(sol::state& Lua)
     {
@@ -73,6 +95,17 @@ namespace LuaBindingHelpers
                 UE_LOG(LogLevel::Error, TEXT("%s"), Msg.c_str());
                 // 화면에 출력
                 OutputDebugStringA(Msg.c_str()); // 디버그 창에 출력
+            }
+        );
+    }
+
+    inline void BindController(sol::state& Lua)
+    {
+        Lua.set_function("controller",
+            [](const std::string& Key, std::function<void(float)> Callback)
+            {
+                //FString 주면 됨
+                GEngine->ActiveWorld->GetPlayerController()->BindAction(FString(Key), Callback);
             }
         );
     }

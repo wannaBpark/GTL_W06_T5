@@ -1,21 +1,49 @@
+turnSpeed = 80
+MoveSpeed = 10
+
 function BeginPlay()
     print("Begin")
-    -- UE_LOG("Error", "actor:SetLocation")
 end
 
 function EndPlay()
-    print("[EndPlay] ")
-    -- obj:PrintLocation()
+    print("[EndPlay]")
 end
 
 function OnOverlap(OtherActor)
-    -- OtherActor:PrintLocation();
+end
+
+function InitializeLua()
+    controller("W", OnPressW)    
+    controller("S", OnPressS)
+    controller("A", OnPressA)
+    controller("D", OnPressD)
+end
+
+function OnPressW(dt)
+    local currentPos = actor.Location
+    currentPos = currentPos + actor:Forward() * dt * MoveSpeed
+    actor.Location = currentPos
+end
+
+function OnPressS(dt)
+    local currentPos = actor.Location
+    currentPos = currentPos - actor:Forward() * dt * MoveSpeed
+    actor.Location = currentPos    
+end
+
+function OnPressA(dt)
+    local rot = actor.Rotator
+    rot.Yaw = rot.Yaw - turnSpeed * dt
+    actor.Rotator = rot
+end
+
+function OnPressD(dt)
+    local rot = actor.Rotator
+    rot.Yaw = rot.Yaw + turnSpeed * dt
+    actor.Rotator = rot
 end
 
 function Tick(dt)
-    local currentPos = actor.Location
-    currentPos.X = currentPos.X + dt * 1
-    actor.Location = currentPos
     -- actor:SetLocation(newPos)
     -- actor:SetLocation(FVector(200, 0, 0))
     -- UE_LOG("Error", "actor:SetLocation")

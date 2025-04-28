@@ -8,7 +8,9 @@
 #include "Actors/Player.h"
 #include "Actors/PlayerController.h"
 #include "Components/CameraComponent.h"
+#include "Engine/Engine.h"
 #include "Engine/EventManager.h"
+#include "UObject/UObjectIterator.h"
 
 class UPrimitiveComponent;
 struct FOverlapResult;
@@ -69,11 +71,14 @@ public:
     FEventManager EventManager;
 
     void SetMainCamera(UCameraComponent* InCamera) { MainCamera = InCamera; }
-    UCameraComponent* GetMainCamera(){ return MainCamera; }
+    UCameraComponent* GetMainCamera() const;
+    
     void SetMainPlayer(APlayer* InPlayer){ MainPlayer = InPlayer; }
-    APlayer* GetMainPlayer(){ return MainPlayer; }
+    APlayer* GetMainPlayer() const;
+
     void SetPlayerController(APlayerController* InPlayerController){ PlayerController = InPlayerController; }
-    APlayerController* GetPlayerController(){ return PlayerController; }
+    APlayerController* GetPlayerController() const;
+
     
     void CheckOverlap(const UPrimitiveComponent* Component, TArray<FOverlapResult>& OutOverlaps) const;
 

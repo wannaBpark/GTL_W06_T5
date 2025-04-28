@@ -23,13 +23,13 @@ public:
     virtual void Possess(AActor* InActor);
 
     virtual void UnPossess();
+    
+    virtual void BindAction(const FString& Key, const std::function<void(float)>& Callback);
 protected:
     UPROPERTY
     (UInputComponent*, InputComponent, = nullptr)
 
     virtual void SetupInputComponent();
-
-    virtual void BindAction(const FString& Key, const std::function<void(float)>& Callback);
 
     AActor* CurrentPossess = nullptr;
 
