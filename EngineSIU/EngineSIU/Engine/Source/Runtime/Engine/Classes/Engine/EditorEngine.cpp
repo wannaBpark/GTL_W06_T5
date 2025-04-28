@@ -10,6 +10,7 @@
 #include "GameFramework/Character.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include "UnrealEd/SceneManager.h"
+#include "Games/LastWar/Characters/PlayerCharacter.h"
 
 namespace PrivateEditorSelection
 {
@@ -180,7 +181,7 @@ void UEditorEngine::StartPIE()
     APlayerController* PC = ActiveWorld->SpawnActor<APlayerController>();
 
     // 2) Character 스폰 및 Possess
-    ACharacter* PlayerCharacter = ActiveWorld->SpawnActor<ACharacter>();
+    ACharacter* PlayerCharacter = ActiveWorld->SpawnActor<APlayerCharacter>();
     PC->Possess(PlayerCharacter);
 
     // 3) 월드에 컨트롤러 등록

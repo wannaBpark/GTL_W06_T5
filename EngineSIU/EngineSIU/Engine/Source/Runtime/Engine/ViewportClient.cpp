@@ -79,12 +79,15 @@ void FViewportClient::UpdateViewMatrix()
 {
     if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
-        UCameraComponent* PlayerCamera = GEngine->ActiveWorld->GetFirstPlayerController()->GetCharacter()->GetFollowCamera();
-        View = JungleMath::CreateViewMatrix(
-            PlayerCamera->GetLocation(),
-            PlayerCamera->GetLocation() + PlayerCamera->GetForwardVector(),
-            PlayerCamera->GetUpVector()
-        );
+        UCameraComponent* PlayerCamera = GEngine->ActiveWorld->GetFirstPlayerController()->GetCharacter()->GetComponentByClass<UCameraComponent>();
+        if (PlayerCamera)
+        {
+            View = JungleMath::CreateViewMatrix(
+                PlayerCamera->GetLocation(),
+                PlayerCamera->GetLocation() + PlayerCamera->GetForwardVector(),
+                PlayerCamera->GetUpVector()
+            );
+        }
 
         return;
     }

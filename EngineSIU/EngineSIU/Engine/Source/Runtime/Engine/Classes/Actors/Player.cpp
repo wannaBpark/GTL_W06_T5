@@ -13,6 +13,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 #include "Engine/EditorEngine.h"
+#include "Player.h"
 
 
 void AEditorPlayer::Tick(float DeltaTime)
