@@ -15,6 +15,7 @@
 #include "Renderer/DepthPrePass.h"
 #include "Renderer/TileLightCullingPass.h"
 
+#include "SoundManager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -91,6 +92,11 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 
     GEngine = FObjectFactory::ConstructObject<UEditorEngine>(nullptr);
     GEngine->Init();
+
+
+    FSoundManager::GetInstance().Initialize();
+    FSoundManager::GetInstance().LoadSound("fishdream", "Contents/Sounds/fishdream.mp3");
+    //FSoundManager::GetInstance().PlaySound("fishdream");
 
     UpdateUI();
 

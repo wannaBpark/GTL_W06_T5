@@ -49,8 +49,8 @@ AGameMode::~AGameMode()
 
 void AGameMode::InitializeComponent()
 {
-    ULuaScriptComponent* LuaScriptComp = this->AddComponent<ULuaScriptComponent>();
-    /*RootComponent = this->AddComponent<USceneComponent>("USceneComponent_0");*/
+    //ULuaScriptComponent* LuaScriptComp = this->AddComponent<ULuaScriptComponent>();
+    //RootComponent = this->AddComponent<USceneComponent>("USceneComponent_0");
 }
 
 UObject* AGameMode::Duplicate(UObject* InOuter)
