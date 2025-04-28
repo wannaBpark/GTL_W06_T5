@@ -764,7 +764,7 @@ void PropertyEditorPanel::RenderForShapeComponent(UShapeComponent* ShapeComponen
             float Radius = Component->GetRadius();
             ImGui::Text("Radius");
             ImGui::SameLine();
-            if (ImGui::DragFloat("##Radius", &Radius))
+            if (ImGui::DragFloat("##Radius", &Radius, 0.01f, 0.f, 1000.f))
             {
                 Component->SetRadius(Radius);
             }
@@ -782,7 +782,8 @@ void PropertyEditorPanel::RenderForShapeComponent(UShapeComponent* ShapeComponen
 
             ImGui::Text("Extent");
             ImGui::SameLine();
-            if (ImGui::DragFloat3("##Extent", Extents)) {
+            if (ImGui::DragFloat3("##Extent", Extents, 0.01f, 0.f, 1000.f))
+            {
                 Component->SetBoxExtent(FVector(Extents[0], Extents[1], Extents[2]));
             }
             ImGui::TreePop();
@@ -798,13 +799,13 @@ void PropertyEditorPanel::RenderForShapeComponent(UShapeComponent* ShapeComponen
 
             ImGui::Text("HalfHeight");
             ImGui::SameLine();
-            if (ImGui::DragFloat("##HalfHeight", &HalfHeight, 0.1f)) {
+            if (ImGui::DragFloat("##HalfHeight", &HalfHeight, 0.01f, 0.f, 1000.f)) {
                 Component->SetHalfHeight(HalfHeight);
             }
 
             ImGui::Text("Radius");
             ImGui::SameLine();
-            if (ImGui::DragFloat("##Radius", &Radius, 0.1f)) {
+            if (ImGui::DragFloat("##Radius", &Radius, 0.01f, 0.f, 1000.f)) {
                 Component->SetRadius(Radius);
             }
             ImGui::TreePop();

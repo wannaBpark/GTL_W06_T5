@@ -1,52 +1,54 @@
 {
     "Actors": [
         {
-            "ActorClass": "ACube",
-            "ActorID": "ACube_115",
-            "ActorLabel": "OBJ_CUBE_115",
+            "ActorClass": "ACubeActor",
+            "ActorID": "ACubeActor_112",
+            "ActorLabel": "OBJ_BOX_COLLISION_112",
+            "ActorTickInEditor": "true",
             "Components": [
                 {
-                    "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "StaticMeshComponent_0",
+                    "ComponentClass": "UBoxComponent",
+                    "ComponentID": "UBoxComponent_113",
                     "Properties": {
-                        "AABB_max": "X=1.287 Y=1.199 Z=2.555",
-                        "AABB_min": "X=-1.287 Y=-1.199 Z=-0.000",
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
                         "AttachParentID": "nullptr",
-                        "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "StaticMeshComponent_0",
-                        "ComponentOwner": "ACube_115",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.244",
+                        "BoxExtent": "X=1.000 Y=1.000 Z=1.000",
+                        "ComponentClass": "UBoxComponent",
+                        "ComponentName": "UBoxComponent_113",
+                        "ComponentOwner": "ACubeActor_112",
+                        "ComponentOwnerClass": "ACubeActor",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/Reference/Reference.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
                     }
-                },
+                }
+            ],
+            "RootComponentID": "UBoxComponent_113"
+        },
+        {
+            "ActorClass": "ACapsuleActor",
+            "ActorID": "ACapsuleActor_114",
+            "ActorLabel": "OBJ_CAPSULE_COLLISION_114",
+            "ActorTickInEditor": "true",
+            "Components": [
                 {
-                    "ComponentClass": "ULuaScriptComponent",
-                    "ComponentID": "ULuaScriptComponent_121",
+                    "ComponentClass": "UCapsuleComponent",
+                    "ComponentID": "UCapsuleComponent_115",
                     "Properties": {
-                        "ComponentClass": "ULuaScriptComponent",
-                        "ComponentName": "ULuaScriptComponent_121",
-                        "ComponentOwner": "ACube_115",
-                        "ComponentOwnerClass": "ACube",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
-                    }
-                },
-                {
-                    "ComponentClass": "UCameraComponent",
-                    "ComponentID": "UCameraComponent_108",
-                    "Properties": {
-                        "AttachParentID": "StaticMeshComponent_0",
-                        "ComponentClass": "UCameraComponent",
-                        "ComponentName": "UCameraComponent_108",
-                        "ComponentOwner": "ACube_115",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=2.900",
+                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "AttachParentID": "nullptr",
+                        "CapsuleHalfHeight": "0.880000",
+                        "CapsuleRadius": "0.340000",
+                        "ComponentClass": "UCapsuleComponent",
+                        "ComponentName": "UCapsuleComponent_115",
+                        "ComponentOwner": "ACapsuleActor_114",
+                        "ComponentOwnerClass": "ACapsuleActor",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=2.716",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
@@ -54,7 +56,7 @@
                     }
                 }
             ],
-            "RootComponentID": "StaticMeshComponent_0"
+            "RootComponentID": "UCapsuleComponent_115"
         }
     ],
     "NextUUID": 0,
