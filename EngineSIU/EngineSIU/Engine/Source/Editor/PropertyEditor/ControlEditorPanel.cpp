@@ -34,6 +34,7 @@
 #include "Actors/CubeActor.h"
 #include "Actors/SphereActor.h"
 #include "Actors/CapsuleActor.h"
+#include "Contents/Actors/Fish.h"
 
 void ControlEditorPanel::Render()
 {
@@ -305,6 +306,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             {.Label = "BoxCol", .OBJ = OBJ_BOX_COLLISION},
             {.Label = "SphereCol", .OBJ = OBJ_SPHERE_COLLISION},
             {.Label = "CapsuleCol", .OBJ = OBJ_CAPSULE_COLLISION},
+            {.Label = "Fish", .OBJ = OBJ_FISH},
         };
 
         for (const auto& primitive : primitives)
@@ -412,6 +414,9 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     SpawnedActor->SetActorTickInEditor(true); // TODO: 콜리전 테스트 용도
                     break;
                 }
+                case OBJ_FISH:
+                    SpawnedActor = World->SpawnActor<AFish>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_FISH"));
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
                 case OBJ_END:
