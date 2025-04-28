@@ -4,6 +4,7 @@
 
 #include "Engine/Lua/LuaTypes/LuaUserTypes.h"
 #include "Components/LuaScriptComponent.h"
+#include "GameFramework/Actor.h"
 
 TMap<FString, FLuaTableScriptInfo> FLuaScriptManager::ScriptCacheMap;
 TSet<ULuaScriptComponent*> FLuaScriptManager::ActiveLuaComponents;
@@ -150,21 +151,28 @@ void FLuaScriptManager::ReloadLuaScript(const FString& ScriptName)
 
 void FLuaScriptManager::HotReloadLuaScript()
 {
-    for (const auto& pair : ScriptCacheMap)
+    TSet<FString> ChangedScriptName;
+    TMap<FString, FLuaTableScriptInfo> CopiedScriptCacheMap = ScriptCacheMap;
+    for (const auto& ScriptCached : CopiedScriptCacheMap)
     {
-        // if (pair.Value.LastWriteTime == filetime())
-        // {
-        //      ReloadLuaScript(pair.Key);
-        //      ChangedScriptName.Add(pair.Key)
-        // }
-
-        // Reload 된 컴포넌트 이름만 저장.
+        FString ScriptName = ScriptCached.Key;
+        FLuaTableScriptInfo LuaScriptInfo = ScriptCached.Value;
+        auto depTime = std::filesystem::last_write_time(GetData(ScriptName));
+        if (LuaScriptInfo.LastWriteTime != depTime)
+        {
+            ReloadLuaScript(ScriptName);
+            ChangedScriptName.Add(ScriptName);
+        }
     }
 
-    //for (ChangedScriptName)
-    //{
-    //    // Reload된 이름이 ActiveLuaComponents의 Name이랑 같으면
-    //    // Actor->BindSelfLuaProperties(); 불러주기.
-    //}
-
+    for (const auto& ChangedScript : ChangedScriptName)
+    {
+        for (const auto* LuaComponent : ActiveLuaComponents)
+        {
+            if (LuaComponent->GetScriptName() == ChangedScript)
+            {
+                LuaComponent->GetOwner()->BindSelfLuaProperties();
+            } 
+        }
+    }
 }

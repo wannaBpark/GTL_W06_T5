@@ -62,12 +62,6 @@ void USceneComponent::SetProperties(const TMap<FString, FString>& InProperties)
     }
 }
 
-void USceneComponent::InitializeComponent()
-{
-    Super::InitializeComponent();
-
-}
-
 void USceneComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);

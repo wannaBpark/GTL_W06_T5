@@ -148,7 +148,6 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     {
         EditorEngine->DeselectActor(ThisActor);
     }
-
     if (EditorEngine->GetSelectedComponent() && ThisActor->GetComponentByFName<UActorComponent>(EditorEngine->GetSelectedComponent()->GetFName()))
     {
         EditorEngine->DeselectComponent(EditorEngine->GetSelectedComponent());

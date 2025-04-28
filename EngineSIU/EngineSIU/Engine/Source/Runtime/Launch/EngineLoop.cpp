@@ -182,7 +182,9 @@ void FEngineLoop::Tick()
         }
 
         if (LuaScriptManager)
+        {
             LuaScriptManager->HotReloadLuaScript();
+        }
 
         GraphicDevice.SwapBuffer();
         do

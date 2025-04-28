@@ -10,7 +10,6 @@ public:
     UPrimitiveComponent() = default;
 
     virtual UObject* Duplicate(UObject* InOuter) override;
-    virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
 

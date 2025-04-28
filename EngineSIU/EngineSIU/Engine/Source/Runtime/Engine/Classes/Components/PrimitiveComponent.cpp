@@ -11,11 +11,6 @@ UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
     return NewComponent;
 }
 
-void UPrimitiveComponent::InitializeComponent()
-{
-    Super::InitializeComponent();
-}
-
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);

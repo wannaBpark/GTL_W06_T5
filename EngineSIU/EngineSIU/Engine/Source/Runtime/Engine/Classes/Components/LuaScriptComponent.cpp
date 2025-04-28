@@ -26,6 +26,11 @@ UObject* ULuaScriptComponent::Duplicate(UObject* InOuter)
 
 void ULuaScriptComponent::InitializeComponent()
 {
+    if (HasBeenInitialized())
+    {
+        return;
+    }
+    Super::InitializeComponent();
     if (ScriptName.IsEmpty())
     {
         if (GetWorld() && GetWorld()->GetActiveLevel())
@@ -73,7 +78,7 @@ void ULuaScriptComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ULuaScriptComponent::DestroyComponent(bool bPromoteChildren)
 {
-    //FLuaScriptManager::Get().UnRigisterActiveLuaComponent(this);
+    FLuaScriptManager::Get().UnRigisterActiveLuaComponent(this);
     Super::DestroyComponent(bPromoteChildren);
 }
 

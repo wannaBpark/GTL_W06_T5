@@ -264,10 +264,7 @@ void AActor::InitializeComponents()
             ActorComp->Activate();
         }
 
-        if (!ActorComp->HasBeenInitialized())
-        {
-            ActorComp->InitializeComponent();
-        }
+        ActorComp->InitializeComponent();
     }
 }
 
