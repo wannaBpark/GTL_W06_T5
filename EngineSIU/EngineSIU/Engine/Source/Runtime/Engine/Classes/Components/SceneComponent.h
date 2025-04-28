@@ -67,6 +67,9 @@ public:
 
     bool MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
     bool MoveComponent(const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
+
+    void ProceedLerp(float DeltaTime);
+    void LerpMovement(FVector& FromLocation, FVector& ToLocation, float DeltaTime);
     
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
@@ -90,4 +93,8 @@ protected:
     virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps = nullptr, bool bDoNotifies = true, const TArray<const FOverlapInfo>* OverlapsAtEndLocation = nullptr);
 
     virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);
+
+    FVector LerpMoveVector = FVector::ZeroVector;
+
+    float LerpTime = 0.f;
 };
