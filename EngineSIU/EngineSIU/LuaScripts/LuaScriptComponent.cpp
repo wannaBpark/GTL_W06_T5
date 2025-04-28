@@ -13,9 +13,34 @@ ULuaScriptComponent::~ULuaScriptComponent()
 {
 }
 
+void ULuaScriptComponent::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    Super::GetProperties(OutProperties);
+    OutProperties.Add(TEXT("ScriptPath"), *ScriptPath);
+    OutProperties.Add(TEXT("DisplayName"), *DisplayName);
+}
+
+void ULuaScriptComponent::SetProperties(const TMap<FString, FString>& Properties)
+{
+    const FString* TempStr = nullptr;
+
+    TempStr = Properties.Find(TEXT("ScriptPath"));
+    if (TempStr)
+    {
+        this->ScriptPath = *TempStr;
+    }
+    TempStr = Properties.Find(TEXT("DisplayName"));
+    if (TempStr)
+    {
+        this->DisplayName = *TempStr;
+    }
+}
+
 void ULuaScriptComponent::BeginPlay()
 {
     Super::BeginPlay();
+
+    InitializeLuaState();
 
     DelegateHandles.Empty();
 
@@ -69,19 +94,8 @@ void ULuaScriptComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 
-    InitializeLuaState();
-}
-
-void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
-{
-    ScriptPath = InScriptPath;
-    bScriptValid = false;
-}
-
-void ULuaScriptComponent::InitializeLuaState()
-{
     if (ScriptPath.IsEmpty()) {
-        bool bSuccess = LuaScriptFileUtils::CopyTemplateToActorScript(
+        bool bSuccess = LuaScriptFileUtils::MakeScriptPathAndDisplayName(
             L"template.lua",
             GetOwner()->GetWorld()->GetName().ToWideString(),
             GetOwner()->GetName().ToWideString(),
@@ -93,6 +107,29 @@ void ULuaScriptComponent::InitializeLuaState()
             return;
         }
     }
+}
+
+void ULuaScriptComponent::SetScriptPath(const FString& InScriptPath)
+{
+    ScriptPath = InScriptPath;
+    bScriptValid = false;
+}
+
+void ULuaScriptComponent::InitializeLuaState()
+{
+    /*if (ScriptPath.IsEmpty()) {
+        bool bSuccess = LuaScriptFileUtils::CopyTemplateToActorScript(
+            L"template.lua",
+            GetOwner()->GetWorld()->GetName().ToWideString(),
+            GetOwner()->GetName().ToWideString(),
+            ScriptPath,
+            DisplayName
+        );
+        if (!bSuccess) {
+            UE_LOG(LogLevel::Error, TEXT("Failed to create script from template"));
+            return;
+        }
+    }*/
 
     LuaState.open_libraries();
     BindEngineAPI();
@@ -130,7 +167,6 @@ void ULuaScriptComponent::BindEngineAPI()
     // [2] 바인딩 후, 새로 추가된 글로벌 키만 자동 로그
     LuaDebugHelper::LogNewBindings(LuaState, Before);
 }
-
 
 bool ULuaScriptComponent::CheckFileModified()
 {
