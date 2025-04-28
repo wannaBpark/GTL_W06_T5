@@ -189,9 +189,6 @@
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.h">
       <Filter>Engine\Source\Editor\PropertyEditor</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\IWindowToggleable.h">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.cpp">
       <Filter>Engine\Source\Editor\PropertyEditor</Filter>
     </ClCompile>
@@ -202,18 +199,6 @@
       <Filter>Engine\Source\Editor\PropertyEditor</Filter>
     </ClCompile>
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.h">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ShowFlags.cpp">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ShowFlags.h">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.h">
       <Filter>Engine\Source\Editor\PropertyEditor</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPanel.h">
@@ -235,12 +220,6 @@
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClCompile>
     <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveDrawBatch.h">
-      <Filter>Engine\Source\Editor\UnrealEd</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneMgr.cpp">
-      <Filter>Engine\Source\Editor\UnrealEd</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h">
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClInclude>
     <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEd.cpp">
@@ -818,6 +797,12 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LuaScriptComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaScriptManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaTypes\LuaUserTypes.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorConfigManager.cpp" />
+    <ClCompile Include="Engine\Source\Games\LastWar\Characters\PlayerCharacter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\CollisionMath.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\OverlapInfo.h" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\ViewportClient.cpp" />
+    <ClCompile Include="Engine\Source\Games\LastWar\Characters\EnemyCharacter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1030,6 +1015,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaUtils\LuaBindUtils.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaScriptManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaTypes\LuaUserTypes.h" />
+    <ClInclude Include="Engine\Source\Games\LastWar\Characters\PlayerCharacter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\CollisionMath.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorConfigManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Lua\LuaUtils\LuaTypeMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\ShapeInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlag.h" />
+    <ClInclude Include="Engine\Source\Games\LastWar\Characters\EnemyCharacter.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
