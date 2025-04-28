@@ -23,39 +23,34 @@ void UCameraComponent::InitializeComponent()
 {
     USceneComponent::InitializeComponent();
 
-    FVector FL = GetWorldLocation();
-    FVector TL = FL + GetForwardVector() * 10;
+    FVector TL = GetWorldLocation() + GetForwardVector() * 10;
     
-    LerpMovement(FL, TL, 0.8);
+    SetLocationWithFInterpTo(TL);
+    SetFInterpToSpeed(0.8f);
 }
 
 void UCameraComponent::TickComponent(float DeltaTime)
 {
     USceneComponent::TickComponent(DeltaTime);
 
-    ProceedLerp(DeltaTime);
+    ProceedFInterp(DeltaTime);
 }
 
 
-void UCameraComponent::ProceedLerp(float DeltaTime)
+void UCameraComponent::ProceedFInterp(float DeltaTime)
 {
-    if (LerpDeltaVector > 0 ) // Lerp중
-    {
-        FVector FromLocation = GetWorldLocation();
-        FVector ToLocation = FromLocation + LerpDeltaVector;
-
-        FVector MoveLocation = FMath::FInterpTo(FromLocation, ToLocation, DeltaTime, LerpSpeed);
-        SetWorldLocation(MoveLocation);
-
-        //움직인만큼 빼주기
-        LerpDeltaVector -= MoveLocation - FromLocation;
-        LerpDeltaVector = FMath::Max(LerpDeltaVector, FVector::ZeroVector);
-    }
+    FVector FromLocation = GetWorldLocation();
+  
+    FVector MoveLocation = FMath::FInterpTo(FromLocation, FInterpTargetLocation, DeltaTime, FInterpToSpeed);
+    SetWorldLocation(MoveLocation);
 }
 
-void UCameraComponent::LerpMovement(FVector& FromLocation, FVector& ToLocation, float InLerpSpeed) //LerpSpeed = 0은 안움직이고 1은 바로이동
+void UCameraComponent::SetLocationWithFInterpTo(FVector& ToLocation) //LerpSpeed = 0은 안움직이고 1은 바로이동
 {
-    LerpDeltaVector = ToLocation - FromLocation;
+    FInterpTargetLocation = ToLocation;
+}
 
-    LerpSpeed = InLerpSpeed;
+void UCameraComponent::SetFInterpToSpeed(float InSpeed)
+{
+    FInterpToSpeed = InSpeed;
 }

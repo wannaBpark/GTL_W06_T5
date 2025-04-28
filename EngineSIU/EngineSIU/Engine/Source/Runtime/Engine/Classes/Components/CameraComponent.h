@@ -18,11 +18,12 @@ public:
 
     static std::shared_ptr<UCameraComponent> DefaultCamera; //아무 세팅 안된 기본카메라가 필요할때 쓰면 됨
 
-    void ProceedLerp(float DeltaTime);
-    void LerpMovement(FVector& FromLocation, FVector& ToLocation, float DeltaTime);
+    void SetLocationWithFInterpTo(FVector& ToLocation);
+    void SetFInterpToSpeed(float InSpeed);
 
 private:
+    void ProceedFInterp(float DeltaTime);
     
-    FVector LerpDeltaVector = FVector::ZeroVector;
-    float LerpSpeed = 0.f;
+    FVector FInterpTargetLocation = FVector::ZeroVector;
+    float FInterpToSpeed = 0.8f;
 };
