@@ -12,6 +12,7 @@ public:
     virtual void BeginPlay();
 
     virtual void Tick(float DeltaTime) override;
+    void ProcessInput(float DeltaTime) const;
 
     virtual void Destroyed();
 
@@ -23,11 +24,12 @@ public:
 
     virtual void UnPossess();
 protected:
-    UInputComponent* InputComponent = nullptr;
+    UPROPERTY
+    (UInputComponent*, InputComponent, = nullptr)
 
     virtual void SetupInputComponent();
 
-    virtual void ProcessInput(float DeltaTime);
+    virtual void BindAction(const FString& Key, const std::function<void(float)>& Callback);
 
     AActor* CurrentPossess = nullptr;
 

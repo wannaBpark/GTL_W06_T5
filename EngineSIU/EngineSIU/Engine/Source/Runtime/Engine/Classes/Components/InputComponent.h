@@ -5,23 +5,31 @@
 #include "Runtime/InputCore/InputCoreTypes.h"
 #include "Components/ActorComponent.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOneFloatDelegate, const float&)
+
 class UInputComponent : public UActorComponent
 {
     DECLARE_CLASS(UInputComponent, UActorComponent)
-    struct FInputActionBinding
-    {
-        TMulticastDelegate<void()> PressedDelegate;
-        TMulticastDelegate<void()> ReleasedDelegate;
-        TMulticastDelegate<void()> RepeatDelegate;
-        bool bPrevState = false;
-    };
 
-    TMap<EKeys::Type, FInputActionBinding> ActionBindings;
 
 public:
     UInputComponent() = default;
     ~UInputComponent() = default;
-    FDelegateHandle BindAction(EKeys::Type Key, EInputEvent EventType, std::function<void()> Callback);
+    void BindAction(const FString& Key, const std::function<void(float)>& Callback);
+
     void ProcessInput(float DeltaTime);
-    uint8 EKeysToVirtualKey(EKeys::Type);
+    
+    void SetPossess();
+    void BindInputDelegate();
+    void UnPossess();
+    void ClearBindDelegate();
+    // Possess가 풀렸다가 다시 왔을때 원래 바인딩 돼있던 애들 일괄적으로 다시 바인딩해줘야할수도 있음.
+    void InputKey(const FKeyEvent& InKeyEvent);
+
+private:
+    TMap<FString, FOneFloatDelegate> KeyBindDelegate;
+    TArray<FDelegateHandle> BindKeyDownDelegateHandles;
+    TArray<FDelegateHandle> BindKeyUpDelegateHandles;
+
+    TSet<EKeys::Type> PressedKeys;
 };

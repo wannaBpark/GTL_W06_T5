@@ -3,6 +3,10 @@
 #include "Components/PrimitiveComponent.h"
 #include "World/World.h"
 
+AActor::AActor()
+{
+    RootComponent = AddComponent<USceneComponent>();
+}
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
