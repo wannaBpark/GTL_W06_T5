@@ -4,6 +4,15 @@
 #include "World/World.h"
 
 
+AActor::AActor()
+{
+    RootComponent = AddComponent<USceneComponent>(FName("RootComponent"));
+}
+
+void AActor::PostSpawnInitialize()
+{
+}
+
 UObject* AActor::Duplicate(UObject* InOuter)
 {
     ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));

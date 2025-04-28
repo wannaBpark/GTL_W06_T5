@@ -18,7 +18,9 @@ class AActor : public UObject
     DECLARE_CLASS(AActor, UObject)
 
 public:
-    AActor() = default;
+    AActor();
+
+    virtual void PostSpawnInitialize();
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 

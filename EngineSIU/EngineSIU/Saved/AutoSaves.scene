@@ -1,79 +1,40 @@
 {
     "Actors": [
         {
-            "ActorClass": "APointLight",
-            "ActorID": "APointLight_124",
-            "ActorLabel": "APointLight124",
+            "ActorClass": "AFish",
+            "ActorID": "AFish_121",
+            "ActorLabel": "OBJ_FISH_121",
             "ActorTickInEditor": "false",
             "Components": [
                 {
-                    "ComponentClass": "UPointLightComponent",
-                    "ComponentID": "PointLightComponent_0",
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "RootComponent",
                     "Properties": {
-                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
-                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
-                        "AttachParentID": "UBillboardComponent_0",
-                        "Attenuation": "20.000000",
-                        "ComponentClass": "UPointLightComponent",
-                        "ComponentName": "PointLightComponent_0",
-                        "ComponentOwner": "APointLight_124",
-                        "ComponentOwnerClass": "APointLight",
-                        "Intensity": "55.900002",
-                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "Position": "X=-1.779 Y=4.121 Z=4.759",
-                        "Radius": "145.000000",
+                        "AttachParentID": "USphereComponent_123",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "RootComponent",
+                        "ComponentOwner": "AFish_121",
+                        "ComponentOwnerClass": "AFish",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "Type": "1",
                         "bAutoActive": "true",
                         "bIsActive": "true"
                     }
                 },
                 {
-                    "ComponentClass": "UBillboardComponent",
-                    "ComponentID": "UBillboardComponent_0",
+                    "ComponentClass": "USphereComponent",
+                    "ComponentID": "USphereComponent_123",
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
                         "AttachParentID": "nullptr",
-                        "BufferKey": "Assets/Editor/Icon/S_LightPoint.PNG",
-                        "ComponentClass": "UBillboardComponent",
-                        "ComponentName": "UBillboardComponent_0",
-                        "ComponentOwner": "APointLight_124",
-                        "ComponentOwnerClass": "APointLight",
-                        "FinalIndexU": "0.000000",
-                        "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=-1.779 Y=4.121 Z=4.759",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": "UBillboardComponent"
-                    }
-                }
-            ],
-            "RootComponentID": "UBillboardComponent_0"
-        },
-        {
-            "ActorClass": "AFish",
-            "ActorID": "AFish_115",
-            "ActorLabel": "OBJ_FISH_115",
-            "ActorTickInEditor": "false",
-            "Components": [
-                {
-                    "ComponentClass": "USphereComponent",
-                    "ComponentID": "USphereComponent_120",
-                    "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "AttachParentID": "USphereComponent_116",
                         "ComponentClass": "USphereComponent",
-                        "ComponentName": "USphereComponent_120",
-                        "ComponentOwner": "AFish_115",
+                        "ComponentName": "USphereComponent_123",
+                        "ComponentOwner": "AFish_121",
                         "ComponentOwnerClass": "AFish",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeLocation": "X=14.281 Y=0.000 Z=4.019",
+                        "RelativeRotation": "Pitch=0.000 Yaw=88.807 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "SphereRadius": "1.000000",
                         "bAutoActive": "true",
@@ -82,38 +43,18 @@
                     }
                 },
                 {
-                    "ComponentClass": "UFishTailComponent",
-                    "ComponentID": "UFishTailComponent_122",
-                    "Properties": {
-                        "AABB_max": "X=0.187 Y=-0.000 Z=0.664",
-                        "AABB_min": "X=-0.187 Y=-1.549 Z=-0.638",
-                        "AttachParentID": "UStaticMeshComponent_121",
-                        "ComponentClass": "UFishTailComponent",
-                        "ComponentName": "UFishTailComponent_122",
-                        "ComponentOwner": "AFish_115",
-                        "ComponentOwnerClass": "AFish",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/Fish/Fish_Back.obj",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": ""
-                    }
-                },
-                {
-                    "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "UStaticMeshComponent_121",
+                    "ComponentClass": "UFishBodyComponent",
+                    "ComponentID": "UFishBodyComponent_124",
                     "Properties": {
                         "AABB_max": "X=0.577 Y=2.584 Z=0.985",
                         "AABB_min": "X=-0.577 Y=-0.000 Z=-0.655",
-                        "AttachParentID": "USphereComponent_120",
-                        "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "UStaticMeshComponent_121",
-                        "ComponentOwner": "AFish_115",
+                        "AttachParentID": "USphereComponent_123",
+                        "ComponentClass": "UFishBodyComponent",
+                        "ComponentName": "UFishBodyComponent_124",
+                        "ComponentOwner": "AFish_121",
                         "ComponentOwnerClass": "AFish",
-                        "RelativeLocation": "X=0.000 Y=-0.500 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeLocation": "X=-0.500 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=-90.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Fish/Fish_Front.obj",
                         "bAutoActive": "true",
@@ -123,95 +64,91 @@
                 },
                 {
                     "ComponentClass": "UFishTailComponent",
-                    "ComponentID": "UFishTailComponent_118",
+                    "ComponentID": "UFishTailComponent_125",
                     "Properties": {
                         "AABB_max": "X=0.187 Y=-0.000 Z=0.664",
                         "AABB_min": "X=-0.187 Y=-1.549 Z=-0.638",
-                        "AttachParentID": "UStaticMeshComponent_117",
+                        "AttachParentID": "UFishBodyComponent_124",
                         "ComponentClass": "UFishTailComponent",
-                        "ComponentName": "UFishTailComponent_118",
-                        "ComponentOwner": "AFish_115",
+                        "ComponentName": "UFishTailComponent_125",
+                        "ComponentOwner": "AFish_121",
                         "ComponentOwnerClass": "AFish",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "StaticMeshPath": "Contents/Fish/Fish_Back.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
                     }
-                },
+                }
+            ],
+            "RootComponentID": "USphereComponent_123"
+        },
+        {
+            "ActorClass": "APlatformActor",
+            "ActorID": "APlatformActor_126",
+            "ActorLabel": "OBJ_PLATFORM_126",
+            "ActorTickInEditor": "false",
+            "Components": [
                 {
-                    "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "UStaticMeshComponent_117",
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "RootComponent",
                     "Properties": {
-                        "AABB_max": "X=0.577 Y=2.584 Z=0.985",
-                        "AABB_min": "X=-0.577 Y=-0.000 Z=-0.655",
-                        "AttachParentID": "USphereComponent_116",
-                        "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "UStaticMeshComponent_117",
-                        "ComponentOwner": "AFish_115",
-                        "ComponentOwnerClass": "AFish",
-                        "RelativeLocation": "X=0.000 Y=-0.500 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "AttachParentID": "nullptr",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "RootComponent",
+                        "ComponentOwner": "APlatformActor_126",
+                        "ComponentOwnerClass": "APlatformActor",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/Fish/Fish_Front.obj",
                         "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": ""
+                        "bIsActive": "true"
                     }
                 },
                 {
-                    "ComponentClass": "USphereComponent",
-                    "ComponentID": "USphereComponent_116",
+                    "ComponentClass": "UBoxComponent",
+                    "ComponentID": "UBoxComponent_128",
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
                         "AttachParentID": "nullptr",
-                        "ComponentClass": "USphereComponent",
-                        "ComponentName": "USphereComponent_116",
-                        "ComponentOwner": "AFish_115",
-                        "ComponentOwnerClass": "AFish",
-                        "RelativeLocation": "X=2.156 Y=0.000 Z=0.000",
+                        "BoxExtent": "X=1.000 Y=1.000 Z=1.000",
+                        "ComponentClass": "UBoxComponent",
+                        "ComponentName": "UBoxComponent_128",
+                        "ComponentOwner": "APlatformActor_126",
+                        "ComponentOwnerClass": "APlatformActor",
+                        "RelativeLocation": "X=14.065 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "SphereRadius": "1.000000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
                     }
-                }
-            ],
-            "RootComponentID": "USphereComponent_116"
-        },
-        {
-            "ActorClass": "ACube",
-            "ActorID": "ACube_126",
-            "ActorLabel": "OBJ_CUBE_126",
-            "ActorTickInEditor": "false",
-            "Components": [
+                },
                 {
                     "ComponentClass": "UStaticMeshComponent",
-                    "ComponentID": "StaticMeshComponent_0",
+                    "ComponentID": "UStaticMeshComponent_129",
                     "Properties": {
-                        "AABB_max": "X=1.686 Y=5.140 Z=5.834",
-                        "AABB_min": "X=-1.686 Y=-8.202 Z=-0.061",
-                        "AttachParentID": "nullptr",
+                        "AABB_max": "X=0.500 Y=0.500 Z=0.500",
+                        "AABB_min": "X=-0.500 Y=-0.500 Z=-0.500",
+                        "AttachParentID": "UBoxComponent_128",
                         "ComponentClass": "UStaticMeshComponent",
-                        "ComponentName": "StaticMeshComponent_0",
-                        "ComponentOwner": "ACube_126",
-                        "ComponentOwnerClass": "ACube",
-                        "RelativeLocation": "X=6.341 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "ComponentName": "UStaticMeshComponent_129",
+                        "ComponentOwner": "APlatformActor_126",
+                        "ComponentOwnerClass": "APlatformActor",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "StaticMeshPath": "Contents/FryBasket/FryBasket.obj",
+                        "StaticMeshPath": "Contents/CubePrimitive.obj",
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": ""
                     }
                 }
             ],
-            "RootComponentID": "StaticMeshComponent_0"
+            "RootComponentID": "UBoxComponent_128"
         }
     ],
     "NextUUID": 0,

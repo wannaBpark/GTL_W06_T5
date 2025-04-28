@@ -110,11 +110,14 @@ UObject* UWorld::Duplicate(UObject* InOuter)
 void UWorld::Tick(float DeltaTime)
 {
     // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
-    for (AActor* Actor : PendingBeginPlayActors)
+    if (WorldType != EWorldType::Editor)
     {
-        Actor->BeginPlay();
+        for (AActor* Actor : PendingBeginPlayActors)
+        {
+            Actor->BeginPlay();
+        }
+        PendingBeginPlayActors.Empty();
     }
-    PendingBeginPlayActors.Empty();
 }
 
 void UWorld::BeginPlay()
@@ -166,6 +169,8 @@ AActor* UWorld::SpawnActor(UClass* InClass, FName InActorName)
         // Actor->InitializeComponents();
         ActiveLevel->Actors.Add(NewActor);
         PendingBeginPlayActors.Add(NewActor);
+
+        NewActor->PostSpawnInitialize();
         return NewActor;
     }
     
