@@ -22,11 +22,6 @@ UObject* UCameraComponent::Duplicate(UObject* InOuter)
 void UCameraComponent::InitializeComponent()
 {
     USceneComponent::InitializeComponent();
-
-    FVector TL = GetWorldLocation() + GetForwardVector() * 10;
-    
-    SetLocationWithFInterpTo(TL);
-    SetFInterpToSpeed(0.8f);
 }
 
 void UCameraComponent::TickComponent(float DeltaTime)

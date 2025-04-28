@@ -5,7 +5,11 @@
 
 AActor::AActor()
 {
-    RootComponent = AddComponent<USceneComponent>();
+    RootComponent = AddComponent<USceneComponent>(FName("RootComponent"));
+}
+
+void AActor::PostSpawnInitialize()
+{
 }
 
 UObject* AActor::Duplicate(UObject* InOuter)

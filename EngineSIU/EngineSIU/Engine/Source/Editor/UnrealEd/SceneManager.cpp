@@ -231,7 +231,7 @@ FSceneData SceneManager::WorldToSceneData(const UWorld& InWorld)
 
 bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* targetWorld)
 {
-        if (targetWorld == nullptr)
+    if (targetWorld == nullptr)
     {
         UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Target World is null!"));
         return false;

@@ -36,7 +36,12 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     float3 DiffuseColor = Material.DiffuseColor;
     if (Material.TextureFlag & TEXTURE_FLAG_DIFFUSE)
     {
-        DiffuseColor = MaterialTextures[TEXTURE_SLOT_DIFFUSE].Sample(MaterialSamplers[TEXTURE_SLOT_DIFFUSE], Input.UV).rgb;
+        float4 DiffuseColor4 = MaterialTextures[TEXTURE_SLOT_DIFFUSE].Sample(MaterialSamplers[TEXTURE_SLOT_DIFFUSE], Input.UV);
+        if (DiffuseColor4.a < 0.1f)
+        {
+            discard;
+        }
+        DiffuseColor = DiffuseColor4.rgb;
     }
 
     // Normal

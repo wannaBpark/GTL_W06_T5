@@ -35,6 +35,8 @@
 #include "Actors/SphereActor.h"
 #include "Actors/CapsuleActor.h"
 #include "Actors/PlayerController.h"
+#include "Contents/Actors/Fish.h"
+#include "Contents/Actors/PlatformActor.h"
 
 void ControlEditorPanel::Render()
 {
@@ -307,6 +309,8 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             {.Label = "SphereCol", .OBJ = OBJ_SPHERE_COLLISION},
             {.Label = "CapsuleCol", .OBJ = OBJ_CAPSULE_COLLISION},
             {.Label = "PlayerController", .OBJ = OBJ_PLAYER_CONTROLLER},
+            {.Label = "Fish", .OBJ = OBJ_FISH},
+            {.Label = "Platform", .OBJ = OBJ_PLATFORM},
         };
 
         for (const auto& primitive : primitives)
@@ -421,6 +425,14 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }
+                case OBJ_FISH:
+                    SpawnedActor = World->SpawnActor<AFish>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_FISH"));
+                    break;
+                case OBJ_PLATFORM:
+                    SpawnedActor = World->SpawnActor<APlatformActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_PLATFORM"));
+                    break;
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
                 case OBJ_END:

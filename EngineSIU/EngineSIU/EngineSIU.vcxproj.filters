@@ -237,12 +237,6 @@
     <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveDrawBatch.h">
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneMgr.cpp">
-      <Filter>Engine\Source\Editor\UnrealEd</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h">
-      <Filter>Engine\Source\Editor\UnrealEd</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEd.cpp">
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClCompile>
@@ -392,12 +386,6 @@
     </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Engine\ViewportClient.h">
       <Filter>Engine\Source\Runtime\Engine</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.cpp">
-      <Filter>Engine\Source\Runtime\Engine\Camera</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.h">
-      <Filter>Engine\Source\Runtime\Engine\Camera</Filter>
     </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Level.cpp">
       <Filter>Engine\Source\Runtime\Engine\Classes</Filter>
@@ -806,6 +794,14 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SphereActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\CapsuleActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\CollisionManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PlayerController.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SamplePlayerController.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CameraComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Components\FishTailComponent.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Actors\Fish.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Components\FishBodyComponent.cpp" />
+    <ClCompile Include="Engine\Source\Contents\Actors\PlatformActor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -900,6 +896,15 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\CapsuleActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\CollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\OverlapResult.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PlayerController.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SamplePlayerController.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CameraComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EventManager.h" />
+    <ClInclude Include="Engine\Source\Contents\Components\FishTailComponent.h" />
+    <ClInclude Include="Engine\Source\Contents\Actors\Fish.h" />
+    <ClInclude Include="Engine\Source\Contents\Components\FishBodyComponent.h" />
+    <ClInclude Include="Engine\Source\Contents\Actors\PlatformActor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
