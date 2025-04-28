@@ -2,6 +2,9 @@
 
 #include "UnrealClient.h"
 #include "Math/JungleMath.h"
+#include "Engine/EditorEngine.h"
+#include "World/World.h"
+#include "Camera/CameraComponent.h"
 
 FVector FViewportClient::OrthoPivot = FVector(0.0f, 0.0f, 0.0f);
 float FViewportClient::OrthoSize = 10.0f;
@@ -74,6 +77,18 @@ bool FViewportClient::IsPerspective() const
 
 void FViewportClient::UpdateViewMatrix()
 {
+    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    {
+        UCameraComponent* PlayerCamera = GEngine->ActiveWorld->GetFirstPlayerController()->GetCharacter()->GetFollowCamera();
+        View = JungleMath::CreateViewMatrix(
+            PlayerCamera->GetLocation(),
+            PlayerCamera->GetLocation() + PlayerCamera->GetForwardVector(),
+            PlayerCamera->GetUpVector()
+        );
+
+        return;
+    }
+
     if (IsPerspective())
     {
         View = JungleMath::CreateViewMatrix(PerspectiveCamera.GetLocation(),

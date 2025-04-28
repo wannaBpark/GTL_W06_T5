@@ -7,9 +7,7 @@
 #include "Math/JungleMath.h"
 #include "UnrealClient.h"
 #include "WindowsCursor.h"
-#include "World/World.h"
 #include "GameFramework/Actor.h"
-#include "Engine/EditorEngine.h"
 
 #include "UObject/ObjectFactory.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -44,10 +42,11 @@ void FEditorViewportClient::Tick(const float DeltaTime)
     if(GEngine->ActiveWorld->WorldType == EWorldType::Editor)
     {
         UpdateEditorCameraMovement(DeltaTime);
-        UpdateViewMatrix();
-        UpdateProjectionMatrix();
         GizmoActor->Tick(DeltaTime);
     }
+
+    UpdateViewMatrix();
+    UpdateProjectionMatrix();
 }
 
 void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
@@ -86,7 +85,7 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
 {
     // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
-
+    // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
     if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
         // PIE 모드 → 게임 플레이 입력 처리

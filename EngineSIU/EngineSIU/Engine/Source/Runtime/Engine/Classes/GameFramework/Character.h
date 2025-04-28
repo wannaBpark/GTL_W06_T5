@@ -4,6 +4,7 @@
 class UInputComponent;
 class AController;
 class UStaticMeshComponent;
+class UCameraComponent;
 class ACharacter : public APawn
 {
     DECLARE_CLASS(ACharacter, APawn)
@@ -23,8 +24,20 @@ public:
     void MoveLeft(float Value);
     void MoveBackward(float Value);
 
+    // === 카메라 관련 ===
+    UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
 private:
     UPROPERTY
-    (UStaticMeshComponent*, StaticMeshComponent, = nullptr);
+    (USceneComponent*, RootScene, = nullptr);
+
+    UPROPERTY
+    (UStaticMeshComponent*, BodyMesh, = nullptr);
+
+    //UPROPERTY
+    //(USpringArmComponent*, CameraBoom, = nullptr);
+
+    UPROPERTY
+    (UCameraComponent*, FollowCamera, = nullptr);
 };
 
