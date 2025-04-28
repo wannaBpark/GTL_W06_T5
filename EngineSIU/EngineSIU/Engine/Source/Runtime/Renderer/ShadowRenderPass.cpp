@@ -123,6 +123,11 @@ void FShadowRenderPass::Render(const std::shared_ptr<FViewportClient>& Viewport)
     
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
     {
+        if (DirectionalLight->GetWorld() != GEngine->ActiveWorld)
+        {
+            continue;
+        }
+
         // Cascade Shadow Map을 위한 ViewProjection Matrix 설정
             ShadowManager->UpdateCascadeMatrices(Viewport, DirectionalLight);
 

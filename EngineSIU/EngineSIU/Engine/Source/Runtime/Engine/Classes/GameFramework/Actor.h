@@ -143,6 +143,7 @@ public:
         {
             return;
         }
+        UE_LOG(LogLevel::Display, "Handle Overlap %s,  %s", GetData(OtherActor->GetName()), GetData(GetName()));
         Destroy();
     }
 

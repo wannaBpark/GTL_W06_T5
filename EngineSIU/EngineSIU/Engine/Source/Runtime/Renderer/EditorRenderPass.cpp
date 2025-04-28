@@ -398,6 +398,11 @@ void FEditorRenderPass::PrepareRenderArr()
     // gizmo 제외하고 넣기
     for (const auto* Actor : TObjectRange<AActor>())
     {
+        if (Actor->GetWorld() != GEngine->ActiveWorld)
+        {
+            continue;
+        }
+        
         for (const auto* Component : Actor->GetComponents())
         {
             // AABB용 static mesh component

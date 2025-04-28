@@ -72,6 +72,7 @@ void UPrimitiveComponent::UpdateOverlaps()
     AActor* Owner = GetOwner();
     for (UPrimitiveComponent* Other : TObjectRange<UPrimitiveComponent>())
     {
+        if (Other->GetWorld() != Owner->GetWorld()) continue;
         if (Other == this || !Cast<UShapeComponent>(Other)) continue;
         if (Owner == Other->GetOwner()) continue;
 
