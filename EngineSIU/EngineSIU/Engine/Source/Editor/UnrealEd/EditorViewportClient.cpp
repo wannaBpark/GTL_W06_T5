@@ -7,9 +7,7 @@
 #include "Math/JungleMath.h"
 #include "UnrealClient.h"
 #include "WindowsCursor.h"
-#include "World/World.h"
 #include "GameFramework/Actor.h"
-#include "Engine/EditorEngine.h"
 
 #include "UObject/ObjectFactory.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -88,7 +86,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
 {
     // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
     // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
-    if (IsPIEMode())
+    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
         // PIE 모드 → 게임 플레이 입력 처리
         UWorld* PlayWorld = GEngine->ActiveWorld;
@@ -395,11 +393,6 @@ void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, 
 bool FEditorViewportClient::IsSelected(const FVector2D& InPoint) const
 {
     return GetViewport()->bIsHovered(InPoint);
-}
-
-bool FEditorViewportClient::IsPIEMode() const
-{
-    return GEngine->ActiveWorld->WorldType == EWorldType::PIE;
 }
 
 void FEditorViewportClient::DeprojectFVector2D(const FVector2D& ScreenPos, FVector& OutWorldOrigin, FVector& OutWorldDir) const

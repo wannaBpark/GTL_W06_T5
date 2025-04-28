@@ -1,6 +1,7 @@
 #pragma once
 #include "Controller.h"
 #include "InputCore/InputCoreTypes.h"
+#include "Character.h"
 
 class UCameraComponent;
 class UPlayerInput;
@@ -15,6 +16,7 @@ public:
     virtual void Tick(float DeltaTime) override;
 
 public:
+    ACharacter* GetCharacter() const { return Cast<ACharacter>(GetPawn()); }
     virtual void SetupInputComponent() override;
     // === 입력 기능 ===
     void AddYawInput(float Value);

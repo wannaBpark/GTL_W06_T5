@@ -24,6 +24,9 @@ public:
     void MoveLeft(float Value);
     void MoveBackward(float Value);
 
+    // === 카메라 관련 ===
+    UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
 private:
     UPROPERTY
     (USceneComponent*, RootScene, = nullptr);

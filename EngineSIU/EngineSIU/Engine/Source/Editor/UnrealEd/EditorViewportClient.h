@@ -24,7 +24,7 @@ public:
     void ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right);
 
     bool IsSelected(const FVector2D& InPoint) const;
-    bool IsPIEMode() const;
+
 
     /**
      * ScreenPos를 World Space로 Deprojection 합니다.
